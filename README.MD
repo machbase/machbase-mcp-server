@@ -119,7 +119,3 @@ You can make natural language requests in Claude Desktop like these:
 "List all columns in sensor_data"
 "Generate a trend report for device_001"
 
-### Contributing ###
-Contributions are welcome!
-Feel free to submit a Pull Request for bug fixes, features, or documentation improvements.
-
