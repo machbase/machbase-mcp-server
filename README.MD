@@ -33,6 +33,21 @@ You can make natural language requests in Claude Desktop like these:
 
 ```
 User Request → Claude Desktop → MCP Server → Machbase Neo
-↑                                           ↓
+↑                                                      ↓
 Response ← Claude Interpretation ← MCP Response ← Query Results
 ```
+
+## Installation
+
+### Quick Setup
+
+#### Windows
+1. **Install Claude Desktop** (if you don't have it yet)
+2. **Download project from Git**
+   ```bash
+   git clone https://github.com/your-org/Machbase_MCP_Server.git
+   cd Machbase_MCP_Server
+3. **Run automatic installation**
+
+
+
