@@ -48,6 +48,18 @@ Response ← Claude Interpretation ← MCP Response ← Query Results
    git clone https://github.com/your-org/Machbase_MCP_Server.git
    cd Machbase_MCP_Server
 3. **Run automatic installation**
+   ```bash
+   MCP_Install.bat
 
+#### MacOS
+1. **Download project from Git**
+   ```bash
+  git clone https://github.com/your-org/Machbase_MCP_Server.git
+  cd Machbase_MCP_Server
+2. **Run automatic installation**
+   ```bash
+   ./MCP_Install_mac.sh
+    
+> **After installation**: Restart Claude Desktop and test with "Show me the Machbase table list!"
 
 
