@@ -31,8 +31,8 @@ You can make natural language requests in Claude Desktop like these:
 
 **Data Flow:**
 
-'''
+```
 User Request → Claude Desktop → MCP Server → Machbase Neo
 ↑                                           ↓
 Response ← Claude Interpretation ← MCP Response ← Query Results
-'''
+```
