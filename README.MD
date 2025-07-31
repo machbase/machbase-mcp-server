@@ -19,3 +19,20 @@ When users request database operations in natural language through Claude Deskto
 ### Usage Examples
 
 You can make natural language requests in Claude Desktop like these:
+
+### How It Works
+
+| Step | Component | Role | Communication |
+|------|-----------|------|---------------|
+| 1 | User | Input natural language request | Chat interface |
+| 2 | Claude Desktop | Parse request & call MCP tools | MCP Protocol |
+| 3 | MCP Server | Generate SQL & connect to Machbase | HTTP/REST API |
+| 4 | Machbase Neo | Execute database operations | SQL queries |
+
+**Data Flow:**
+
+'''
+User Request → Claude Desktop → MCP Server → Machbase Neo
+↑                                           ↓
+Response ← Claude Interpretation ← MCP Response ← Query Results
+'''
