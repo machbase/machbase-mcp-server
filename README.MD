@@ -65,3 +65,44 @@ Response ← Claude Interpretation ← MCP Response ← Query Results
    ./MCP_Install_mac.sh
     
 > **After installation**: Restart Claude Desktop and test with "Show me the Machbase table list!"
+
+### Manual Setup
+
+For manual installation or if errors occur during the above installation process:
+
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/your-org/Machbase_MCP_Server.git
+   cd Machbase_MCP_Server
+
+2. **Python Environment Setup**
+   ```bash
+   # Using Conda
+   conda create -n mcp python=3.11
+   conda activate mcp
+   
+   # Using venv
+   python -m venv mcp-env
+   source mcp-env/bin/activate  # Linux/macOS
+   # mcp-env\Scripts\activate   # Windows
+
+3. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+
+4. **Claude Desktop and MCP Server Configuration**
+   ```bash
+   # Create C:\Users\Username\AppData\Roaming\Claude\claude_desktop_config.json
+   {
+       "mcpServers": {
+         "machbase": {
+           "command": "C:/Users/Username/anaconda3/envs/mcp/python.exe",
+           "args": ["C:/Users/Username/AppData/Roaming/Claude/Machbase.py"],
+           "env": {
+             "MACHBASE_HOST": "localhost",
+             "MACHBASE_PORT": "5654"
+             }
+         }
+       }
+   } 
+
