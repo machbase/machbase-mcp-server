@@ -43,6 +43,7 @@ Response ← Claude Interpretation ← MCP Response ← Query Results
 
 #### Windows
 1. **Install Claude Desktop** (if you don't have it yet)
+    * https://claude.ai/download
 2. **Download project from Git**
    ```bash
    git clone https://github.com/your-org/Machbase_MCP_Server.git
@@ -61,5 +62,3 @@ Response ← Claude Interpretation ← MCP Response ← Query Results
    ./MCP_Install_mac.sh
     
 > **After installation**: Restart Claude Desktop and test with "Show me the Machbase table list!"
-
-
