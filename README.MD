@@ -1,3 +1,5 @@
+![Diagram](./Machbase_MCP_Sever/Machbase.png)
+
 ## Overview
 
 This project is an **MCP (Model Context Protocol)** based server that enables natural language-based database operations through integration between **Claude Desktop** and **Machbase Neo**.
