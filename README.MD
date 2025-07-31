@@ -92,7 +92,9 @@ For manual installation or if errors occur during the above installation process
 
 4. **Claude Desktop and MCP Server Configuration**
    ```bash
-   # Create C:\Users\Username\AppData\Roaming\Claude\claude_desktop_config.json
+   # Create C:/Users/Username/AppData/Roaming/Claude/claude_desktop_config.json
+   # Machbase.py to C:/Users/Username/AppData/Roaming/Claude/
+
    {
        "mcpServers": {
          "machbase": {
