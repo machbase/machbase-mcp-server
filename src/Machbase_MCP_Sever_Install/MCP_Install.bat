@@ -3,159 +3,159 @@ setlocal
 chcp 65001 >nul
 
 echo ========================================
-echo 설치 시작
+echo Starting installation
 echo ========================================
 
-:: 현재 사용자명과 경로 동적 설정
+:: Dynamic setup of current username and paths
 set CURRENT_USER=%USERNAME%
 set ANACONDA_PATH=C:\Users\%CURRENT_USER%\anaconda3
 set MCP_PYTHON_PATH=%ANACONDA_PATH%\envs\mcp\python.exe
 set CURRENT_DIR=%~dp0
 set CLAUDE_CONFIG_DIR=%APPDATA%\Claude
 
-echo 현재 사용자: %CURRENT_USER%
-echo Anaconda 설치 경로: %ANACONDA_PATH%
-echo MCP Python 경로: %MCP_PYTHON_PATH%
-echo 현재 디렉토리: %CURRENT_DIR%
-echo Claude 설정 디렉토리: %CLAUDE_CONFIG_DIR%
+echo Current user: %CURRENT_USER%
+echo Anaconda installation path: %ANACONDA_PATH%
+echo MCP Python path: %MCP_PYTHON_PATH%
+echo Current directory: %CURRENT_DIR%
+echo Claude configuration directory: %CLAUDE_CONFIG_DIR%
 echo.
 
 :check_anaconda
-:: 1단계: Anaconda가 이미 설치되어 있는지 확인
+:: Step 1: Check if Anaconda is already installed
 echo ========================================
-echo Anaconda 설치 확인 중...
+echo Checking Anaconda installation...
 echo ========================================
 
 where conda >nul 2>nul
 if %errorlevel% equ 0 (
-    echo Anaconda/Miniconda가 이미 설치되어 있습니다.
+    echo Anaconda/Miniconda is already installed.
     goto :setup_mcp
 )
 
-echo 1. Anaconda가 설치되어 있지 않습니다. 설치를 진행합니다...
+echo 1. Anaconda is not installed. Proceeding with installation...
 
-:: 기존 설치 파일이 있는지 확인
+:: Check if existing installation files exist
 if exist "%ANACONDA_PATH%\python.exe" (
-    echo Anaconda가 이미 설치되어 있지만 PATH에 등록되지 않았습니다.
+    echo Anaconda is already installed but not registered in PATH.
     goto :setup_path
 )
 
-echo 2. Anaconda 다운로드 중... (시간이 좀 걸릴 수 있습니다)
+echo 2. Downloading Anaconda... (This may take some time)
 powershell -Command "Invoke-WebRequest -Uri 'https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Windows-x86_64.exe' -OutFile 'Anaconda3-installer.exe'"
 
 if not exist "Anaconda3-installer.exe" (
-    echo 다운로드에 실패했습니다. 네트워크 연결을 확인해주세요.
+    echo Download failed. Please check your network connection.
     pause
     exit /b 1
 )
 
-echo 3. Anaconda 설치 중... (무음 설치)
+echo 3. Installing Anaconda... (silent installation)
 Anaconda3-installer.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%ANACONDA_PATH%
 
-:: 설치 완료 확인
-echo 4. 설치 완료 대기 중...
+:: Check installation completion
+echo 4. Waiting for installation completion...
 timeout /t 10 /nobreak >nul
 
 if not exist "%ANACONDA_PATH%\python.exe" (
-    echo 오류: Anaconda 설치에 실패했습니다.
-    echo 수동으로 설치를 확인해주세요.
+    echo Error: Anaconda installation failed.
+    echo Please check the installation manually.
     pause
     exit /b 1
 )
 
-echo 5. Anaconda 설치가 완료되었습니다.
-echo 6. 설치 파일 삭제 중...
+echo 5. Anaconda installation completed.
+echo 6. Deleting installation file...
 del Anaconda3-installer.exe
 
 :setup_path
-echo 7. PATH 환경변수 설정 중...
+echo 7. Setting PATH environment variable...
 set PATH=%ANACONDA_PATH%;%ANACONDA_PATH%\Scripts;%ANACONDA_PATH%\condabin;%PATH%
 
-:: conda 초기화
-echo 8. conda 초기화 중...
+:: Initialize conda
+echo 8. Initializing conda...
 "%ANACONDA_PATH%\Scripts\conda.exe" init cmd.exe
 
-echo 9. conda 설정 완료. MCP 환경 설정을 시작합니다...
+echo 9. conda setup complete. Starting MCP environment setup...
 
 :setup_mcp
 echo ========================================
-echo MCP 환경 설정 시작
+echo Starting MCP environment setup
 echo ========================================
 
-:: conda가 설치되어 있는지 다시 확인
+:: Check if conda is installed again
 where conda >nul 2>nul
 if %errorlevel% neq 0 (
-    echo conda 명령을 찾을 수 없습니다. PATH를 수동으로 설정합니다...
+    echo Cannot find conda command. Setting PATH manually...
     set PATH=%ANACONDA_PATH%;%ANACONDA_PATH%\Scripts;%ANACONDA_PATH%\condabin;%PATH%
 )
 
-echo 1. conda 명령줄 환경 초기화 중...
+echo 1. Initializing conda command line environment...
 call conda init cmd.exe
 
-echo 2. 'mcp' 가상 환경 생성 중... (Python 3.11)
+echo 2. Creating 'mcp' virtual environment... (Python 3.11)
 call conda create -n mcp python=3.11 -y
 
-echo 3. 'mcp' 가상 환경 활성화 중...
+echo 3. Activating 'mcp' virtual environment...
 call conda activate mcp
 if %errorlevel% neq 0 (
-    echo 오류: 가상 환경 활성화에 실패했습니다.
-    echo 새 명령 프롬프트를 열어서 다시 시도해주세요.
+    echo Error: Failed to activate virtual environment.
+    echo Please open a new command prompt and try again.
     pause
     exit /b 1
 )
 
-echo 4. pip 업그레이드 및 기본 패키지 설치 중...
+echo 4. Upgrading pip and installing basic packages...
 python -m pip install --upgrade pip
 pip install aiohttp
 pip install httpx
 pip install fastmcp
 pip install beautifulsoup4
 
-echo 5. requirements.txt 파일 확인 중...
+echo 5. Checking requirements.txt file...
 if not exist requirements.txt (
-    echo 경고: requirements.txt 파일이 현재 디렉토리에 없습니다.
-    echo 기본 패키지만 설치되었습니다.
+    echo Warning: requirements.txt file not found in current directory.
+    echo Only basic packages have been installed.
     goto :create_config
 )
 
-echo 6. requirements.txt에서 라이브러리 설치 중...
+echo 6. Installing libraries from requirements.txt...
 pip install -r requirements.txt --ignore-installed --no-deps
 
 :create_config
 echo ========================================
-echo Claude Desktop 파일 설정 중...
+echo Setting up Claude Desktop files...
 echo ========================================
 
-:: Claude 설정 디렉토리 생성
+:: Create Claude configuration directory
 if not exist "%CLAUDE_CONFIG_DIR%" (
-    echo 7. Claude 설정 디렉토리 생성 중...
+    echo 7. Creating Claude configuration directory...
     mkdir "%CLAUDE_CONFIG_DIR%"
 )
 
-:: Machbase.py 파일이 현재 디렉토리에 있는지 확인
+:: Check if Machbase.py file exists in current directory
 if not exist "Machbase.py" (
-    echo 경고: Machbase.py 파일이 현재 디렉토리에 없습니다.
-    echo Machbase.py 파일을 현재 디렉토리에 넣고 다시 실행해주세요.
+    echo Warning: Machbase.py file not found in current directory.
+    echo Please place Machbase.py file in current directory and run again.
     pause
     exit /b 1
 )
 
-:: Machbase.py를 Claude 설정 디렉토리로 복사
-echo 8. Machbase.py 파일을 Claude 설정 디렉토리로 복사 중...
+:: Copy Machbase.py to Claude configuration directory
+echo 8. Copying Machbase.py file to Claude configuration directory...
 copy "Machbase.py" "%CLAUDE_CONFIG_DIR%\Machbase.py"
 
 if not exist "%CLAUDE_CONFIG_DIR%\Machbase.py" (
-    echo 오류: Machbase.py 복사에 실패했습니다.
+    echo Error: Failed to copy Machbase.py.
     pause
     exit /b 1
 )
 
-:: JSON 파일의 경로 설정 (Claude 설정 디렉토리 기준)
+:: Set JSON file paths (relative to Claude configuration directory)
 set JSON_PYTHON_PATH=%MCP_PYTHON_PATH:\=/%
 set JSON_MACHBASE_PATH=%CLAUDE_CONFIG_DIR%\Machbase.py
 set JSON_MACHBASE_PATH=%JSON_MACHBASE_PATH:\=/%
 
-echo 9. claude_desktop_config.json 파일 생성 중...
+echo 9. Creating claude_desktop_config.json file...
 (
 echo {
 echo     "mcpServers": {
@@ -172,9 +172,9 @@ echo }
 ) > "%CLAUDE_CONFIG_DIR%\claude_desktop_config.json"
 
 if exist "%CLAUDE_CONFIG_DIR%\claude_desktop_config.json" (
-    echo claude_desktop_config.json 파일이 성공적으로 생성되었습니다.
+    echo claude_desktop_config.json file created successfully.
 ) else (
-    echo 오류: config 파일 생성에 실패했습니다.
+    echo Error: Failed to create config file.
     pause
     exit /b 1
 )
@@ -182,32 +182,32 @@ if exist "%CLAUDE_CONFIG_DIR%\claude_desktop_config.json" (
 :complete
 echo.
 echo ========================================
-echo 모든 설치 및 설정이 완료되었습니다!
+echo All installation and setup completed!
 echo ========================================
 echo.
-echo 설치된 프로그램:
+echo Installed programs:
 echo - Anaconda Python
-echo - MCP 환경 (Python 3.11)
+echo - MCP environment (Python 3.11)
 echo.
-echo 현재 사용자: %CURRENT_USER%
-echo Python 실행 파일 경로: %MCP_PYTHON_PATH%
+echo Current user: %CURRENT_USER%
+echo Python executable path: %MCP_PYTHON_PATH%
 echo.
-echo 파일 위치:
+echo File locations:
 echo - Machbase.py: %CLAUDE_CONFIG_DIR%\Machbase.py
 echo - claude_desktop_config.json: %CLAUDE_CONFIG_DIR%\claude_desktop_config.json
 echo.
-echo 설정 파일 내용:
+echo Configuration file contents:
 type "%CLAUDE_CONFIG_DIR%\claude_desktop_config.json"
 echo.
-echo 다음 명령어로 MCP 환경을 활성화할 수 있습니다:
+echo You can activate MCP environment with the following command:
 echo conda activate mcp
 echo.
-echo 설치된 패키지 확인:
+echo Installed packages check:
 pip list
 echo.
-echo 주의사항:
-echo 1. Claude Desktop을 재시작하여 새 설정을 적용하세요
-echo 2. Anaconda를 새로 설치한 경우 새 명령 프롬프트를 열어서 conda 명령 확인
-echo 3. 모든 파일이 Claude 설정 디렉토리로 이동되었습니다
+echo Important notes:
+echo 1. Restart Claude Desktop to apply new configuration
+echo 2. If you newly installed Anaconda, open new command prompt to check conda command
+echo 3. All files have been moved to Claude configuration directory
 echo.
 pause
