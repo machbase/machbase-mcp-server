@@ -16,10 +16,6 @@ When users request database operations in natural language through Claude Deskto
 * **Native Claude Desktop Integration**
   * No additional API keys required, leverages Claude Desktop's built-in capabilities
 
-### Usage Examples
-
-You can make natural language requests in Claude Desktop like these:
-
 ### How It Works
 
 | Step | Component | Role | Communication |
@@ -107,4 +103,23 @@ For manual installation or if errors occur during the above installation process
          }
        }
    } 
+
+### Usage Examples ###
+
+You can make natural language requests in Claude Desktop like these:
+
+```text
+"Create a table for temperature logs"
+"Insert today's temperature: 28.4°C at 9am"
+"Show me the latest 10 rows from temperature_log"
+"Search the Machbase documentation for 'data insertion'"
+"Drop the table named old_sensor_data"
+"Show average temperature over the past 3 days"
+"What tables exist in my Machbase database?"
+"List all columns in sensor_data"
+"Generate a trend report for device_001"
+
+### Contributing ###
+Contributions are welcome!
+Feel free to submit a Pull Request for bug fixes, features, or documentation improvements.
 
