@@ -6,7 +6,7 @@
 
 
 
-## Overview
+## Overview (Version 0.1)
 
 This project is an **MCP (Model Context Protocol)** based server that enables natural language-based database operations through integration between **Claude Desktop** and **Machbase Neo**.
 
