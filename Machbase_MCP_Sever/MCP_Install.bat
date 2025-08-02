@@ -7,8 +7,10 @@ echo Starting installation
 echo ========================================
 
 :: Dynamic setup of current username and paths
-set CURRENT_USER=%USERNAME%
-set ANACONDA_PATH=C:\Users\%CURRENT_USER%\anaconda3
+:: Get actual user directory instead of relying on %USERNAME%
+for /f "tokens=*" %%i in ('echo %USERPROFILE%') do set USER_DIR=%%i
+for /f "tokens=3 delims=\" %%i in ("%USER_DIR%") do set CURRENT_USER=%%i
+set ANACONDA_PATH=%USER_DIR%\anaconda3
 set MCP_PYTHON_PATH=%ANACONDA_PATH%\envs\mcp\python.exe
 set CURRENT_DIR=%~dp0
 set CLAUDE_CONFIG_DIR=%APPDATA%\Claude
@@ -97,6 +99,7 @@ call conda create -n mcp python=3.11 -y
 
 echo 3. Activating 'mcp' virtual environment...
 call conda activate mcp
+
 if %errorlevel% neq 0 (
     echo Error: Failed to activate virtual environment.
     echo Please open a new command prompt and try again.
