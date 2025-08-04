@@ -12,7 +12,7 @@ This project is an **MCP (Model Context Protocol)** based server that enables na
 
 When users request database operations in natural language through Claude Desktop's MCP connection, the MCP server converts these requests into Machbase Neo commands and executes them.
 
-[![Youtube Link](https://static.wixstatic.com/media/5583e0_e94145b161ab4db7a355234eddb8d670~mv2.png)](https://youtu.be/8cpaMTNHHiI?si=MX4tQK6Enh16hIUA)
+[![Youtube Link](https://static.wixstatic.com/media/5583e0_7223d0cf33094256ad6c7e133136b144~mv2.png)](https://youtu.be/8cpaMTNHHiI?si=MX4tQK6Enh16hIUA)
 
 ### Key Features
 
@@ -128,6 +128,7 @@ You can make natural language requests in Claude Desktop like these:
 "What tables exist in my Machbase database?"
 "List all columns in sensor_data"
 "Generate a trend report for device_001"
+
 
 
 
