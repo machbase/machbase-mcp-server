@@ -60,7 +60,7 @@ async def list_tables(
     try:
         # Construct query parameters
         params = urlencode({
-            "q": "SELECT name, type FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' ORDER BY name",
+            "q": "SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\_%' ORDER BY name",
             "format": "csv"
         })
         
@@ -82,11 +82,8 @@ async def list_tables(
             tables_info = []
             for line in lines[1:]:  # Skip header
                 if line.strip():
-                    columns = line.split(',')
-                    if len(columns) >= 2:
-                        table_name = columns[0].strip()
-                        table_type = columns[1].strip()
-                        tables_info.append(f"• {table_name} ({table_type})")
+                    table_name = line.strip()
+                    tables_info.append(f"• {table_name}")
             
             if tables_info:
                 table_list = "\n".join(tables_info)
@@ -789,7 +786,7 @@ async def debug_mcp_status() -> str:
     try:
         machbase_url = get_machbase_url()
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{machbase_url}/db/query?q=SELECT 1&format=csv", timeout=5.0)
+            response = await client.get(f"{machbase_url}/db/query?q=SELECT 1 FROM M$SYS_TABLES LIMIT 1&format=csv", timeout=5.0)
             if response.status_code == 200:
                 db_status = f"[OK] Machbase Neo connection successful ({machbase_url})"
             else:
@@ -798,16 +795,6 @@ async def debug_mcp_status() -> str:
         db_status = f"[ERROR] Machbase Neo connection error: {str(e)}"
     
     return f"{db_status}\n\n{searcher.get_debug_status()}"
-
-@mcp.tool()
-def hello(name: str) -> str:
-    """Return a simple greeting message.
-    
-    Args:
-        name: Name to greet
-    """
-    return f"Hello, {name}! This is the Machbase Neo integrated server.\n" + \
-           "We support both database query execution and documentation search."
 
 # =============================================================================
 # Main execution
