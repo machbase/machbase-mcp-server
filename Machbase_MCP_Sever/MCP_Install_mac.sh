@@ -95,11 +95,54 @@ create_config() {
         exit 1
     fi
     
+    # ========================================
+    # NEW SECTION: Move neo folder
+    # ========================================
+    echo "9. Checking neo folder..."
+    if [ -d "neo" ]; then
+        echo "Found neo folder in current directory."
+        
+        # Check if destination neo folder already exists
+        if [ -d "$CLAUDE_CONFIG_DIR/neo" ]; then
+            echo "Warning: $CLAUDE_CONFIG_DIR/neo folder already exists."
+            read -p "Do you want to overwrite it? (y/n): " choice
+            if [[ "$choice" =~ ^[Yy]$ ]]; then
+                echo "Removing existing neo folder..."
+                rm -rf "$CLAUDE_CONFIG_DIR/neo"
+                if [ $? -ne 0 ]; then
+                    echo "Error: Failed to remove existing neo folder."
+                    exit 1
+                fi
+            else
+                echo "Skipping neo folder move..."
+                create_json
+                return
+            fi
+        fi
+        
+        echo "Moving neo folder to $CLAUDE_CONFIG_DIR/neo..."
+        mv "neo" "$CLAUDE_CONFIG_DIR/neo"
+        
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to move neo folder."
+            exit 1
+        else
+            echo "Neo folder successfully moved to $CLAUDE_CONFIG_DIR/neo"
+        fi
+    else
+        echo "Warning: neo folder not found in current directory."
+        echo "Neo documentation will not be available."
+    fi
+    
+    create_json
+}
+
+create_json() {
     # Set JSON file paths (relative to Claude configuration directory)
     JSON_PYTHON_PATH="$MCP_PYTHON_PATH"
     JSON_MACHBASE_PATH="$CLAUDE_CONFIG_DIR/Machbase.py"
     
-    echo "9. Creating claude_desktop_config.json file..."
+    echo "10. Creating claude_desktop_config.json file..."
     cat > "$CLAUDE_CONFIG_DIR/claude_desktop_config.json" << EOF
 {
     "mcpServers": {
@@ -142,6 +185,11 @@ complete() {
     echo "File locations:"
     echo "- Machbase.py: $CLAUDE_CONFIG_DIR/Machbase.py"
     echo "- claude_desktop_config.json: $CLAUDE_CONFIG_DIR/claude_desktop_config.json"
+    if [ -d "$CLAUDE_CONFIG_DIR/neo" ]; then
+        echo "- Machbase docs: $CLAUDE_CONFIG_DIR/neo"
+    else
+        echo "- Machbase docs: NOT FOUND"
+    fi
     echo
     echo "Configuration file contents:"
     cat "$CLAUDE_CONFIG_DIR/claude_desktop_config.json"
@@ -162,6 +210,11 @@ complete() {
     echo "1. Restart Claude Desktop to apply new configuration"
     echo "2. If you newly installed Anaconda, open new terminal to check conda command"
     echo "3. All files have been moved to Claude configuration directory"
+    if [ -d "$CLAUDE_CONFIG_DIR/neo" ]; then
+        echo "4. Neo documentation is available at $CLAUDE_CONFIG_DIR/neo"
+    else
+        echo "4. Neo documentation was not found - please check if neo folder exists"
+    fi
     echo
 }
 
