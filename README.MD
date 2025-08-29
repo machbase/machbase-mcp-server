@@ -130,6 +130,12 @@ You can make natural language requests in Claude Desktop like these:
 "List all columns in sensor_data"
 "Generate a trend report for device_001"
 
+### Server Test Score ###
+
+| Version | Score | Update Date |
+|------|------|---------------|
+| v0.2.0 | 96   | 2025-08-28    |
+
 
 
 
