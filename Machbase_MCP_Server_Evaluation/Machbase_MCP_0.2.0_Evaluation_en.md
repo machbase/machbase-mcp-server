@@ -928,4 +928,350 @@ ORDER BY time
 `)
 GROUP(
     by(roundTime(value(1), "1d"), "Date"),
-    avg(value(2), "DailyAvg
+    avg(value(2), "DailyAvg"),
+    first(value(2), "OpenPrice"),
+    last(value(2), "ClosePrice"),
+    min(value(2), "MinPrice"),
+    max(value(2), "MaxPrice"),
+    stddev(value(2), "StdDev")
+)
+SCRIPT({
+    var prevClose = null;
+    var results = [];
+},{
+    var date = $.values[0];
+    var avgPrice = $.values[1];
+    var openPrice = $.values[2];
+    var closePrice = $.values[3];
+    var minPrice = $.values[4];
+    var maxPrice = $.values[5];
+    var stdDev = $.values[6];
+    
+    // Calculate daily change rate (based on closing price)
+    var dailyChange = ((closePrice - openPrice) / openPrice * 100).toFixed(2);
+    
+    // Calculate change rate from previous day
+    var changeFromPrev = 0;
+    if (prevClose !== null) {
+        changeFromPrev = ((closePrice - prevClose) / prevClose * 100).toFixed(2);
+    }
+    
+    // Calculate volatility (MaxPrice-MinPrice)/AvgPrice * 100
+    var volatility = ((maxPrice - minPrice) / avgPrice * 100).toFixed(2);
+    
+    $.yield(
+        date,
+        avgPrice.toFixed(2),
+        openPrice.toFixed(2),
+        closePrice.toFixed(2),
+        dailyChange + '%',
+        changeFromPrev + '%',
+        volatility + '%',
+        stdDev.toFixed(4)
+    );
+    
+    prevClose = closePrice;
+})
+CSV(
+    timeformat("2006-01-02"),
+    header(true),
+    labels("Date", "DailyAvg", "OpenPrice", "ClosePrice", "DailyChange%", "PrevDayChange%", "Volatility%", "StdDev")
+)
+```
+
+## 📊 3. Volatility Analysis with Visualization
+
+```js
+SQL(`
+SELECT 
+    name,
+    time,
+    value 
+FROM SP500 
+WHERE time >= '2018-01-15 00:00:00'
+  AND time < '2018-02-15 00:00:00'
+  AND name = 'A_close'
+ORDER BY time
+`)
+GROUP(
+    by(roundTime(value(1), "1d"), "Date"),
+    avg(value(2), "DailyAvg"),
+    first(value(2), "OpenPrice"),
+    last(value(2), "ClosePrice"),
+    min(value(2), "MinPrice"),
+    max(value(2), "MaxPrice")
+)
+SCRIPT({
+    var data = [];
+    var prevClose = null;
+},{
+    var date = $.values[0];
+    var avgPrice = $.values[1];
+    var openPrice = $.values[2];
+    var closePrice = $.values[3];
+    var minPrice = $.values[4];
+    var maxPrice = $.values[5];
+    
+    // Calculate volatility
+    var dailyChangeRate = ((closePrice - openPrice) / openPrice * 100);
+    var changeFromPrev = 0;
+    if (prevClose !== null) {
+        changeFromPrev = ((closePrice - prevClose) / prevClose * 100);
+    }
+    
+    data.push({
+        date: date,
+        avgPrice: avgPrice,
+        closePrice: closePrice,
+        dailyChangeRate: dailyChangeRate,
+        changeFromPrev: changeFromPrev
+    });
+    
+    prevClose = closePrice;
+},{
+    // Prepare chart data
+    var dates = data.map(d => d.date);
+    var prices = data.map(d => d.avgPrice);
+    var dailyChanges = data.map(d => d.dailyChangeRate);
+    var prevChanges = data.map(d => d.changeFromPrev);
+    
+    $.yield({
+        dates: dates,
+        prices: prices,
+        dailyChanges: dailyChanges,
+        prevChanges: prevChanges
+    });
+})
+CHART(
+    size("1000px", "600px"),
+    theme("vintage"),
+    chartOption({
+        title: {
+            text: "A_close Stock - Daily Average Price and Volatility",
+            subtext: "January 15 ~ February 15, 2018 (30 days)",
+            left: "center"
+        },
+        tooltip: {
+            trigger: "axis",
+            axisPointer: {
+                type: "cross",
+                label: {
+                    backgroundColor: "#6a7985"
+                }
+            }
+        },
+        legend: {
+            data: ["Daily Avg Price", "Daily Change%", "Prev Day Change%"],
+            bottom: "10"
+        },
+        xAxis: [
+            {
+                type: "time",
+                boundaryGap: false,
+                axisLabel: {
+                    formatter: "{MM}-{dd}"
+                }
+            }
+        ],
+        yAxis: [
+            {
+                type: "value",
+                name: "Price ($)",
+                position: "left",
+                axisLabel: {
+                    formatter: "${value}"
+                }
+            },
+            {
+                type: "value",
+                name: "Change Rate (%)",
+                position: "right",
+                axisLabel: {
+                    formatter: "{value}%"
+                }
+            }
+        ],
+        series: [
+            {
+                name: "Daily Avg Price",
+                type: "line",
+                data: column(0).dates.map((date, i) => [date, column(0).prices[i]]),
+                smooth: true,
+                symbol: "circle",
+                symbolSize: 6,
+                lineStyle: {
+                    width: 3,
+                    color: "#1f77b4"
+                },
+                yAxisIndex: 0
+            },
+            {
+                name: "Daily Change%",
+                type: "bar",
+                data: column(0).dates.map((date, i) => [date, column(0).dailyChanges[i]]),
+                itemStyle: {
+                    color: function(params) {
+                        return params.value[1] >= 0 ? "#2ca02c" : "#d62728";
+                    }
+                },
+                yAxisIndex: 1
+            },
+            {
+                name: "Prev Day Change%",
+                type: "line",
+                data: column(0).dates.map((date, i) => [date, column(0).prevChanges[i]]),
+                smooth: true,
+                symbol: "diamond",
+                symbolSize: 4,
+                lineStyle: {
+                    width: 2,
+                    type: "dashed",
+                    color: "#ff7f0e"
+                },
+                yAxisIndex: 1
+            }
+        ],
+        dataZoom: [
+            {
+                type: "inside",
+                start: 0,
+                end: 100
+            },
+            {
+                start: 0,
+                end: 100,
+                height: 30,
+                bottom: 60
+            }
+        ]
+    })
+)
+```
+
+## 📋 4. Statistical Summary Report
+
+```js
+SQL(`
+SELECT 
+    name,
+    time,
+    value 
+FROM SP500 
+WHERE time >= '2018-01-15 00:00:00'
+  AND time < '2018-02-15 00:00:00'
+  AND name = 'A_close'
+ORDER BY time
+`)
+GROUP(
+    by(roundTime(value(1), "1d"), "Date"),
+    avg(value(2), "DailyAvg"),
+    first(value(2), "OpenPrice"),
+    last(value(2), "ClosePrice"),
+    min(value(2), "MinPrice"),
+    max(value(2), "MaxPrice"),
+    count(value(2), "TradeCount")
+)
+SCRIPT({
+    var dailyData = [];
+    var totalReturn = 0;
+    var volatilitySum = 0;
+    var positiveChanges = 0;
+    var negativeChanges = 0;
+    var prevClose = null;
+},{
+    var date = $.values[0];
+    var avgPrice = $.values[1];
+    var openPrice = $.values[2];
+    var closePrice = $.values[3];
+    var minPrice = $.values[4];
+    var maxPrice = $.values[5];
+    var tradeCount = $.values[6];
+    
+    var dailyChangeRate = ((closePrice - openPrice) / openPrice * 100);
+    var changeFromPrev = 0;
+    if (prevClose !== null) {
+        changeFromPrev = ((closePrice - prevClose) / prevClose * 100);
+        if (changeFromPrev > 0) positiveChanges++;
+        if (changeFromPrev < 0) negativeChanges++;
+    }
+    
+    var volatility = ((maxPrice - minPrice) / avgPrice * 100);
+    volatilitySum += volatility;
+    
+    dailyData.push({
+        date: date,
+        avgPrice: avgPrice,
+        dailyChange: dailyChangeRate,
+        prevChange: changeFromPrev,
+        volatility: volatility,
+        tradeCount: tradeCount
+    });
+    
+    prevClose = closePrice;
+},{
+    var totalDays = dailyData.length;
+    var firstPrice = dailyData[0].avgPrice;
+    var lastPrice = dailyData[totalDays - 1].avgPrice;
+    totalReturn = ((lastPrice - firstPrice) / firstPrice * 100);
+    var avgVolatility = volatilitySum / totalDays;
+    var winRate = (positiveChanges / (positiveChanges + negativeChanges) * 100);
+    
+    $.yield("=== A_close Stock 30-Day Analysis Report ===");
+    $.yield("Analysis Period: 2018-01-15 ~ 2018-02-15");
+    $.yield("Total Trading Days: " + totalDays + " days");
+    $.yield("");
+    $.yield("[ Price Information ]");
+    $.yield("Starting Avg Price: $" + firstPrice.toFixed(2));
+    $.yield("Ending Avg Price: $" + lastPrice.toFixed(2));
+    $.yield("Total Return: " + totalReturn.toFixed(2) + "%");
+    $.yield("");
+    $.yield("[ Volatility Analysis ]");
+    $.yield("Average Daily Volatility: " + avgVolatility.toFixed(2) + "%");
+    $.yield("Up Days: " + positiveChanges + " days");
+    $.yield("Down Days: " + negativeChanges + " days");
+    $.yield("Win Rate: " + winRate.toFixed(1) + "%");
+    $.yield("");
+    
+    // Days with highest volatility
+    var sortedByChange = dailyData.sort((a,b) => Math.abs(b.prevChange) - Math.abs(a.prevChange));
+    $.yield("[ Top 5 Volatility Days ]");
+    for(var i = 0; i < Math.min(5, sortedByChange.length); i++) {
+        var day = sortedByChange[i];
+        $.yield((i+1) + ". " + day.date.toISOString().split('T')[0] + 
+               " | " + day.prevChange.toFixed(2) + "% | $" + day.avgPrice.toFixed(2));
+    }
+})
+CSV(header(false))
+```
+
+These TQLs use actual data from the SP500 table to provide comprehensive stock data analysis including daily averages, volatility, statistical analysis, and visualization!
+
+### Score: 9/10
+### Response Time: ~25 seconds (from document search to answer completion)
+
+
+# Overall Evaluation Results
+
+| Question No. | Score | Response Time |
+|--------------|-------|---------------|
+| 1 | 10/10 | 15 seconds |
+| 2 | 10/10 | 20 seconds |
+| 3 | 10/10 | 25 seconds |
+| 4 | 10/10 | 15 seconds |
+| 5 | 10/10 | 30 seconds |
+| 6 | 10/10 | 25 seconds |
+| 7 | 10/10 | 20 seconds |
+| 8 | 10/10 | 30 seconds |
+| 9 | 7/10 | 15 seconds |
+| 10 | 9/10 | 25 seconds |
+| **Total** | **96/100** | |
+
+## Evaluation Summary
+
+### Areas for Improvement
+- Occasionally provides non-executable code in complex code examples - improvement needed in this area
+
+### Overall Evaluation (Total 96 points)
+The Machbase Neo MCP server demonstrates excellent performance. Document search capabilities, actual DB integration, code generation and validation abilities are all outstanding, accurately identifying various user requirements and providing practical solutions.
+
+However, there's still slight room for improvement regarding complex code provided through responses.
