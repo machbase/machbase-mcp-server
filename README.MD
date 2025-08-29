@@ -6,7 +6,7 @@
 
 
 
-## Overview (Version 0.1.5)
+## Overview (Version 0.2.0)
 [블로그 읽기 : 클로드 MCP를 Machbase Neo에 연동하고, AI스럽게 사용해보기](https://www.machbase.com/post/machbase)
 
 This project is an **MCP (Model Context Protocol)** based server that enables natural language-based database operations through integration between **Claude Desktop** and **Machbase Neo**.
@@ -129,6 +129,19 @@ You can make natural language requests in Claude Desktop like these:
 "What tables exist in my Machbase database?"
 "List all columns in sensor_data"
 "Generate a trend report for device_001"
+```
+
+### Machbase MCP Server Evaluation Score ###
+
+| Version | Score | Update Date |
+|:----:|:----:|:-------------:|
+| v0.2.0 | 96   | 2025-08-28    |
+
+
+
+
+
+
 
 
 
