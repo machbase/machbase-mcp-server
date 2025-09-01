@@ -14,9 +14,9 @@ In this example, we are going to show how to add a user-defined shell that invok
 
 ### Register a custom shell
 
-1. Select the <img src="../img/shell_icon.jpg" width=47 style="display:inline"> menu icon from the left most side.
+1. Select the  menu icon from the left most side.
 
-2. And Click `+` icon <img src="../img/shell_add_icon.jpg" width=265 style="display:inline"> from the top left pane.
+2. And Click `+` icon  from the top left pane.
 
 3. Set a preferred "Display name" and provide the absolute path and flags for the "Command" field.
 For example, to set 'zsh' as the command line on macOS, use the absolute path of your program and click "Save".

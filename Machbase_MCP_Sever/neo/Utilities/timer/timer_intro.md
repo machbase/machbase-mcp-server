@@ -1,126 +1,104 @@
----
-title: Timer
-type: docs
-weight: 80
----
+# Machbase Neo Timer Setup Guide
+Machbase Neo commands end with a semicolon
 
-A timer defines a task that should be executed at a given time or repeatedly at a given interval.
+## Overview
+Timer is a feature that defines tasks to be executed at specific times or repeated at set intervals.
 
-## Add new timer
+## Adding a New Timer
 
-Register a task that runs on the specified schedule. The web ui for managing timers has been included {{< neo_since ver="8.0.20" />}}.
+You can register tasks that run according to a specified schedule. A web UI for timer management has been included since version 8.0.20.
 
-1. Select the <img src=./img/timer_icon.png style="display:inline; width:32px;"/> icon from the left side menu bar.
+### Adding via Web UI
+1. Select the timer icon from the left menu bar
+2. Click the `+` button in the top left
+3. Set Timer ID (name), Timer Spec, and TQL script path
+4. Click the "Create" button
 
-2. Click `+` of <img src=./img/timer_icon2.png style="display:inline; height:22px;"/> from the top left.
+### Timer Start/Stop/Delete
+- Use toggle button to start/stop timers
+- Edit, start, stop, and delete available from detail page
 
-3. Set timer id (name), timer spec, and task TQL path.
+## Timer Schedule Specifications
 
-4. Click "Create" button.
+There are three ways to define timer schedules:
 
-## Start/Stop/Delete timer
-
-Use the toggle button <img src=./img/timer_toggle.png style="display:inline; height:25px;">to start and <img src=./img/timer_toggle_stop.png style="display:inline; height:25px;"> to stop the timer.
-
-## Timer Schedule Spec.
-
-There three possible 
-examples)
-
+### Examples
 ```
-0 30 * * * *           Every hour on the half hour
-@every 1h30m           Every hour thirty
-@daily                 Every day
+0 30 * * * *           Every hour at 30 minutes
+@every 1h30m           Every 1 hour 30 minutes
+@daily                 Daily
 ```
 
-### CRON expression
+## CRON Expressions
 
-  | Field name   | Mandatory? | Allowed values  | Allowed special characters |
-  | :----------  | :--------: | :-------------  | :------------------------- |
-  | Seconds      | Yes        | 0-59            | * / , -                    |
-  | Minutes      | Yes        | 0-59            | * / , -                    |
-  | Hours        | Yes        | 0-23            | * / , -                    |
-  | Day of month | Yes        | 1-31            | * / , - ?                  |
-  | Month        | Yes        | 1-12 or JAN-DEC | * / , -                    |
-  | Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?                  |
+| Field | Required | Allowed Values | Special Characters |
+|-------|----------|----------------|-------------------|
+| Seconds | Yes | 0-59 | * / , - |
+| Minutes | Yes | 0-59 | * / , - |
+| Hours | Yes | 0-23 | * / , - |
+| Day | Yes | 1-31 | * / , - ? |
+| Month | Yes | 1-12 or JAN-DEC | * / , - |
+| Day of Week | Yes | 0-6 or SUN-SAT | * / , - ? |
 
-- Asterisk `*`<br/>
-  The asterisk indicates that the cron expression will match for all values of the field;
-  e.g., using an asterisk in the 5th field (month) would indicate every month.
+### Special Characters Description
 
-- Slash `/`<br/>
-  Slashes are used to describe increments of ranges. For example 3-59/15 in the 1st field
-  (minutes) would indicate the 3rd minute of the hour and every 15 minutes thereafter.
-  The form "*/..." is equivalent to the form "first-last/...", that is, an increment over
-  the largest possible range of the field. The form "N/..." is accepted as meaning "N-MAX/...",
-  that is, starting at N, use the increment until the end of that specific range. It does not
-  wrap around.
+- **Asterisk `*`**: Matches all values in the field
+- **Slash `/`**: Indicates increments of ranges (e.g., 3-59/15 means starting from 3 minutes with 15-minute intervals)
+- **Comma `,`**: Separates list items (e.g., "MON,WED,FRI" means Monday, Wednesday, Friday)
+- **Hyphen `-`**: Defines ranges (e.g., 9-17 means 9 AM to 5 PM)
+- **Question mark `?`**: Used instead of `*` when leaving day or day of week field empty
 
-- Comma `,`<br/>
-  Commas are used to separate items of a list. For example, using "MON,WED,FRI" in the 5th
-  field (day of week) would mean Mondays, Wednesdays and Fridays.
+## Predefined Schedules
 
-- Hyphen `-`<br/>
-  Hyphens are used to define ranges. For example, 9-17 would indicate every hour between
-  9am and 5pm inclusive.
+| Expression | Description | Equivalent CRON |
+|------------|-------------|-----------------|
+| @yearly (or @annually) | Once a year, midnight on January 1st | 0 0 0 1 1 * |
+| @monthly | Once a month, midnight on 1st of month | 0 0 0 1 * * |
+| @weekly | Once a week, midnight between Sat/Sun | 0 0 0 * * 0 |
+| @daily (or @midnight) | Once a day, midnight | 0 0 0 * * * |
+| @hourly | Once an hour, beginning of hour | 0 0 * * * * |
 
-- Question mark `?`<br/>
-  Question mark may be used instead of `*` for leaving either day-of-month or day-of-week
-  blank.
+## Interval Specification
 
-### Predefined schedules
+Uses `@every <duration>` format, where duration is in formats like "300ms", "-1.5h", "2h45m".
+Valid time units: "ms", "s", "m", "h"
 
-  |Entry                  | Description                                | Equivalent To |
-  |:-----                 | :-----------                               | :------------ |
-  |@yearly (or @annually) | Run once a year, midnight, Jan. 1st        | 0 0 0 1 1 *   |
-  |@monthly               | Run once a month, midnight, first of month | 0 0 0 1 * *   |
-  |@weekly                | Run once a week, midnight between Sat/Sun  | 0 0 0 * * 0   |
-  |@daily (or @midnight)  | Run once a day, midnight                   | 0 0 0 * * *   |
-  |@hourly                | Run once an hour, beginning of hour        | 0 0 * * * *   |
-
-### Intervals
-
-`@every <duration>` where "duration" is a string that is a possibly signed sequence of decimal numbers,
-each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ms", "s", "m", "h".
-
+### Examples
 ```
 @every 10h
 @every 1h10m30s
 ```
 
-## Command line
+## Command Line Usage
 
-**Add timer**
+### Add Timer
+```bash
+timer add [--autostart] <name> <timer_spec> <tql-path>;
+```
+- `--autostart`: Auto-start when machbase-neo starts
+- `<name>`: Task name
+- `<timer_spec>`: Execution schedule
+- `<tql-path>`: TQL script to execute as task
 
-*Syntax:* `timer add [--autostart] <name> <timer_spec> <tql-path>`
+### List Timers
+```bash
+timer list;
+```
 
-- `--autostart` makes the task will start automatically when machbase-neo starts.
-If the task is not *autostart* mode, you can make it start and stop manually by
-`timer start <name>` and `timer stop <name>` commands.
+### Start/Stop Timer
+```bash
+timer [start | stop] <name>;
+```
 
-- `<name>` task's name
-- `<timer_spec>` specifies when this task runs. (see below)
-- `<tql-path>` the *tql* script as a task
+### Delete Timer
+```bash
+timer del <name>;
+```
 
-**List timers**
+## Hello World Example
 
-*Syntax:* `timer list`
-
-**Start/Stop timer**
-
-*Syntax:* `timer [start | stop] <name>`
-
-**Delete timer**
-
-*Syntax:* `timer del <name>`
-
-## Hello World? Example
-
-Let's make the "Hello World" of the timer.
-
-### Make a *tql* of "Hello World"
-
-Open *tql* editor, copy the code below and save it as `helloworld.tql`.
+### 1. Create TQL Script
+Create `helloworld.tql` file and save the following code:
 
 ```js
 CSV(`helloworld,0,0`)
@@ -129,41 +107,40 @@ MAPVALUE(2, random())
 INSERT("name", "time", "value", table("example"))
 ```
 
-Execute the script and it inserts a single record into the EXAMPLE table. 
-Run SELECT SQL to see if it works correctly.
+### 2. Test Script
+Execute the script to verify a single record is inserted into EXAMPLE table:
 
 ```sql
 select * from example where name = 'helloworld';
 ```
 
+Expected result:
 ```
-sys machbase-neo» select * from example where name = 'helloworld';
 ┌────────┬────────────┬─────────────────────────┬────────────────────┐
 │ ROWNUM │ NAME       │ TIME(LOCAL)             │ VALUE              │
 ├────────┼────────────┼─────────────────────────┼────────────────────┤
 │      1 │ helloworld │ 2024-06-19 18:20:07.001 │ 0.6132387755535856 │
 └────────┴────────────┴─────────────────────────┴────────────────────┘
-a row fetched.
 ```
 
-### Register a timer
+### 3. Register Timer
+Register timer from command line:
 
-This timer function on the web, introduced in version 8.0.20, can be achieved using the following shell commands.
-
-This is equivalent with the command line below.
-
-```
-timer add helloworld "@every 5s" helloworld.tql; 
+```bash
+timer add helloworld "@every 5s" helloworld.tql;
 ```
 
-Make the new timer to be started by check "Auto Start" option or do it manually by toggle <img src=./img/timer_toggle.png style="display:inline; height:25px;"> button.
+Check "Auto Start" option or manually start with toggle button.
 
-As soon as it starts, the new record will be inserted into the table at every 5 seconds.
+### 4. Verify Results
+Confirm new records are inserted every 5 seconds:
 
-**Query the result of the timer**
-
+```sql
+select * from example where name = 'helloworld';
 ```
-sys machbase-neo» select * from example where name = 'helloworld';
+
+Example result:
+```
 ┌────────┬────────────┬─────────────────────────┬─────────────────────┐
 │ ROWNUM │ NAME       │ TIME(LOCAL)             │ VALUE               │
 ├────────┼────────────┼─────────────────────────┼─────────────────────┤
@@ -173,23 +150,20 @@ sys machbase-neo» select * from example where name = 'helloworld';
 │      4 │ helloworld │ 2024-07-03 09:49:32.002 │ 0.5351642943247759  │
 │      5 │ helloworld │ 2024-07-03 09:49:27.001 │ 0.6588127185612987  │
 └────────┴────────────┴─────────────────────────┴─────────────────────┘
-5 rows fetched.
 ```
 
-**Dashboard**
+### 5. Create Dashboard
+You can create an auto-refreshing dashboard to monitor timer operation.
 
-Create a dashboard to refresh automatically and watch the timer works as expected.
+## Timer Management
 
-### Manage timers
-
-It is possible edit, start, stop and delete from the detail page.
-
-**Command line**
-
-The command `timer list` shows the status of timers.
-
+### Check Timer Status from Command Line
+```bash
+timer list;
 ```
-sys machbase-neo» timer list;
+
+Example result:
+```
 ┌────────────┬───────────┬────────────────┬───────────┬─────────┐
 │ NAME       │ SPEC      │ TQL            │ AUTOSTART │ STATE   │
 ├────────────┼───────────┼────────────────┼───────────┼─────────┤
@@ -197,12 +171,13 @@ sys machbase-neo» timer list;
 └────────────┴───────────┴────────────────┴───────────┴─────────┘
 ```
 
-Also it is possible to start, stop the timer from the command line.
-
-```
+### Timer Control
+```bash
+# Start timer
 timer start helloworld;
-```
 
-```
+# Stop timer
 timer stop helloworld;
 ```
+
+This guide enables you to effectively utilize Machbase Neo's Timer functionality.

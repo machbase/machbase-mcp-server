@@ -4,7 +4,6 @@ type: docs
 weight: 04
 ---
 
-
 {{< callout type="info" >}}
 For the examples, create a table with the following SQL statements.
 {{< /callout >}}
@@ -22,7 +21,7 @@ CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
 ### 1. Create *tql* file
 
 Save the code below as `input-csv.tql`.
-When you save a TQL script, the editor will display a link icon <img src="/images/copy_addr_icon.jpg" width="24px" style="display:inline"> in the top right corner. Click on it to copy the script file's address.
+When you save a TQL script, the editor will display a link icon  in the top right corner. Click on it to copy the script file's address.
 
 ```js {linenos=table,hl_lines=["7"]}
 CSV(payload(), 
@@ -89,7 +88,7 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
 ### 1. Create *tql* file
 
 Save the code below as `append-csv.tql`.
-When you save a TQL script, the editor will display a link icon <img src="/images/copy_addr_icon.jpg" width="24px" style="display:inline"> in the top right corner. Click on it to copy the script file's address.
+When you save a TQL script, the editor will display a link icon  in the top right corner. Click on it to copy the script file's address.
 
 ```js {linenos=table,hl_lines=["7"]}
 CSV(payload(), 
@@ -149,7 +148,6 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
     -t db/tql/input-csv.tql \
     -f append-csv.csv
 ```
-
 
 ## Custom JSON
 
@@ -301,7 +299,6 @@ CSV()
 ```
 {{</ tab >}}
 {{</ tabs >}}
-
 
 **Result**
 

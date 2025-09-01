@@ -18,7 +18,7 @@ INSERT INTO EXAMPLE VALUES('TAG0', TO_DATE('2021-08-12'), 10);
 INSERT INTO EXAMPLE VALUES('TAG0', TO_DATE('2021-08-13'), 11);
 ```
 
-When you save a TQL script, the editor will display a link icon <img src="/images/copy_addr_icon.jpg" width="24px" style="display:inline"> in the top right corner. Click on it to copy the address of the script file.
+When you save a TQL script, the editor will display a link icon  in the top right corner. Click on it to copy the address of the script file.
 
 ## CSV
 

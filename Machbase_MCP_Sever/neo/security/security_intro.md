@@ -8,9 +8,9 @@ weight: 60
 
 ### Web UI
 
-1. Select the <img src="./img/key_icon.jpg" width=47 style="display:inline"> menu icon from the left most side.
+1. Select the  menu icon from the left most side.
 
-2. And Click `+` icon <img src="./img/key_add_icon.jpg" width=221 style="display:inline"> from the top left pane.
+2. And Click `+` icon  from the top left pane.
 
 3. Set "Client Id" for unique name and set the valid period (default is 3 years from today).
 Then click "Generate" to generates key files for the client.

@@ -255,7 +255,7 @@ curl -o ./img-download.png \
 ```html
 <html>
 <body>
-<img src="http://127.0.0.1:5654/db/query/file/EXAMPLE/EXTDATA/1ef8a87f-96bd-6576-9ff5-972fa7638db8"/>
+
 </body>
 </html>
 ```
@@ -265,7 +265,7 @@ If the table is a TAG table and the tag name is known, use the `tag` query param
 ```html
 <html>
 <body>
-<img src="http://127.0.0.1:5654/db/query/file/EXAMPLE/EXTDATA/1ef8a87f-96bd-6576-9ff5-972fa7638db8?tag=camera-1"/>
+
 </body>
 </html>
 ```

@@ -260,11 +260,11 @@ Each `{{.Value 0}}`, `{{.Value 1}}`, and `{{.Value 2}}` is overwritten to add es
 SCRIPT({
     $.yield(
         `http://maven.org/`,
-        `<img src="https://docs.machbase.com/images/java_logo_32.png">`,
+        ``,
         "Java")
     $.yield(
         `http://npmjs.com/`,
-        `<img src="https://docs.machbase.com/images/js_logo_32.png">`,
+        ``,
         "JavaScript")
 })
 HTML({
@@ -281,12 +281,12 @@ HTML({
 ```html
 <li>
   <a href="http://maven.org/">
-    <img src="https://docs.machbase.com/images/java_logo_32.png">Java
+    Java
   </a>
 </li>
 <li>
   <a href="http://npmjs.com/">
-    <img src="https://docs.machbase.com/images/js_logo_32.png">JavaScript
+    JavaScript
   </a>
 </li>
 ```
