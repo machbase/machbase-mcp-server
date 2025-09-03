@@ -134,8 +134,9 @@ You can make natural language requests in Claude Desktop like these:
 ### Machbase MCP Server Evaluation Score ###
 
 | Update Date| Version | Score | Average Response Time | Overall Evaluation |
-|:----:|:----:|:----:|:--------:|:-------------:|
+|:------:|:----:|:----:|:--------:|:-------------:|
 | 2025-08-28| v0.2.0 | 96 | 22 second | The quality of responses has improved compared to previous versions; however, performance regarding TQL-related questions still appears to be less than perfect. |
+
 
 
 
