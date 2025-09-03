@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Enhanced Machbase Neo MCP Server with FULL DOCUMENT CONTENT ACCESS
+Enhanced Machbase Neo MCP Server with FULL DOCUMENT CONTENT ACCESS and TQL EXECUTION
 - Added full document content retrieval capability
 - Added exact code block extraction
 - Added section-by-section content access
+- Added TQL file execution with automatic error cleanup
 - Removed legacy search functions for cleaner interface
 """
 
@@ -14,6 +15,7 @@ import time
 import logging
 import re
 import os
+import uuid
 from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlencode
 from dataclasses import dataclass
@@ -45,7 +47,6 @@ def get_machbase_url(host: str = None, port: int = None) -> str:
 # =============================================================================
 # Database related tools
 # =============================================================================
-
 @mcp.tool()
 async def list_tables(
     host: str = None,
@@ -114,7 +115,7 @@ async def list_table_tags(
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{machbase_url}/db/query?{params}",
-                timeout=10.0
+                timeout=30.0
             )
             
             if response.status_code != 200:
@@ -184,8 +185,9 @@ async def execute_sql_query(
     host: str = None,
     port: int = None
 ) -> str:
-    """Execute SQL query directly."""
-    if not sql_query:
+    """Execute SQL query directly. If no data is returned, it will be treated as a failure."""
+    
+    if not sql_query or not sql_query.strip():
         return "Please enter SQL query."
     
     machbase_url = get_machbase_url(host, port)
@@ -197,10 +199,8 @@ async def execute_sql_query(
             "timeformat": timeformat,
             "timezone": timezone
         }
-        
         if transpose:
             params["transpose"] = "true"
-        
         encoded_params = urlencode(params)
         
         async with httpx.AsyncClient() as client:
@@ -208,14 +208,15 @@ async def execute_sql_query(
                 f"{machbase_url}/db/query?{encoded_params}",
                 timeout=30.0
             )
-            
+        
         if response.status_code == 200:
+            lines = response.text.strip().split('\n')
+            row_count = max(0, len(lines) - 1)
+            
+            if row_count == 0:
+                return f"SQL query execution failed (no data returned)\nServer: {machbase_url}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+            
             if format.lower() == "json":
-                lines = response.text.strip().split('\n')
-                
-                if len(lines) < 2:
-                    return f"SQL query execution completed (no results)"
-                
                 headers = [h.strip() for h in lines[0].split(',')]
                 rows = []
                 for line in lines[1:]:
@@ -229,24 +230,103 @@ async def execute_sql_query(
                     "count": len(rows),
                     "data": rows
                 }
-                
                 formatted_json = json.dumps(result, indent=2, ensure_ascii=False)
-                return f"SQL query execution result (JSON) :\n\n```json\n{formatted_json}\n```"
+                return f"SQL query execution result (JSON):\n\n```json\n{formatted_json}\n```"
+            
             else:
-                lines = response.text.strip().split('\n')
-                row_count = max(0, len(lines) - 1)
-                
                 return f"SQL query execution result (CSV), {row_count} rows:\n\n```csv\n{response.text}\n```"
+        
         else:
-            return f"SQL query execution failed: HTTP {response.status_code}\n{response.text}"
+            return f"SQL query execution failed: HTTP {response.status_code}\n{response.text}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+    
+    except httpx.ConnectError:
+        return f"Cannot connect to Machbase Neo server ({machbase_url})\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+    except httpx.TimeoutException:
+        return f"SQL query execution timeout (30 seconds)\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+    except Exception as e:
+        return f"Error occurred during SQL query execution: {str(e)}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+
+# =============================================================================
+# TQL execution tools
+# =============================================================================
+
+@mcp.tool()
+async def execute_tql_script(
+    tql_content: str,
+    host: str = None,
+    port: int = None,
+    timeout_seconds: int = 60
+    
+) -> str:
+    """Execute TQL script via HTTP API.
+    
+    Args:
+        tql_content: TQL script content to execute
+        host: Machbase Neo host (optional)
+        port: Machbase Neo port (optional)
+        timeout_seconds: HTTP request timeout in seconds (default: 60)
+    """
+    if not tql_content or not tql_content.strip():
+        return "Please provide TQL script content to execute."
+    
+    machbase_url = get_machbase_url(host, port)
+    execution_id = str(uuid.uuid4())[:8]
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{machbase_url}/db/tql",
+                content=tql_content,
+                headers={"Content-Type": "text/plain"},
+                timeout=timeout_seconds
+            )
+
+            if response.status_code == 200:
+                if response.text.strip():
+                    result = f"TQL execution completed successfully (ID: {execution_id})\n"
+                    result += f"Server: {machbase_url}\n"
+                    result += f"Status: HTTP {response.status_code}\n\n"
+                    result += "=== RESPONSE ===\n"
+                    result += response.text + "\n"
+                else:
+                    result = f"TQL execution failed (no data returned) (ID: {execution_id})\n"
+                    result += f"Server: {machbase_url}\n"
+                    result += f"Status: HTTP {response.status_code}\n\n"
+                    result += "=== ERROR ===\n"
+                    result += "Query executed successfully, but returned no data.\n"
+                    result += "\n=== TQL CONTENT (for debugging) ===\n"
+                    result += f"```tql\n{tql_content}\n```"
+            else:
+                result = f"TQL execution failed (ID: {execution_id})\n"
+                result += f"Server: {machbase_url}\n"
+                result += f"Status: HTTP {response.status_code}\n\n"
+                if response.text.strip():
+                    result += "=== ERROR RESPONSE ===\n"
+                    result += response.text + "\n"
+                result += "\n=== TQL CONTENT (for debugging) ===\n"
+                result += f"```tql\n{tql_content}\n```"
+
+            return result
                 
     except httpx.ConnectError:
-        return f"Cannot connect to Machbase Neo server ({machbase_url})"
+        return f"Cannot connect to Machbase Neo server ({machbase_url})\n" + \
+               f"Execution ID: {execution_id}\n\n" + \
+               "=== TQL CONTENT (for debugging) ===\n" + \
+               f"```tql\n{tql_content}\n```"
+               
     except httpx.TimeoutException:
-        return f"SQL query execution timeout (30 seconds)"
+        return f"TQL execution timeout after {timeout_seconds} seconds (ID: {execution_id})\n" + \
+               f"Server: {machbase_url}\n\n" + \
+               "=== TQL CONTENT (for debugging) ===\n" + \
+               f"```tql\n{tql_content}\n```"
+               
     except Exception as e:
-        return f"Error occurred during SQL query execution: {str(e)}"
-
+        logger.error(f"TQL execution error: {e}")
+        return f"TQL execution error (ID: {execution_id}): {str(e)}\n" + \
+               f"Server: {machbase_url}\n\n" + \
+               "=== TQL CONTENT (for debugging) ===\n" + \
+               f"```tql\n{tql_content}\n```"
+               
 # =============================================================================
 # Document content access tools
 # =============================================================================
@@ -850,6 +930,9 @@ async def debug_mcp_status() -> str:
     doc_status += f"  • list_table_tags() - Get tags from specific table\n"
     doc_status += f"  • execute_sql_query() - Execute SQL queries\n\n"
     
+    doc_status += f"TQL Tools (1):\n"
+    doc_status += f"  • execute_tql_script() - Execute TQL via HTTP API\n\n"
+    
     doc_status += f"Document Tools (5):\n"
     doc_status += f"  • get_full_document_content() - Get complete document\n"
     doc_status += f"  • extract_code_blocks() - Extract code examples\n"
@@ -866,15 +949,15 @@ async def debug_mcp_status() -> str:
         
         # Find some common file types for examples
         sql_files = [f for f in document_extractor.file_index.keys() if f.endswith('.md') and ('sql' in f.lower() or 'rollup' in f.lower())]
-        api_files = [f for f in document_extractor.file_index.keys() if f.endswith('.md') and 'api' in f.lower()]
+        tql_files = [f for f in document_extractor.file_index.keys() if f.endswith('.md') and 'tql' in f.lower()]
         
         if sql_files:
             doc_status += f"• get_full_document_content('{sql_files[0]}') - SQL documentation\n"
-        if api_files:
-            doc_status += f"• extract_code_blocks('{api_files[0]}', 'http') - API examples\n"
+        if tql_files:
+            doc_status += f"• extract_code_blocks('{tql_files[0]}', 'tql') - TQL examples\n"
         
         doc_status += f"• search_in_documents('CREATE TABLE') - Find table creation syntax\n"
-        doc_status += f"• search_in_documents('ROLLUP', 'sql') - Find rollup info in SQL docs\n"
+        doc_status += f"• execute_tql_script('CSV(file(\"/path/to/data.csv\")) | CHART()') - Execute TQL\n"
     
     return f"{db_status}\n{doc_status}"
 
@@ -883,9 +966,10 @@ async def debug_mcp_status() -> str:
 # =============================================================================
 
 if __name__ == "__main__":
-    logger.info("Starting Machbase Neo MCP server")
+    logger.info("Starting Machbase Neo MCP server with TQL execution")
     logger.info("Available tools:")
     logger.info("  Database: list_tables, list_table_tags, execute_sql_query")
+    logger.info("  TQL: execute_tql_script")
     logger.info("  Documents: get_full_document_content, extract_code_blocks, get_document_sections, search_in_documents, list_available_documents")
     logger.info("  Utility: debug_mcp_status")
     
@@ -895,6 +979,6 @@ if __name__ == "__main__":
         logger.info(f"Document index ready: {len(document_extractor.file_index)} files indexed")
             
     except Exception as e:
-        logger.error(f"Failed to build document index: {e}")
+        logger.error(f"Failed to initialize: {e}")
     
     mcp.run()
