@@ -1264,7 +1264,7 @@ These TQLs use actual data from the SP500 table to provide comprehensive stock d
 | 8 | 10/10 | 30 seconds |
 | 9 | 7/10 | 15 seconds |
 | 10 | 9/10 | 25 seconds |
-| **Total** | **96/100** | |
+| **Total** | **96/100** | **22 seconds**|
 
 ## Evaluation Summary
 
