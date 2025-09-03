@@ -133,9 +133,10 @@ You can make natural language requests in Claude Desktop like these:
 
 ### Machbase MCP Server Evaluation Score ###
 
-| Version | Score | Update Date |
-|:----:|:----:|:-------------:|
-| v0.2.0 | 96   | 2025-08-28    |
+| Version | Score | Average Response Time | Update Date |
+|:----:|:----:|:--------:|:-------------:|
+| v0.2.0 | 96 | 22 second | 2025-08-28    |
+
 
 
 
