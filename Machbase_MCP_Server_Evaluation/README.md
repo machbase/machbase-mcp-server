@@ -49,6 +49,16 @@ Deductions are applied based on the following categories:
 | 9 | Show me how to set a timer |
 | 10 | Write a TQL that calculates the daily average and volatility of the SP500 table in DB for the last 30 days |
 
+### Tertiary Questions
+
+| No. | Question |
+|-----|----------|
+| 11 | Analyze the data consistency of the Bitcoin table and explain the method used for the analysis. |
+| 12 | Provide TQL code that applies various noise filters to driving behavior data. |
+| 13 | Explain how to connect to Machbase Neo from Python. |
+| 14 | Provide one executable TQL example that resamples data stored at 1-minute intervals in the Bitcoin table into 5-minute intervals, calculating both the average and maximum values. |
+| 15 | Provide one executable example in Machbase Neo that uses HTTP SOURCE to fetch external API data and visualizes it with HTML SINK. |
+
 ## Test Result Documentation
 
 - Test results must be written in **Markdown format**
