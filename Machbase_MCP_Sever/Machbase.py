@@ -187,11 +187,10 @@ async def execute_sql_query(
 ) -> str:
     """
         Execute SQL query directly. 
-        
-        **MANDATORY: 
-        - Must use Machbase Neo documentation only. Use machbase:search_in_documents or machbase:get_document_sections to find exact syntax before writing any queries. General SQL knowledge must not be used - only documented Machbase Neo syntax and functions are allowed.
-        - Must test and verify all SQL queries before providing them as answers. Only provide successfully executed and validated code to users.
-        - Always check table structure first to understand column names, data types, and time intervals before execution.**
+
+        **IMPORTANT: Always check table structure first to understand column names, data types, and time intervals before execution.**
+        **MANDATORY: Must use Machbase Neo documentation only. Use machbase:search_in_documents or machbase:get_document_sections to find exact syntax before writing any queries. General SQL knowledge must not be used - only documented Machbase Neo syntax and functions are allowed.**
+        **EXECUTION POLICY: Must test and verify all SQL queries before providing them as answers. Only provide successfully executed and validated code to users.**
 
         If no data is returned, it will be treated as a failure.
     """
@@ -270,10 +269,9 @@ async def execute_tql_script(
     """
         Execute TQL script via HTTP API. 
 
-        **MANDATORY: 
-        - Before executing, analyze target table structure and time intervals (minute/hour/daily data) as TQL operations heavily depend on correct time-based aggregations.
-        - TQL syntax is unique to Machbase Neo. Must reference documentation using machbase:search_in_documents or machbase:extract_code_blocks before writing any TQL scripts. Only use syntax and examples found in official documentation - no assumptions or general query language knowledge allowed.
-        - Must test and verify all TQL scripts before providing them as answers. Only provide successfully executed and validated code to users.**
+        **CRITICAL: Before executing, analyze target table structure and time intervals (minute/hour/daily data) as TQL operations heavily depend on correct time-based aggregations.**
+        **MANDATORY: TQL syntax is unique to Machbase Neo. Must reference documentation using machbase:search_in_documents or machbase:extract_code_blocks before writing any TQL scripts. Only use syntax and examples found in official documentation - no assumptions or general query language knowledge allowed.**
+        **EXECUTION POLICY: Must test and verify all TQL scripts before providing them as answers. Only provide successfully executed and validated code to users.**
 
         Args:
             tql_content: TQL script content to execute

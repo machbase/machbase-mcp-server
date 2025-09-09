@@ -112,9 +112,7 @@ For manual installation or if errors occur during the above installation process
              "MACHBASE_PORT": "5654"
              }
          }
-       }
-   } 
-
+       
 ### Usage Examples ###
 
 You can make natural language requests in Claude Desktop like these:
@@ -135,9 +133,9 @@ You can make natural language requests in Claude Desktop like these:
 
 | Update Date| Version | Score | Average Response Time | Overall Evaluation |
 |:------:|:----:|:----:|:--------:|-------------|
-| 2025-08-28| v0.2.0 | 96 | 22 second | The quality of responses has improved compared to previous versions; <br> however, performance regarding TQL-related questions still appears to be less than perfect. |
-| 2025-09-03| v0.3.0 | 99 | 61.5 second | The response time is much longer, but the explanation is far more accurate and detailed than the previous version. |
-| 2025-09-09| v0.4.0 |    |             |                       |
+| 2025-08-28| v0.2.0 | 96 / 100 | 22 second | The quality of responses has improved compared to previous versions; <br> however, performance regarding TQL-related questions still appears to be less than perfect. |
+| 2025-09-03| v0.3.0 | 99 / 100 | 61.5 second | The response time is much longer, but the explanation is far more accurate and detailed than the previous version. |
+| 2025-09-09| v0.4.0 | 141 / 150   |  45.29 second  | The speed has improved compared to before, but the script and TQL parts are still somewhat lacking|
 
 
 
