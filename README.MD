@@ -112,6 +112,8 @@ For manual installation or if errors occur during the above installation process
              "MACHBASE_PORT": "5654"
              }
          }
+      }
+   }
        
 ### Usage Examples ###
 
