@@ -1,4 +1,4 @@
-# Machbase MCP Server Performance Evaluation Guide (2025.09.02)
+# Machbase MCP Server Performance Evaluation Guide (2025.10.14)
 
 ## Overview
 
@@ -58,6 +58,16 @@ Deductions are applied based on the following categories:
 | 13 | Explain how to connect to Machbase Neo from Python. |
 | 14 | Provide one executable TQL example that resamples data stored at 1-minute intervals in the Bitcoin table into 5-minute intervals, calculating both the average and maximum values. |
 | 15 | Provide one executable example in Machbase Neo that uses HTTP SOURCE to fetch external API data and visualizes it with HTML SINK. |
+
+### DBMS Questions
+
+| No. | Question |
+|-----|----------|
+| 16 | Explain the types of data tables available in Machbase and provide a brief description of each. |
+| 17 | Explain the system meta tables in Machbase. |
+| 18 | Describe the concept of Tablespace in Machbase and how disk management is handled. |
+| 19 | Explain how to create an account named ‘test’ and grant it read-only access to a specific table (sensor_data). |
+| 20 | Explain how to create and apply a Retention Policy that keeps sensor data for only 7 days and automatically deletes older data. |
 
 ## Test Result Documentation
 
