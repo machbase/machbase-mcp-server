@@ -26,7 +26,7 @@ from collections import defaultdict, Counter
 from fastmcp import FastMCP
 
 # Version information
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 BUILD_DATE = "2025-10-13"
 DESCRIPTION = "Machbase Neo MCP Server"
 
