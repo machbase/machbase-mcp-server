@@ -27,7 +27,7 @@ from fastmcp import FastMCP
 
 # Version information
 VERSION = "0.5.0"
-BUILD_DATE = "2025-10-14"
+BUILD_DATE = "2025-10-13"
 DESCRIPTION = "Machbase Neo MCP Server"
 
 # Machbase Neo default configuration
@@ -702,7 +702,7 @@ async def get_full_document_content(file_identifier: str) -> str:
     global document_extractor
     
     try:
-        file_identifier = file_identifier.replace('/', '\\')
+        file_identifier = os.path.normpath(file_identifier)
         
         doc = document_extractor.get_full_document(file_identifier)
         
@@ -766,7 +766,7 @@ async def extract_code_blocks(file_identifier: str, language: str = None) -> str
     global document_extractor
     
     try:
-        file_identifier = file_identifier.replace('/', '\\')
+        file_identifier = os.path.normpath(file_identifier)
         
         doc = document_extractor.get_full_document(file_identifier)
         
@@ -829,7 +829,7 @@ async def get_document_sections(file_identifier: str, section_filter: str = None
     global document_extractor
     
     try:
-        file_identifier = file_identifier.replace('/', '\\')
+        file_identifier = os.path.normpath(file_identifier)
         
         doc = document_extractor.get_full_document(file_identifier)
         
