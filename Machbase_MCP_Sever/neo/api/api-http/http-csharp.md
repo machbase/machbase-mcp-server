@@ -1,8 +1,4 @@
----
-title: Client in C#
-type: docs
-weight: 64
----
+# Machbase Neo HTTP C# Client
 
 ## Query
 

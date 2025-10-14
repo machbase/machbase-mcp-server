@@ -5,6 +5,7 @@ Enhanced Machbase Neo MCP Server with FULL DOCUMENT CONTENT ACCESS and TQL EXECU
 - Added exact code block extraction
 - Added section-by-section content access
 - Added TQL file execution with automatic error cleanup
+- Added version information tool
 - Removed legacy search functions for cleaner interface
 """
 
@@ -24,6 +25,15 @@ from collections import defaultdict, Counter
 
 from fastmcp import FastMCP
 
+# Version information
+VERSION = "0.5.0"
+BUILD_DATE = "2025-10-14"
+DESCRIPTION = "Machbase Neo MCP Server"
+
+# Machbase Neo default configuration
+DEFAULT_MACHBASE_HOST = "localhost"
+DEFAULT_MACHBASE_PORT = 5654
+
 # Logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -34,15 +44,40 @@ logger = logging.getLogger(__name__)
 # Create FastMCP instance
 mcp = FastMCP("Machbase Neo")
 
-# Machbase Neo default configuration
-DEFAULT_MACHBASE_HOST = "localhost"
-DEFAULT_MACHBASE_PORT = 5654
-
 def get_machbase_url(host: str = None, port: int = None) -> str:
     """Generate Machbase Neo server URL."""
     actual_host = host or DEFAULT_MACHBASE_HOST
     actual_port = port or DEFAULT_MACHBASE_PORT
     return f"http://{actual_host}:{actual_port}"
+
+# =============================================================================
+# Version and info tools
+# =============================================================================
+
+@mcp.tool()
+async def get_version() -> str:
+    """Get version information of the Machbase Neo MCP Server."""
+    return f"""# Machbase Neo MCP Server Version Information
+
+**Version**: {VERSION}
+**Build Date**: {BUILD_DATE}
+**Description**: {DESCRIPTION}
+
+## Features
+✓ Database table and tag management
+✓ SQL execution
+✓ TQL execution
+✓ User Manual
+✓ Error handling and debugging tools
+
+## Tool Categories
+- **Database Tools**: list_tables, list_table_tags, execute_sql_query
+- **TQL Tools**: execute_tql_script
+- **Document Tools**: get_full_document_content, extract_code_blocks, get_document_sections, list_available_documents
+- **Utility Tools**: get_version, debug_mcp_status
+
+For detailed usage information, use `debug_mcp_status()` tool.
+"""
 
 # =============================================================================
 # Database related tools
@@ -189,7 +224,7 @@ async def execute_sql_query(
         Execute SQL query directly. 
 
         **IMPORTANT: Always check table structure first to understand column names, data types, and time intervals before execution.**
-        **MANDATORY: Must use Machbase Neo documentation only. Use machbase:search_in_documents or machbase:get_document_sections to find exact syntax before writing any queries. General SQL knowledge must not be used - only documented Machbase Neo syntax and functions are allowed.**
+        **MANDATORY: Must use Machbase Neo documentation only. Use get_full_document_content or get_document_sections to find exact syntax before writing any queries. General SQL knowledge must not be used - only documented Machbase Neo syntax and functions are allowed.**
         **EXECUTION POLICY: Must test and verify all SQL queries before providing them as answers. Only provide successfully executed and validated code to users.**
 
         If no data is returned, it will be treated as a failure.
@@ -270,7 +305,7 @@ async def execute_tql_script(
         Execute TQL script via HTTP API. 
 
         **CRITICAL: Before executing, analyze target table structure and time intervals (minute/hour/daily data) as TQL operations heavily depend on correct time-based aggregations.**
-        **MANDATORY: TQL syntax is unique to Machbase Neo. Must reference documentation using machbase:search_in_documents or machbase:extract_code_blocks before writing any TQL scripts. Only use syntax and examples found in official documentation - no assumptions or general query language knowledge allowed.**
+        **MANDATORY: TQL syntax is unique to Machbase Neo. Must reference documentation using get_full_document_content or extract_code_blocks before writing any TQL scripts. Only use syntax and examples found in official documentation - no assumptions or general query language knowledge allowed.**
         **EXECUTION POLICY: Must test and verify all TQL scripts before providing them as answers. Only provide successfully executed and validated code to users.**
 
         Args:
@@ -608,10 +643,58 @@ document_extractor = DocumentContentExtractor()
 # =============================================================================
 # Document access tools
 # =============================================================================
-
+@mcp.tool()
+async def list_available_documents() -> str:
+    """List all available documentation files."""
+    global document_extractor
+    
+    try:
+        if not document_extractor.file_index:
+            return "No documentation files found."
+        
+        # Group by category/directory
+        files_by_dir = defaultdict(list)
+        
+        for filename, full_path in document_extractor.file_index.items():
+            if filename.endswith('.md'):  # Only show .md files in main listing
+                relative_path = os.path.relpath(full_path, document_extractor.docs_folder)
+                directory = os.path.dirname(relative_path) if os.path.dirname(relative_path) else "root"
+                files_by_dir[directory].append(filename)
+        
+        result = "# Available Documentation Files\n\n"
+        result += f"**Documentation folder**: {document_extractor.docs_folder}\n"
+        result += f"**Total files**: {len([f for f in document_extractor.file_index.keys() if f.endswith('.md')])}\n\n"
+        
+        for directory in sorted(files_by_dir.keys()):
+            result += f"## {directory}/\n"
+            for filename in sorted(set(files_by_dir[directory])):
+                result += f"• {filename}\n"
+            result += "\n"
+        
+        result += "---\n\n"
+        result += "**Usage examples**:\n"
+        result += "• `get_full_document_content('rollup.md')`\n"
+        result += "• `extract_code_blocks('sql/rollup.md', 'sql')`\n"
+        result += "• `get_document_sections('rollup.md', 'create')`\n"
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error listing documents: {e}")
+        return f"Error listing documents: {str(e)}"
+    
 @mcp.tool()
 async def get_full_document_content(file_identifier: str) -> str:
     """Get complete content of a specific document file.
+    
+    **MANDATORY RESTRICTION**: 
+    ALWAYS search non-dbms folders (operations/, sql/, tql/, api/, utilities/, etc.) FIRST for all questions.
+
+    Use paths starting with "dbms/" ONLY when:
+    - The user's question explicitly mentions "DBMS" keyword, OR
+    - You have already searched at least one relevant non-dbms folder and found no information
+
+    Before using dbms/, briefly state which non-dbms folder you searched.
     
     Args:
         file_identifier: relative path (e.g., "sql/rollup.md")
@@ -667,6 +750,15 @@ async def get_full_document_content(file_identifier: str) -> str:
 async def extract_code_blocks(file_identifier: str, language: str = None) -> str:
     """Extract all code blocks from a document.
     
+    **MANDATORY RESTRICTION**: 
+    ALWAYS search non-dbms folders (operations/, sql/, tql/, api/, utilities/, etc.) FIRST for all questions.
+
+    Use paths starting with "dbms/" ONLY when:
+    - The user's question explicitly mentions "DBMS" keyword, OR
+    - You have already searched at least one relevant non-dbms folder and found no information
+
+    Before using dbms/, briefly state which non-dbms folder you searched.
+    
     Args:
         file_identifier: Filename or path
         language: Filter by programming language (optional)
@@ -674,6 +766,8 @@ async def extract_code_blocks(file_identifier: str, language: str = None) -> str
     global document_extractor
     
     try:
+        file_identifier = file_identifier.replace('/', '\\')
+        
         doc = document_extractor.get_full_document(file_identifier)
         
         if not doc:
@@ -719,6 +813,15 @@ async def extract_code_blocks(file_identifier: str, language: str = None) -> str
 async def get_document_sections(file_identifier: str, section_filter: str = None) -> str:
     """Get document content organized by sections.
     
+    **MANDATORY RESTRICTION**: 
+    ALWAYS search non-dbms folders (operations/, sql/, tql/, api/, utilities/, etc.) FIRST for all questions.
+
+    Use paths starting with "dbms/" ONLY when:
+    - The user's question explicitly mentions "DBMS" keyword, OR
+    - You have already searched at least one relevant non-dbms folder and found no information
+
+    Before using dbms/, briefly state which non-dbms folder you searched.
+    
     Args:
         file_identifier: Filename or path
         section_filter: Filter sections containing this text (optional)
@@ -726,6 +829,8 @@ async def get_document_sections(file_identifier: str, section_filter: str = None
     global document_extractor
     
     try:
+        file_identifier = file_identifier.replace('/', '\\')
+        
         doc = document_extractor.get_full_document(file_identifier)
         
         if not doc:
@@ -763,146 +868,25 @@ async def get_document_sections(file_identifier: str, section_filter: str = None
         return f"Error getting document sections: {str(e)}"
 
 @mcp.tool()
-async def search_in_documents(query: str, file_pattern: str = None) -> str:
-    """Search for specific text within document contents.
-    
-    Args:
-        query: Text to search for
-        file_pattern: Optional filename pattern to limit search
-    """
-    global document_extractor
-    
-    try:
-        query_lower = query.lower()
-        results = []
-        
-        # Get files to search
-        files_to_search = []
-        if file_pattern:
-            matching_files = document_extractor.search_files(file_pattern)
-            for file_name in matching_files:
-                if file_name in document_extractor.file_index:
-                    files_to_search.append(document_extractor.file_index[file_name])
-        else:
-            files_to_search = list(document_extractor.file_index.values())[:20]  # Limit for performance
-        
-        for file_path in files_to_search:
-            relative_path = os.path.relpath(file_path, document_extractor.docs_folder)
-            
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                if query_lower in content.lower():
-                    # Find context around matches
-                    lines = content.split('\n')
-                    matches = []
-                    
-                    for i, line in enumerate(lines):
-                        if query_lower in line.lower():
-                            # Get context (2 lines before and after)
-                            start_line = max(0, i - 2)
-                            end_line = min(len(lines), i + 3)
-                            context_lines = lines[start_line:end_line]
-                            
-                            # Highlight the match line
-                            context_lines[i - start_line] = f">>> {context_lines[i - start_line]}"
-                            
-                            context = '\n'.join(context_lines)
-                            matches.append({
-                                'line_num': i + 1,
-                                'context': context
-                            })
-                            
-                            if len(matches) >= 3:  # Limit matches per file
-                                break
-                    
-                    if matches:
-                        results.append({
-                            'file': relative_path,
-                            'matches': matches
-                        })
-                    
-            except Exception as e:
-                logger.error(f"Error searching in {relative_path}: {e}")
-                continue
-        
-        if not results:
-            return f"No matches found for '{query}'" + (f" in files matching '{file_pattern}'" if file_pattern else "")
-        
-        result = f"# Search Results for '{query}'\n\n"
-        result += f"**Found in**: {len(results)} files\n\n---\n\n"
-        
-        for file_result in results[:5]:  # Limit to top 5 files
-            result += f"## {file_result['file']}\n\n"
-            
-            for match in file_result['matches']:
-                result += f"**Line {match['line_num']}**:\n"
-                result += f"```\n{match['context']}\n```\n\n"
-            
-            result += "---\n\n"
-        
-        if len(results) > 5:
-            result += f"... and {len(results) - 5} more files with matches.\n"
-        
-        return result
-        
-    except Exception as e:
-        logger.error(f"Error searching documents: {e}")
-        return f"Error searching documents: {str(e)}"
-
-@mcp.tool()
-async def list_available_documents() -> str:
-    """List all available documentation files."""
-    global document_extractor
-    
-    try:
-        if not document_extractor.file_index:
-            return "No documentation files found."
-        
-        # Group by category/directory
-        files_by_dir = defaultdict(list)
-        
-        for filename, full_path in document_extractor.file_index.items():
-            if filename.endswith('.md'):  # Only show .md files in main listing
-                relative_path = os.path.relpath(full_path, document_extractor.docs_folder)
-                directory = os.path.dirname(relative_path) if os.path.dirname(relative_path) else "root"
-                files_by_dir[directory].append(filename)
-        
-        result = "# Available Documentation Files\n\n"
-        result += f"**Documentation folder**: {document_extractor.docs_folder}\n"
-        result += f"**Total files**: {len([f for f in document_extractor.file_index.keys() if f.endswith('.md')])}\n\n"
-        
-        for directory in sorted(files_by_dir.keys()):
-            result += f"## {directory}/\n"
-            for filename in sorted(set(files_by_dir[directory])):
-                result += f"• {filename}\n"
-            result += "\n"
-        
-        result += "---\n\n"
-        result += "**Usage examples**:\n"
-        result += "• `get_full_document_content('rollup.md')`\n"
-        result += "• `extract_code_blocks('sql/rollup.md', 'sql')`\n"
-        result += "• `get_document_sections('rollup.md', 'create')`\n"
-        result += "• `search_in_documents('CREATE TAG TABLE', 'rollup')`\n"
-        
-        return result
-        
-    except Exception as e:
-        logger.error(f"Error listing documents: {e}")
-        return f"Error listing documents: {str(e)}"
-
-@mcp.tool()
 async def debug_mcp_status() -> str:
     """Check current status and performance of MCP server."""
     global document_extractor
+    
+    # Version information
+    version_info = f"=== Machbase Neo MCP Server Status ===\n"
+    version_info += f"Version: {VERSION}\n"
+    version_info += f"Build Date: {BUILD_DATE}\n"
+    version_info += f"Description: {DESCRIPTION}\n\n"
     
     # Database connection status
     db_status = ""
     try:
         machbase_url = get_machbase_url()
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{machbase_url}/db/query?q=SELECT 1 FROM M$SYS_TABLES LIMIT 1&format=csv", timeout=5.0)
+            response = await client.get(
+                f"{machbase_url}/db/query?q=SELECT 1 FROM M$SYS_TABLES LIMIT 1&format=csv", 
+                timeout=5.0
+            )
             if response.status_code == 200:
                 db_status = f"[OK] Machbase Neo connection successful ({machbase_url})"
             else:
@@ -917,26 +901,6 @@ async def debug_mcp_status() -> str:
     doc_status += f"Indexed files: {len(document_extractor.file_index)}\n"
     doc_status += f"Cached documents: {len(document_extractor.document_cache)}\n"
     
-    # Show available categories and sample files
-    if document_extractor.file_index:
-        categories = set()
-        sample_files = []
-        
-        for filename in document_extractor.file_index.keys():
-            if filename.endswith('.md'):
-                sample_files.append(filename)
-                # Extract category from path
-                full_path = document_extractor.file_index[filename]
-                rel_path = os.path.relpath(full_path, document_extractor.docs_folder)
-                category = os.path.dirname(rel_path) if os.path.dirname(rel_path) else "root"
-                categories.add(category)
-        
-        doc_status += f"Available categories: {', '.join(sorted(categories))}\n"
-        doc_status += f"Sample files: {', '.join(sample_files[:5])}"
-        if len(sample_files) > 5:
-            doc_status += f" (and {len(sample_files) - 5} more)"
-        doc_status += "\n"
-    
     doc_status += f"\n=== Available Tools ===\n"
     doc_status += f"Database Tools (3):\n"
     doc_status += f"  • list_tables() - Get all database tables\n"
@@ -946,45 +910,29 @@ async def debug_mcp_status() -> str:
     doc_status += f"TQL Tools (1):\n"
     doc_status += f"  • execute_tql_script() - Execute TQL via HTTP API\n\n"
     
-    doc_status += f"Document Tools (5):\n"
+    doc_status += f"Document Tools (4):\n"
     doc_status += f"  • get_full_document_content() - Get complete document\n"
     doc_status += f"  • extract_code_blocks() - Extract code examples\n"
     doc_status += f"  • get_document_sections() - Get document sections\n"
-    doc_status += f"  • search_in_documents() - Search within documents\n"
     doc_status += f"  • list_available_documents() - List all files\n\n"
     
-    doc_status += f"Utility Tools (1):\n"
+    doc_status += f"Utility Tools (2):\n"
+    doc_status += f"  • get_version() - Show version information\n"
     doc_status += f"  • debug_mcp_status() - Check server status\n"
     
-    # Add dynamic examples if files exist
-    if document_extractor.file_index:
-        doc_status += f"\n=== Example Usage ===\n"
-        
-        # Find some common file types for examples
-        sql_files = [f for f in document_extractor.file_index.keys() if f.endswith('.md') and ('sql' in f.lower() or 'rollup' in f.lower())]
-        tql_files = [f for f in document_extractor.file_index.keys() if f.endswith('.md') and 'tql' in f.lower()]
-        
-        if sql_files:
-            doc_status += f"• get_full_document_content('{sql_files[0]}') - SQL documentation\n"
-        if tql_files:
-            doc_status += f"• extract_code_blocks('{tql_files[0]}', 'tql') - TQL examples\n"
-        
-        doc_status += f"• search_in_documents('CREATE TABLE') - Find table creation syntax\n"
-        doc_status += f"• execute_tql_script('CSV(file(\"/path/to/data.csv\")) | CHART()') - Execute TQL\n"
-    
-    return f"{db_status}\n{doc_status}"
+    return f"{version_info}{db_status}\n{doc_status}"
 
 # =============================================================================
 # Main execution
 # =============================================================================
 
 if __name__ == "__main__":
-    logger.info("Starting Machbase Neo MCP server with TQL execution")
+    logger.info(f"Starting Machbase Neo MCP server v{VERSION}")
     logger.info("Available tools:")
     logger.info("  Database: list_tables, list_table_tags, execute_sql_query")
     logger.info("  TQL: execute_tql_script")
-    logger.info("  Documents: get_full_document_content, extract_code_blocks, get_document_sections, search_in_documents, list_available_documents")
-    logger.info("  Utility: debug_mcp_status")
+    logger.info("  Documents: get_full_document_content, extract_code_blocks, get_document_sections, list_available_documents")
+    logger.info("  Utility: get_version, debug_mcp_status")
     
     try:
         # Build file index

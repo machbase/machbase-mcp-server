@@ -1,8 +1,4 @@
----
-title: Client in Go
-type: docs
-weight: 63
----
+# Machbase Neo HTTP Go Client
 
 ## Query
 
@@ -16,7 +12,7 @@ q := url.QueryEscape("select count(*) from M$SYS_TABLES where name = 'TAGDATA'")
 
 Call HTTP GET method.
 
-```go {linenos=table,hl_lines=[10,11],linenostart=1}
+```go
 import (
 	"fmt"
 	"io"
@@ -53,19 +49,19 @@ A client can request a JSON message containing a SQL query.
 
 Make JSON content with a SQL query.
 
-```go {linenos=table,linenostart=12}
+```go
 queryJson := `{"q":"select count(*) from M$SYS_TABLES where name = 'TAGDATA'"}`
 ```
 
 Call HTTP POST method with the Content-type.
 
-```go {linenos=table,linenostart=14}
+```go
 rsp, err := client.Post(addr, "application/json", bytes.NewBufferString(queryJson))
 ```
 
 **Full source code**
 
-```go {linenos=table,hl_lines=[12,14],linenostart=1}
+```go
 package main
 
 import (
@@ -110,7 +106,7 @@ rsp, err := client.Post(addr, "application/x-www-form-urlencoded", bytes.NewBuff
 
 **Full source code**
 
-```go {linenos=table,hl_lines=[13,15],linenostart=1}
+```go
 package main
 
 import (
@@ -149,7 +145,7 @@ func main() {
 
 ### POST JSON
 
-```go {linenos=table,hl_lines=["12-17","31-37",39,41],linenostart=1}
+```go
 package main
 
 import (
@@ -212,7 +208,7 @@ func main() {
 
 ### POST CSV
 
-```go {linenos=table,hl_lines=["26-30",33],linenostart=1}
+```go
 package main
 
 import (
@@ -267,9 +263,7 @@ func main() {
 
 ## Example
 
-{{< callout emoji="📌" >}}
-This example assumes the table below exists.
-{{< /callout >}}
+**This example assumes the table below exists.**
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS EXAMPLE (

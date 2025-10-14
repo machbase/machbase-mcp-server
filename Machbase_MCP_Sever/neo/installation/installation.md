@@ -1,17 +1,18 @@
 # Machbase Neo Installation & Getting Started Guide
 
 ## Platform & Architecture Support
+
 - **Raspberry Pi**: Ubuntu 22.04 with Raspberry Pi 4
 - **Linux arm64**: Ubuntu 22.04, 24.04
 - **Linux amd64**: Ubuntu 20.04, 22.04, 24.04
 - **macOS**: Intel CPU (macOS 13), Apple Silicon (macOS 14, 15)
 - **Windows**: Windows 10 Fall 2018 or newer, Windows 11
 
-## 1. Direct Installation
+## Direct Installation
 
 ### Setup Process
 
-1. **Download** (recommended)
+1. **Download (recommended)**
    
    One-line instant script:
    ```bash
@@ -25,7 +26,7 @@
    unzip machbase-neo-v8.0.58-linux-amd64.zip
    ```
    
-   Or by platform:
+   **By platform:**
    ```bash
    # Linux ARM64
    unzip machbase-neo-v8.0.58-linux-arm64.zip
@@ -45,12 +46,13 @@
    machbase-neo version
    ```
 
-## 2. Docker Installation
+## Docker Installation
 
 ### Prerequisites
 - Docker
 
 ### Docker Pull
+
 To install the latest version of machbase-neo with Docker, enter the following command in terminal:
 
 ```bash
@@ -63,7 +65,7 @@ If you want a specific version, add a tag:
 $ docker pull machbase/machbase-neo:v8.0.58
 ```
 
-To find different Docker versions, check https://hub.docker.com/r/machbase/machbase-neo/
+> **Note**: To find different Docker versions, check https://hub.docker.com/r/machbase/machbase-neo/
 
 ### Docker Run
 
@@ -72,6 +74,7 @@ To find different Docker versions, check https://hub.docker.com/r/machbase/machb
 $ docker run -it machbase/machbase-neo
 ```
 
+**Options:**
 - `-i`, `--interactive`: Keep STDIN open
 - `-t`, `--tty`: Allocate a pseudo-TTY
 
@@ -82,6 +85,7 @@ If running in foreground, you can exit directly with `Ctrl + c`.
 $ docker run -d machbase/machbase-neo
 ```
 
+**Options:**
 - `-d`, `--detach`: Run container in background and print container ID
 
 If running in background, you can exit with the following command:
@@ -112,6 +116,7 @@ docker run -d \
            machbase/machbase-neo
 ```
 
+**Paths:**
 - `/data`: machbase-neo home path in docker
 - `/file`: machbase-neo tql path in docker
 - `-v`, `--volume`: Bind mount a volume
@@ -119,13 +124,13 @@ docker run -d \
 #### Port Configuration
 Machbase-neo exposes several ports in Docker:
 
-|Port|Description|
-|:-|:-----|
-|5652|sshd|
-|5653|mqtt|
-|5654|http|
-|5655|grpc|
-|5656|database engine|
+| Port | Description |
+|:-----|:------------|
+| 5652 | sshd |
+| 5653 | mqtt |
+| 5654 | http |
+| 5655 | grpc |
+| 5656 | database engine |
 
 #### Port Mapping (Forwarding)
 ```bash
@@ -141,28 +146,30 @@ $ docker run -d \
 ```
 
 #### Remote Access Using SSH Key
-Generate SSH key:
-```bash
-$ ssh-keygen -t rsa
-```
 
-Run machbase-neo:
-```bash
-$ docker pull machbase/machbase-neo
-$ docker run -d \
-             -p 5652-5656:5652-5656/tcp \
-             --name machbase-neo \
-             machbase/machbase-neo
-```
+1. **Generate SSH key:**
+   ```bash
+   $ ssh-keygen -t rsa
+   ```
 
-Register SSH key:
-```bash
-$ ssh -l sys -p 5652 192.168.0.116 ssh-key add `cat ~/.ssh/id_rsa.pub`
-sys@192.168.0.116's password? manager
-Add sshkey success
-```
+2. **Run machbase-neo:**
+   ```bash
+   $ docker pull machbase/machbase-neo
+   $ docker run -d \
+                -p 5652-5656:5652-5656/tcp \
+                --name machbase-neo \
+                machbase/machbase-neo
+   ```
+
+3. **Register SSH key:**
+   ```bash
+   $ ssh -l sys -p 5652 192.168.0.116 ssh-key add `cat ~/.ssh/id_rsa.pub`
+   sys@192.168.0.116's password? manager
+   Add sshkey success
+   ```
 
 #### Using Docker Compose
+
 Create `docker-compose.yml` file:
 
 ```yml
@@ -184,22 +191,19 @@ services:
       - "5656:5656" # database engine
 ```
 
-Run:
+**Commands:**
 ```bash
+# Start
 $ docker compose up -d
-```
 
-Or:
-```bash
+# Or specify file
 $ docker compose -f docker-compose.yml up -d
-```
 
-Stop:
-```bash
+# Stop
 $ docker compose down
 ```
 
-## 3. Start and Stop
+## Start and Stop
 
 ### Linux & macOS
 
@@ -211,12 +215,12 @@ machbase-neo serve
 #### Expose Ports
 By default, machbase-neo runs only on localhost for security reasons. To allow remote client access:
 
-Allow access from all addresses:
+**Allow access from all addresses:**
 ```bash
 machbase-neo serve --host 0.0.0.0
 ```
 
-Allow specific address only:
+**Allow specific address only:**
 ```bash
 machbase-neo serve --host 192.168.1.10
 ```
@@ -230,30 +234,33 @@ machbase-neo shell shutdown
 ```
 
 ### Windows
+
 On Windows, double-click "neow.exe" and click the "machbase-neo serve" button in the top left of the window.
 
 #### Windows Service Registration
-Must be executed in Administrator mode.
 
-- Install:
+> **Important**: Must be executed in Administrator mode.
+
+**Install:**
 ```
 .\machbase-neo service install --host 127.0.0.1 --data C:\neo-server\database --file C:\neo-server\files --log-filename C:\neo-server\machbase-neo.log --log-level INFO
 ```
 
-- Start/Stop:
+**Start/Stop:**
 ```
 .\machbase-neo service start
 .\machbase-neo service stop
 ```
 
-- Remove:
+**Remove:**
 ```
 .\machbase-neo service remove
 ```
 
-## 4. Deploy Modes
+## Deploy Modes
 
 ### Head Only Mode
+
 Use URL pointing to another Machbase DBMS's mach port as `--data` flag value:
 
 ```bash
@@ -267,19 +274,23 @@ machbase-neo serve --data machbase://${SECRET}@192.168.1.100:5656
 ```
 
 ### Headless Mode
+
 Start only DBMS process (using mach port 5656 only):
 
 ```bash
 machbase-neo serve-headless
 ```
 
-## 5. Web UI Access
+## Web UI Access
 
 ### Login
+
 Navigate to [http://127.0.0.1:5654/](http://127.0.0.1:5654/) in your web browser.
-Default credentials: **ID** `sys`, **Password** `manager`
+
+**Default credentials:** ID `sys`, Password `manager`
 
 ### Change Password
+
 It's recommended to change the default password for security reasons.
 
 #### Via Web UI:
@@ -295,3 +306,14 @@ ALTER USER sys IDENTIFIED BY new_password;
 ```bash
 machbase-neo shell "ALTER USER SYS IDENTIFIED BY new_password"
 ```
+
+## Quick Reference
+
+| Method | Command/Action | Description |
+|--------|----------------|-------------|
+| **Direct Install** | `curl install.sh` script | Recommended one-line installation |
+| **Docker Install** | `docker pull machbase/machbase-neo` | Container-based installation |
+| **Start Service** | `machbase-neo serve` | Start on localhost only |
+| **Remote Access** | `--host 0.0.0.0` | Allow remote connections |
+| **Web UI** | http://127.0.0.1:5654 | Default web interface |
+| **Default Login** | sys/manager | Change password after first login |

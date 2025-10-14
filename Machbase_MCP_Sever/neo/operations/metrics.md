@@ -1,37 +1,26 @@
----
-title: Metrics
-type: docs
-weight: 101
----
+# Machbase Neo Metrics
 
-{{< callout type="warning" >}}
-**BETA Warning**<br/>
-The features described in this document are subject to change and may be updated in future releases.
-{{< /callout >}}
+> **BETA Warning**  
+> The features described in this document are subject to change and may be updated in future releases.
 
 The metrics are provided in 1 minute, 5 minutes and 15 minutes sampling periods.
 
 ## HTTP API
+
 To retrieve the metrics via the RESTful API, use the endpoint:
+
 ```
 http://127.0.0.1:5654/debug/statz?interval=[1m|5m|15m]&format=[json|html]
 ```
-This endpoint allows you to specify the interval for which you want to gather metrics,
-choosing from 1 minute, 5 minutes, or 15 minutes.
-Please note that this endpoint is only accessible from the same machine (localhost) by default.
+
+This endpoint allows you to specify the interval for which you want to gather metrics, choosing from 1 minute, 5 minutes, or 15 minutes. Please note that this endpoint is only accessible from the same machine (localhost) by default.
 
 By default, the output format is JSON. If `format=html` is specified, the response will be in an HTML table.
 
 ## TQL with CHART
 
-The example below shows how to render machbase-neo's HTTP latency distribution in a chart.
-It uses `FAKE( statz(period, metrics...) )` SRC function, and then makes time-value pairs for input of the `CHART()`.
+The example below shows how to render machbase-neo's HTTP latency distribution in a chart. It uses `FAKE( statz(period, metrics...) )` SRC function, and then makes time-value pairs for input of the `CHART()`.
 
-{{< tabs items="CHART,Code">}}
-{{< tab >}}
-
-{{< /tab >}}
-{{< tab >}}
 ```js
 FAKE(statz("15m", 
     "machbase:http:latency_p50",
@@ -66,12 +55,9 @@ CHART(
 )
 ```
 
-{{< /tab >}}
-{{< /tabs >}}
-
 ## Metrics
-All metrics are based on the selected sampling period,
-which can be one of the following:<br/> 1 minute (`1m`), 5 minutes (`5m`), or 15 minutes (`15m`).
+
+All metrics are based on the selected sampling period, which can be one of the following: 1 minute (`1m`), 5 minutes (`5m`), or 15 minutes (`15m`).
 
 ### HTTP
 
@@ -149,4 +135,3 @@ which can be one of the following:<br/> 1 minute (`1m`), 5 minutes (`5m`), or 15
 | `go:heap_in_use_[avg\|max\|min]`   | Heap usage (bytes)                   |
 | `go:cgo_call_[avg\|max\|min]`      | Number of CGO function calls         |
 | `go:goroutine_[avg\|max\|min]`     | Number of goroutines                 |
-

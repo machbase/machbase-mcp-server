@@ -1,12 +1,8 @@
----
-title: Run sql file
-type: docs
-weight: 20
----
+# Machbase Neo Shell Run Guide
 
 `machbase-neo shell run <file>` executes multiple commands in the given file.
 
-## Make a script file
+## Make a Script File
 
 Make an example script file like below.
 
@@ -27,13 +23,13 @@ SELECT count(*) FROM EXAMPLE
 ;
 ```
 
-## Run the script file
+## Run the Script File
 
 ```sh
 machbase-neo shell run batch.sh
 ```
 
-- result
+**Result:**
 
 ```
 SELECT count(*) FROM EXAMPLE WHERE name = 'wave.cos'
@@ -49,7 +45,7 @@ SELECT count(*) FROM EXAMPLE WHERE name = 'wave.sin'
 a row fetched.
 ```
 
-## Run the script in interactive mode
+## Run the Script in Interactive Mode
 
 ```sh
 $ machbase-neo shell
@@ -72,7 +68,7 @@ SELECT count(*) FROM EXAMPLE WHERE name = 'wave.sin'
 a row fetched.
 ```
 
-## Make an executable script
+## Make an Executable Script
 
 Add shebang(`#!`) as the first line of script file like below.
 
@@ -109,3 +105,13 @@ SELECT count(*) FROM EXAMPLE WHERE name = 'wave.sin'
       1  8175
 a row fetched.
 ```
+
+## Quick Reference
+
+| Method | Command | Description |
+|--------|---------|-------------|
+| **Direct Execution** | `machbase-neo shell run <file>` | Execute SQL script file directly |
+| **Interactive Mode** | `run ./script.sh` | Execute script within shell session |
+| **Executable Script** | `./script.sh` | Execute script with shebang header |
+| **Comments** | `#` or `--` | Add comments to script files |
+| **Statement Ending** | `;` | All statements must end with semicolon |

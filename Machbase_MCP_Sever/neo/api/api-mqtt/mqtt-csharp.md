@@ -1,8 +1,4 @@
----
-title: Client in C#
-type: docs
-weight: 64
----
+# Machbase Neo MQTT C# Client
 
 ## Setup
 
@@ -65,7 +61,6 @@ await mqttClient.PublishAsync(msg, CancellationToken.None);
 ```
 
 ## Full source code
-
 
 ```c#
 using MQTTnet;

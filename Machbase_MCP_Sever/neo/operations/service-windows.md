@@ -1,16 +1,9 @@
----
-title: Windows service
-type: docs
-weight: 81
----
+# Machbase Neo Windows service
 
-`machbase-neo service` command controls the registration of Windows services.
-Once the service installation has been done, machbase-neo can start automatically along with Windows boot.
+`machbase-neo service` command controls the registration of Windows services. Once the service installation has been done, machbase-neo can start automatically along with Windows boot.
 
-{{< callout emoji="📌">}}
-These operations requires **Administrator** privilege.
-{{< /callout >}}
-
+> **Note**  
+> These operations requires **Administrator** privilege.
 
 ## machbase-neo service install
 

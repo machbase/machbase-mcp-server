@@ -1,8 +1,4 @@
----
-title: Client in Python
-type: docs
-weight: 62
----
+# Machbase Neo HTTP Python Client
 
 ## Query
 
@@ -33,9 +29,7 @@ print(response.json())
 
 ## Example - matplotlib
 
-{{< callout emoji="📌" >}}
-To write test data, use the command below from the [Write waves by shell](/neo/tutorials/shellscript-waves).
-{{< /callout >}}
+**To write test data, use the command below from the [Write waves by shell](/neo/tutorials/shellscript-waves).**
 
 ```sh
 sh gen_wave.sh | machbase-neo shell import --timeformat=s EXAMPLE
@@ -95,7 +89,7 @@ df
 
 - Write pandas dataframe into a tag table via machbase-neo HTTP API.
 
-```python {{hl_lines=[4]}}
+```python
 import io, requests
 
 stream = io.StringIO()

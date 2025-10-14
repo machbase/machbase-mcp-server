@@ -1,8 +1,4 @@
----
-title: Client in Go
-type: docs
-weight: 69
----
+# Machbase Neo MQTT Go Client
 
 ## Setup
 
@@ -22,7 +18,7 @@ mkdir mqtt_client && cd mqtt_client
 
 ### Client
 
-```go {linenos=table,hl_lines=[5]}
+```go
 	opts := paho.NewClientOptions()
 	opts.SetCleanSession(true)
 	opts.SetConnectRetry(false)
@@ -39,7 +35,7 @@ mkdir mqtt_client && cd mqtt_client
 
 Connect to machbase-neo via MQTT plain socket.
 
-```go {linenos=table}
+```go
 	connectToken := client.Connect()
 	connectToken.WaitTimeout(1 * time.Second)
 	if connectToken.Error() != nil {
@@ -49,13 +45,13 @@ Connect to machbase-neo via MQTT plain socket.
 
 ### Disconnect
 
-```go {linenos=table}
+```go
 client.Disconnect(100)
 ```
 
 ### Publish
 
-```go {linenos=table}
+```go
 	client.Publish("db/append/TAGDATA", 1, false, []byte(jsonStr))
 ```
 

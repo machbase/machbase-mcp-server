@@ -1,8 +1,4 @@
----
-title: Client in Python
-type: docs
-weight: 65
----
+# Machbase Neo MQTT Python Client
 
 ## Setup
 
@@ -75,7 +71,6 @@ mqttClient.publish("db/append/example", """[
 ```
 
 ## Full source code
-
 
 ```python
 import paho.mqtt.client as mqtt

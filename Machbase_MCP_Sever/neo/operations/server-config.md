@@ -1,8 +1,4 @@
----
-title: Config file
-type: docs
-weight: 11
----
+# Machbase Neo Config file
 
 ## Create a new config file
 
@@ -33,17 +29,15 @@ The default value of `PrefDir` is `prefDir("machbase")` which is `$HOME/.config/
 | Listener                  | Config                    | default                 |
 |:--------------------------|:--------------------------|:------------------------|
 | SSH Shell                 | Shell.Listeners           | `tcp://127.0.0.1:5652`  |
-| MQTT                      | Mqtt.Listeners            | `tcp://127.0.0.1:5653` <br/> `unix://${tempDir()}/machbase-neo-mqtt.sock`  |
-| HTTP                      | Http.Listeners            | `tcp://127.0.0.1:5654` <br/> `unix://${tempDir()}/machbase-neo.sock`  |
-| gRPC                      | Grpc.Listeners            | `tcp://127.0.0.1:5655` <br/> `unix://${execDir()}/mach-grpc.sock` |
+| MQTT                      | Mqtt.Listeners            | `tcp://127.0.0.1:5653` `unix://${tempDir()}/machbase-neo-mqtt.sock`  |
+| HTTP                      | Http.Listeners            | `tcp://127.0.0.1:5654` `unix://${tempDir()}/machbase-neo.sock`  |
+| gRPC                      | Grpc.Listeners            | `tcp://127.0.0.1:5655` `unix://${execDir()}/mach-grpc.sock` |
 | Machbase native           | Machbase.PORT_NO          | `5656`                  |
 |                           | Machbase.BIND_IP_ADDRESS  | `127.0.0.1`             |
 
-
-{{< callout type="info" >}}
-Machbase native port `5656` is used for native clients such as JDBC and ODBC.
-JDBC, ODBC drivers can be found from Machbase home page.
-{{< /callout >}}
+> **ℹ️ Info**  
+> Machbase native port `5656` is used for native clients such as JDBC and ODBC.  
+> JDBC, ODBC drivers can be found from Machbase home page.
 
 ## Config References
 
@@ -56,22 +50,17 @@ Several functions are supported for the value of config item.
 - `flag(A, B)` : Get value of command line flag 'A'. if not specified, apply B as default value.
 - `env(A, B)` : get value of Environment variable 'A'. if not specified, apply B as default value
 - `execDir()` : Get directory path where executable file is.
-- `tempDir()` : Get system temp dir path. {{< neo_since ver="8.0.36" />}}
+- `tempDir()` : Get system temp dir path.
 - `userDir()` : Get user's home directory, On Linux and macOS, it returns the $HOME environment variable.
 - `prefDir(subdir)` : Ger user's preference directory, On Linux and macOS, it returns the real path of $HOME/.config/{subdir}
 
-{{< callout type="info">}}
-**Combine env() and flag()**<br/>
-It is general practice for seeking user's setting 
-that check command line flag first then find Environment variable and finally apply default value if both are not specified.
-We can write value `flag("--my-var", env("MY_VAR", "myvalue"))` for this use case
-{{< /callout >}}
+> **ℹ️ Combine env() and flag()**  
+> It is general practice for seeking user's setting that check command line flag first then find Environment variable and finally apply default value if both are not specified.  
+> We can write value `flag("--my-var", env("MY_VAR", "myvalue"))` for this use case
 
 ### define DEF
 
-This section is for the default values. the variables in this section are referred in other section.
-Users can define their own variables and even change the command line flags.
-As example below, `LISTEN_HOST` is taken value from `--host` flag of command line, but take `"127.0.0.1"` as default if `--host` flag is not provided.
+This section is for the default values. the variables in this section are referred in other section. Users can define their own variables and even change the command line flags. As example below, `LISTEN_HOST` is taken value from `--host` flag of command line, but take `"127.0.0.1"` as default if `--host` flag is not provided.
 
 If change `"127.0.0.1"` to `"192.168.1.10"`, the default value will be changed.
 
@@ -189,24 +178,19 @@ This section is for the database server consists of multiple parts those will be
 
 #### Machbase
 
-Machbase core properties are here,
-please refer [Property section of Machbase Manual](/dbms/config-monitor/property/) for details. And full manual for [Machbase is here](/dbms)
-
+Machbase core properties are here, please refer to Machbase Manual Property section for details.
 
 #### Shell
 
 This allows remote access machbase-neo shell via ssh. Since default `LISTEN_HOST` is `"127.0.0.1"` the ssh access only available from same host machine. Set `"0.0.0.0"` or exact IP address of host machine to allow remote access.
 
-{{< callout type="warning" >}}
-**Security**<br/>
-Before allow remote access, it is strongly recommended to change `SYS`'s default password from `manager` to your own.
-{{< /callout >}}
+> **⚠️ Security**  
+> Before allow remote access, it is strongly recommended to change `SYS`'s default password from `manager` to your own.
 
 | Key                         | Type               | Desc                                                     |
 |:----------------------------|:-------------------|----------------------------------------------------------|
 | Listeners                   | array of string    | listening addresses (ex: `tcp://127.0.0.1:5652`, `tcp://0.0.0.0:5652`)|
 | IdleTimeout                 | duration           | server will close the ssh connection if there is no activity for the specified time |
-
 
 #### Grpc
 
@@ -233,7 +217,7 @@ server's HTTP listener config.
 | Key                         | Type               | Desc                                                     |
 |:----------------------------|:-------------------|----------------------------------------------------------|
 | Listeners                   | array of string    | listening addresses                                       |
-| MaxMessageSizeLimit         | int                | maximum size limit of payload in a PUBLISH <br/> (default 1048576 = 1MB) |
+| MaxMessageSizeLimit         | int                | maximum size limit of payload in a PUBLISH (default 1048576 = 1MB) |
 | EnableTokenAuth             | bool               | enable token based authentication (default `false`)      |
 | EnableTls                   | bool               | enable TLS for the TCP listeners (default `false`)       |
 
@@ -286,4 +270,3 @@ module "machbase.com/neo-server" {
         EnableMachbaseSigHandler = VARS_MACHBASE_ENABLE_SIGHANDLER
     }
 }
-```

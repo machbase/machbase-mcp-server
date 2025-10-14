@@ -1,10 +1,6 @@
----
-title: Linux service
-type: docs
-weight: 82
----
+# Machbase Neo Linux service
 
-Using *systemd* or *supervisord*, you can run and manage machbase-neo process as as system service, so that make it to start automatically when the system boot.
+Using *systemd* or *supervisord*, you can run and manage machbase-neo process as system service, so that make it to start automatically when the system boot.
 
 ## Create start/stop script
 
@@ -14,7 +10,7 @@ Using *systemd* or *supervisord*, you can run and manage machbase-neo process as
 $ vi neo-start.sh
 ```
 
-```sh {{linenos=table}}
+```sh
 #!/bin/bash 
 exec /data/machbase-neo serve --host 0.0.0.0 --log-filename /data/log/machbase-neo.log
 ```
@@ -29,7 +25,7 @@ $ chmod 755 neo-start.sh
 $ vi neo-stop.sh
 ```
 
-```sh  {{linenos=table}}
+```sh
 #!/bin/bash 
 /data/machbase-neo shell shutdown
 ```
@@ -40,16 +36,14 @@ $ chmod 755 neo-stop.sh
 
 ## systemd
 
-{{% steps %}}
-
-### Create neo.service
+### Step 1: Create neo.service
 
 ```sh
 $ cd /etc/systemd/system
 $ sudo vi neo.service
 ```
 
-```ini  {{linenos=table}}
+```ini
 [Unit]   
 Description=neo service   
 StartLimitBurst=10   
@@ -71,7 +65,7 @@ WantedBy=multi-user.target
 
 * Modify the `User` and paths according to your environment.
 
-### Activate the service.
+### Step 2: Activate the service
 
 ```sh
 $ sudo chmod 755 neo.service
@@ -84,7 +78,7 @@ Make the service to auto-start when host machine re-boot.
 $ sudo systemctl enable neo.service
 ```
 
-### Done
+### Step 3: Done
 
 After activating the service, you can control it with the following commands:
 
@@ -93,20 +87,17 @@ $ sudo systemctl start neo.service
 $ sudo systemctl status neo.service
 $ sudo systemctl stop neo.service
 ```
-{{% /steps %}}
 
 ## supervisord
 
-{{% steps %}}
-
-### Create neo.conf
+### Step 1: Create neo.conf
 
 ```sh
 $ cd /etc/supervisor/conf.d
 $ sudo vi neo.conf
 ```
 
-```ini  {{linenos=table}}
+```ini
 [program:neo]
 command=/data/neo-start.sh
 priority=10   
@@ -121,62 +112,62 @@ user=machbase
 * Modify the `user` and paths according to your environment.
 * In the above example, the log folder `/data/log` should exist in advance.
 
-### Update Supervisord
+### Step 2: Update Supervisord
 
 ```sh
 $ sudo supervisorctl reread
 $ sudo supervisorctl update
 ```
 
-### Done
+### Step 3: Done
 
 After activating the service, you can control machbase-neo with the following commands:
+
 ```sh
 $ sudo supervisorctl start neo
 $ sudo supervisorctl status neo
 $ sudo supervisorctl stop neo
 ```
 
-{{% /steps %}}
-
 ## PM2
 
-{{% steps %}}
-
-### Create neo-start.sh
+### Step 1: Create neo-start.sh
 
 ```sh
 $ vi neo-start.sh
 ```
 
-```sh  {{linenos=table}}
+```sh
 #!/bin/bash
 exec /data/machbase-neo serve --host 0.0.0.0
 ```
+
 * Logs will be managed by PM2, so the `--log-filename` option is not necessary.
 
-### Executable neo-start.sh
+### Step 2: Executable neo-start.sh
 
 ```sh
 $ chmod 755 neo-start.sh
 ```
 
-### Run machbase-neo using PM2.
+### Step 3: Run machbase-neo using PM2
 
 ```sh
 $ pm2 start /data/neo-start.sh --name neo --log /data/log/machbase-neo.log
 ```
 
 Check the status of machbase-neo.
+
 ```sh
 $ pm2 status neo
 ```
 
-### Make PM2 to auto-start
+### Step 4: Make PM2 to auto-start
 
 * You can skip this process if you have already executed it.
 
 To automatically generate and configuration a startup script just type the command (without sudo) `pm2 startup`:
+
 ```sh
 $ pm2 startup
 [PM2] Init System found: systemd
@@ -185,19 +176,22 @@ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 start
 ```
 
 Then copy/paste the displayed command onto the terminal:
-```sh  {{linenos=table}}
+
+```sh
 $ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u machbase --hp /home/machbase
 ```
+
 Now PM2 will automatically restart at boot.
 
-### Saving the app list
+### Step 5: Saving the app list
 
 Once you have started all desired apps, save the app list so it will respawn after reboot:
+
 ```sh
 $ pm2 save
 ```
 
-### Done
+### Step 6: Done
 
 You can control machbase-neo with the following commands:
 
@@ -210,5 +204,3 @@ $ pm2 restart neo
 $ pm2 logs neo
 $ pm2 monit
 ```
-
-{{% /steps %}}

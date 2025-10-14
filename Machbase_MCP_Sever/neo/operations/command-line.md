@@ -1,8 +1,4 @@
----
-title: Command line
-type: docs
-weight: 10
----
+# Machbase Neo Command line
 
 ## machbase-neo serve
 
@@ -14,56 +10,40 @@ Start machbase-neo server process.
              
 | flag             | desc                                                              |
 |:-----------------|:----------------------------------------------------------------- |
-| `--host`         | listening network addr (default: `127.0.0.1`)<br/> ex) `--host 0.0.0.0`                  |
-| `-c`, `--config` | config file location  <br/> ex) `--config /data/machbase-neo.conf`|
-| `--pid`          | file path to save pid <br/> ex) `--pid /data/machbase-neo.pid`    |
-| `--data`         | path to database (default: `./machbase_home`)<br/> ex) `--data /data/machbase`                 |
-| `--file`         | path to files (default: `.`)<br/> ex) `--file /data/files`                       |
-| `--backup-dir`   | path to the backup dir (default: `./backups`)<br/> ex) `--backup-dir /data/backups` {{< neo_since ver="8.0.26" />}} |
-| `--pref`         | path to preference directory path.<br/>(default: `~/.config/machbase`)                                |
-| `--preset`       | database preset `auto`, `fog`, `edge` (default: `auto`)<br/> ex) `--preset edge`    |
+| `--host`         | listening network addr (default: `127.0.0.1`) ex) `--host 0.0.0.0`                  |
+| `-c`, `--config` | config file location ex) `--config /data/machbase-neo.conf`|
+| `--pid`          | file path to save pid ex) `--pid /data/machbase-neo.pid`    |
+| `--data`         | path to database (default: `./machbase_home`) ex) `--data /data/machbase`                 |
+| `--file`         | path to files (default: `.`) ex) `--file /data/files`                       |
+| `--backup-dir`   | path to the backup dir (default: `./backups`) ex) `--backup-dir /data/backups` |
+| `--pref`         | path to preference directory path (default: `~/.config/machbase`)                                |
+| `--preset`       | database preset `auto`, `fog`, `edge` (default: `auto`) ex) `--preset edge`    |
 
 **Database Sessions flags**
 
-Conceptually, if we divide machbase-neo into the API part (http, mqtt, etc.) that includes tql 
-and the DBMS part, there have been no restrictions on traffic between the API and DBMS so far.
+Conceptually, if we divide machbase-neo into the API part (http, mqtt, etc.) that includes tql and the DBMS part, there have been no restrictions on traffic between the API and DBMS so far.
 
-If 100 MQTT clients and 100 HTTP clients, a total of 200 clients, execute a db query "simultaneously",
-200 sessions will be executed in the DBMS.
-If there is a tool that can control the traffic flow delivered to the DBMS, it would be possible
-to configure flexibly depending on the situation.
-Therefore, new flags that can be used in `machbase-neo serve` have been added. {{< neo_since ver="8.0.44" />}}
+If 100 MQTT clients and 100 HTTP clients, a total of 200 clients, execute a db query "simultaneously", 200 sessions will be executed in the DBMS. If there is a tool that can control the traffic flow delivered to the DBMS, it would be possible to configure flexibly depending on the situation. Therefore, new flags that can be used in `machbase-neo serve` have been added.
 
 | flag                     | desc                                                              |
 |:-------------------------|:----------------------------------------------------------------- |
-| `--max-open-conn`        | `< 0` : unlimited (default) <br/> `0` : `= CPU_count * factor`<br/>  `> 0` : specified max open connections |
+| `--max-open-conn`        | `< 0` : unlimited (default), `0` : `= CPU_count * factor`, `> 0` : specified max open connections |
 | `--max-open-conn-factor` | used to calculate the number of the max open connections when `--max-open-conn` is 0. (default `2`). |
-| `--max-open-query`       | `< 0` : unlimited<br/> `0` (default) : `= CPU_count * factor`<br/> `> 0` : specified max open query iterations |
+| `--max-open-query`       | `< 0` : unlimited, `0` (default) : `= CPU_count * factor`,  `> 0` : specified max open query iterations |
 | `--max-open-query-factor`| used to calculate the number of the max open query iterations when `--max-open-query` is 0. (default `2`) |
 
-- *--mach-open-conn* controls the number of connections (=sessions) that can be OPENED "simultaneously"
-between the API and DBMS. If this number is exceeded, it will wait at the API level.
+- *--mach-open-conn* controls the number of connections (=sessions) that can be OPENED "simultaneously" between the API and DBMS. If this number is exceeded, it will wait at the API level.
   - `< 0` If a negative number (e.g., -1) is set, it operates without restrictions as in previous versions.
   - `0` If no settings are made by default, it is calculated as `the number of CPU cores * max-open-conn-factor`. The default max-open-conn-factor is 1.5.
   - `> 0` If a positive number is set, it operates according to the set value.
 
-This setting value can be checked as a command `session limit` within `machbase-neo shell` 
-and can be changed with `session limit --set=<num>`.
-Since the change is maintained only while the process is running,
-the startup script must be modified to change it permanently.
+This setting value can be checked as a command `session limit` within `machbase-neo shell` and can be changed with `session limit --set=<num>`. Since the change is maintained only while the process is running, the startup script must be modified to change it permanently.
 
-- *--mach-open-conn-factor* sets the factor value to calculate as `the number of CPU cores * factor` when `--mach-open-conn` described above is 0 (default).
-This value must be 0 or higher, and if it is 0 or negative, the default `2.0` is applied.
+- *--mach-open-conn-factor* sets the factor value to calculate as `the number of CPU cores * factor` when `--mach-open-conn` described above is 0 (default). This value must be 0 or higher, and if it is 0 or negative, the default `2.0` is applied.
 
-As example,
-if the number of CPU cores is 8 and the factor is 2.0, the open limit becomes 16,
-and if it is 0.5, the open limit becomes 4.
-If none of the two options described above are given, the default factor 2.0 is applied,
-and the open limit becomes 16.
+As example, if the number of CPU cores is 8 and the factor is 2.0, the open limit becomes 16, and if it is 0.5, the open limit becomes 4. If none of the two options described above are given, the default factor 2.0 is applied, and the open limit becomes 16.
 
 **Http flags**
-
-{{< neo_since ver="8.0.43" />}}
 
 | flag                    | default     | desc                                                                      |
 |:------------------------|:------------|:------------------------------------------------------------------------- |
@@ -78,15 +58,15 @@ and the open limit becomes 16.
 
 | flag                    | default     | desc                                                                      |
 |:------------------------|:------------|:------------------------------------------------------------------------- |
-| `--log-filename`        | `-` (stdout)| log file path<br/> ex) `--log-filename /data/logs/machbase-neo.log`       |
-| `--log-level`           | `INFO`      | log level. TRACE, DEBUG, INFO, WARN, ERROR<br/> ex) `--log-level INFO`    |
-| `--log-append`          | `true`      | append existing log file.               {{< neo_since ver="8.0.13" />}}   |
-| `--log-rotate-schedule` | `@midnight` | time scheduled log file rotation        {{< neo_since ver="8.0.13" />}}   |
-| `--log-max-size`        | `10`        | file max size in MB                     {{< neo_since ver="8.0.13" />}}   |
-| `--log-max-backups`     | `1`         | maximum log file backups                {{< neo_since ver="8.0.13" />}}   |
-| `--log-max-age`         | `7`         | maximum days in backup files            {{< neo_since ver="8.0.13" />}}   | 
-| `--log-compress`        | `false`     | gzip compress the backup files          {{< neo_since ver="8.0.13" />}}   |
-| `--log-time-utc`        | `false`     | use UTC time for logging                {{< neo_since ver="8.0.13" />}}   |
+| `--log-filename`        | `-` (stdout)| log file path ex) `--log-filename /data/logs/machbase-neo.log`       |
+| `--log-level`           | `INFO`      | log level. TRACE, DEBUG, INFO, WARN, ERROR ex) `--log-level INFO`    |
+| `--log-append`          | `true`      | append existing log file.                   |
+| `--log-rotate-schedule` | `@midnight` | time scheduled log file rotation            |
+| `--log-max-size`        | `10`        | file max size in MB                         |
+| `--log-max-backups`     | `1`         | maximum log file backups                    |
+| `--log-max-age`         | `7`         | maximum days in backup files                | 
+| `--log-compress`        | `false`     | gzip compress the backup files              |
+| `--log-time-utc`        | `false`     | use UTC time for logging                    |
 
 **Listener flags**
 
@@ -94,20 +74,17 @@ and the open limit becomes 16.
 |:-----------------|:----------|-------------------------------- |
 | `--shell-port`   | `5652`    | ssh listen port                 |
 | `--mqtt-port`    | `5653`    | mqtt listen port                |
-| `--mqtt-sock`    | `/tmp/machbase-neo-mqtt.sock`| mqtt unix socket {{< neo_since ver="8.0.36" />}}|
+| `--mqtt-sock`    | `/tmp/machbase-neo-mqtt.sock`| mqtt unix socket |
 | `--http-port`    | `5654`    | http listen port                |
-| `--http-sock`    | `/tmp/machbase-neo.sock` | http unix socket {{< neo_since ver="8.0.36" />}}|
+| `--http-sock`    | `/tmp/machbase-neo.sock` | http unix socket |
 | `--grpc-port`    | `5655`    | grpc listen port                |
 | `--grpc-sock`    | `mach-grpc.sock` | grpc unix domain socket  |
-| `--grpc-insecure`| `false`   | set `true` to use plain tcp socket,<br/>disable TLS {{< neo_since ver="8.0.18" />}} |
+| `--grpc-insecure`| `false`   | set `true` to use plain tcp socket, disable TLS |
 | `--mach-port`    | `5656`    | machbase native listen port     |
 
-{{< callout type="info" emoji="📌">}}
-**IMPORTANT**<br/>
-Since the default of `--host` is the loopback address, it is not allowed to access machbase-neo from the remote hosts.
-<br/>
-Set `--host <host-address>` or `--host 0.0.0.0` for accepting the network connections from remote clients.
-{{< /callout >}}
+> **📌 IMPORTANT**  
+> Since the default of `--host` is the loopback address, it is not allowed to access machbase-neo from the remote hosts.  
+> Set `--host <host-address>` or `--host 0.0.0.0` for accepting the network connections from remote clients.
 
 If execute `machbase-neo serve` with no flags,
 
@@ -129,34 +106,27 @@ Start machbase-neo shell. It will start interactive mode shell if there are no o
 
 | flag (long)       | default                | desc                                                             |
 |:------------------|:-----------------------|:-----------------------------------------------------------------|
-| `-s`, `--server`  | `tcp://127.0.0.1:5655` | machbase-neo's gRPC address.<br/> e.g. `-s unix://./mach-grpc.sock`<br/>e.g. `--server tcp://127.0.0.1:5655` |
-| `--user`          | `sys`                  | user name.<br/>env: `NEOSHELL_USER`         {{< neo_since ver="8.0.4" />}} |
-| `--password`      | `manager`              | password.<br/>env: `NEOSHELL_PASSWORD`      {{< neo_since ver="8.0.4" />}} |
+| `-s`, `--server`  | `tcp://127.0.0.1:5655` | machbase-neo's gRPC address. e.g. `-s unix://./mach-grpc.sock` e.g. `--server tcp://127.0.0.1:5655` |
+| `--user`          | `sys`                  | user name. env: `NEOSHELL_USER`         |
+| `--password`      | `manager`              | password. env: `NEOSHELL_PASSWORD`      |
 
-When machbase-neo shell starts, it is looking for the user name and password
-from OS's environment variables `NEOSHELL_USER` and `NEOSHELL_PASSWORD`.
-Then if the flags `--user` and `--password` are provided,
-it will override the provided values instead of the environment variables.
+When machbase-neo shell starts, it is looking for the user name and password from OS's environment variables `NEOSHELL_USER` and `NEOSHELL_PASSWORD`. Then if the flags `--user` and `--password` are provided, it will override the provided values instead of the environment variables.
 
-###  Precedence of username and password
+### Precedence of username and password
 
-{{% steps %}}
-
-### Command line flags
+#### Step 1: Command line flags
 
 If `--user`, `--password` is provided? Use the given values
 
-### Environment variables
+#### Step 2: Environment variables
 
 If `$NEOSHELL_USER` (on windows `%NEOSHELL_USER%`) is set? Use the value as the user name.
 
 If `$NEOSHELL_PASSWORD` (on windows `%NEOSHELL_PASSWORD%`) is set? Use the value as the password.
 
-### Default
+#### Step 3: Default
 
 None of those are provided? Use default value `sys` and `manager`.
-
-{{% /steps %}}
 
 ### Practical usage
 
@@ -437,7 +407,7 @@ a row fetched.
 
 #### session list
 
-Syntax: `session list` {{< neo_since ver="8.0.17" />}}
+Syntax: `session list`
 
 ```sh
  machbase-neo» session list;
@@ -450,11 +420,11 @@ Syntax: `session list` {{< neo_since ver="8.0.17" />}}
 
 #### session kill
 
-Syntax `session kill <ID>` {{< neo_since ver="8.0.17" />}}
+Syntax `session kill <ID>`
 
 #### session stat
 
-Syntax: `session stat` {{< neo_since ver="8.0.17" />}}
+Syntax: `session stat`
 
 ```sh
 machbase-neo» session stat;
@@ -490,19 +460,13 @@ machbase-neo» desc example;
 
 ## machbase-neo restore
 
-Syntax `machbase-neo restore --data <machbase_home_dir> <backup_dir>` {{< neo_since ver="8.0.17" />}}
+Syntax `machbase-neo restore --data <machbase_home_dir> <backup_dir>`
 
 Restore database from backup.
 
 ```sh
 $ machbase-neo restore --data <machbase home dir>  <backup dir>
 ```
-
-## machbase-neo version
-
-Show version and engine info.
-
-![machbase-neo_version](../img/machbase-neo-version.png)
 
 ## machbase-neo gen-config
 

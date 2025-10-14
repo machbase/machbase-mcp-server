@@ -1,8 +1,4 @@
----
-title: IP Address and ports
-type: docs
-weight: 12
----
+# Machbase Neo IP Address and ports
 
 ## Bind Address
 
