@@ -26,8 +26,8 @@ from collections import defaultdict, Counter
 from fastmcp import FastMCP
 
 # Version information
-VERSION = "0.5.1"
-BUILD_DATE = "2025-10-13"
+VERSION = "0.5.2"
+BUILD_DATE = "2025-10-15"
 DESCRIPTION = "Machbase Neo MCP Server"
 
 # Machbase Neo default configuration
@@ -59,25 +59,25 @@ async def get_version() -> str:
     """Get version information of the Machbase Neo MCP Server."""
     return f"""# Machbase Neo MCP Server Version Information
 
-**Version**: {VERSION}
-**Build Date**: {BUILD_DATE}
-**Description**: {DESCRIPTION}
+    **Version**: {VERSION}
+    **Build Date**: {BUILD_DATE}
+    **Description**: {DESCRIPTION}
 
-## Features
-✓ Database table and tag management
-✓ SQL execution
-✓ TQL execution
-✓ User Manual
-✓ Error handling and debugging tools
+    ## Features
+    ✓ Database table and tag management
+    ✓ SQL execution
+    ✓ TQL execution
+    ✓ User Manual
+    ✓ Error handling and debugging tools
 
-## Tool Categories
-- **Database Tools**: list_tables, list_table_tags, execute_sql_query
-- **TQL Tools**: execute_tql_script
-- **Document Tools**: get_full_document_content, extract_code_blocks, get_document_sections, list_available_documents
-- **Utility Tools**: get_version, debug_mcp_status
+    ## Tool Categories
+    - **Database Tools**: list_tables, list_table_tags, execute_sql_query
+    - **TQL Tools**: execute_tql_script
+    - **Document Tools**: get_full_document_content, extract_code_blocks, get_document_sections, list_available_documents
+    - **Utility Tools**: get_version, debug_mcp_status
 
-For detailed usage information, use `debug_mcp_status()` tool.
-"""
+    For detailed usage information, use `debug_mcp_status()` tool.
+    """
 
 # =============================================================================
 # Database related tools
@@ -240,7 +240,7 @@ async def execute_sql_query(
             "q": sql_query,
             "format": "csv",
             "timeformat": timeformat,
-            "timezone": timezone
+            "tz": timezone
         }
         if transpose:
             params["transpose"] = "true"
