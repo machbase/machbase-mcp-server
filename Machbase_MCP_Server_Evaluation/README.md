@@ -1,4 +1,4 @@
-# Machbase MCP Server Performance Evaluation Guide (2025.10.14)
+# Machbase MCP Server Performance Evaluation Guide (2025.10.24)
 
 ## Overview
 
@@ -57,7 +57,7 @@ Deductions are applied based on the following categories:
 | 12 | Provide TQL code that applies various noise filters to driving behavior data. |
 | 13 | Explain how to connect to Machbase Neo from Python. |
 | 14 | Provide one executable TQL example that resamples data stored at 1-minute intervals in the Bitcoin table into 5-minute intervals, calculating both the average and maximum values. |
-| 15 | Provide one executable example in Machbase Neo that uses HTTP SOURCE to fetch external API data and visualizes it with HTML SINK. |
+| 15 | Provide one executable example in Machbase Neo that uses to fetch external API data and visualizes it. |
 
 ### DBMS Questions
 

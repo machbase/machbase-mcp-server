@@ -17,6 +17,8 @@ import logging
 import re
 import os
 import uuid
+import csv
+import io
 from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlencode
 from dataclasses import dataclass
@@ -26,8 +28,8 @@ from collections import defaultdict, Counter
 from fastmcp import FastMCP
 
 # Version information
-VERSION = "0.5.2"
-BUILD_DATE = "2025-10-15"
+VERSION = "0.6.0"
+BUILD_DATE = "2025-10-24"
 DESCRIPTION = "Machbase Neo MCP Server"
 
 # Machbase Neo default configuration
@@ -44,11 +46,42 @@ logger = logging.getLogger(__name__)
 # Create FastMCP instance
 mcp = FastMCP("Machbase Neo")
 
-def get_machbase_url(host: str = None, port: int = None) -> str:
+def get_machbase_url(host: Optional[str] = None, port: Optional[int] = None) -> str:
     """Generate Machbase Neo server URL."""
     actual_host = host or DEFAULT_MACHBASE_HOST
     actual_port = port or DEFAULT_MACHBASE_PORT
     return f"http://{actual_host}:{actual_port}"
+
+def validate_table_name(table_name: str) -> Tuple[bool, str]:
+    """
+    Validate table name to prevent SQL injection.
+
+    Simple whitespace check is effective because:
+    - All SQL keywords are separated by whitespace (UNION, SELECT, WHERE, etc.)
+    - Tab and newline characters are used to bypass space filters
+
+    Args:
+        table_name: Table name to validate
+
+    Returns:
+        (is_valid, error_message): Tuple of validation result and error message
+    """
+    if not table_name:
+        return False, "Table name is required"
+
+    # Check for space characters
+    if ' ' in table_name:
+        return False, "Table name cannot contain spaces"
+
+    # Check for tab characters
+    if '\t' in table_name:
+        return False, "Table name cannot contain tabs"
+
+    # Check for newline characters
+    if '\n' in table_name or '\r' in table_name:
+        return False, "Table name cannot contain newlines"
+
+    return True, ""
 
 # =============================================================================
 # Version and info tools
@@ -84,8 +117,8 @@ async def get_version() -> str:
 # =============================================================================
 @mcp.tool()
 async def list_tables(
-    host: str = None,
-    port: int = None
+    host: Optional[str] = None,
+    port: Optional[int] = None
 ) -> str:
     """Query available table list in Machbase Neo."""
     machbase_url = get_machbase_url(host, port)
@@ -130,14 +163,21 @@ async def list_tables(
 async def list_table_tags(
     table_name: str,
     limit: int = 100,
-    host: str = None,
-    port: int = None
+    host: Optional[str] = None,
+    port: Optional[int] = None
 ) -> str:
     """Get tag list from a specific table in Machbase Neo."""
     if not table_name:
         return "Please specify table name."
-    
+
     table_name = table_name.upper()
+
+    # SQL Injection prevention: validate table name
+    is_valid, error_msg = validate_table_name(table_name)
+    if not is_valid:
+        logger.warning(f"Invalid table name detected: '{table_name}'")
+        return f"Invalid table name: {error_msg}"
+
     machbase_url = get_machbase_url(host, port)
     
     try:
@@ -177,15 +217,17 @@ async def list_table_tags(
             )
         
         if response.status_code == 200:
-            lines = response.text.strip().split('\n')
-            if len(lines) < 2:
+            # Use csv module for proper parsing (handles special characters in tag names)
+            csv_reader = csv.reader(io.StringIO(response.text.strip()))
+            rows = list(csv_reader)
+
+            if len(rows) < 2:
                 return f"No tags found in table '{table_name}' (NAME column)."
-            
+
             tags = []
-            for line in lines[1:]:
-                if line.strip():
-                    tag = line.strip()
-                    tags.append(f"• {tag}")
+            for row in rows[1:]:  # Skip header row
+                if row and len(row) > 0 and row[0].strip():
+                    tags.append(f"• {row[0]}")
             
             if tags:
                 tag_count = len(tags)
@@ -217,8 +259,8 @@ async def execute_sql_query(
     timeformat: str = "default",
     timezone: str = "Local",
     transpose: bool = False,
-    host: str = None,
-    port: int = None
+    host: Optional[str] = None,
+    port: Optional[int] = None
 ) -> str:
     """
         Execute SQL query directly. 
@@ -229,10 +271,10 @@ async def execute_sql_query(
 
         If no data is returned, it will be treated as a failure.
     """
-    
+
     if not sql_query or not sql_query.strip():
         return "Please enter SQL query."
-    
+
     machbase_url = get_machbase_url(host, port)
     
     try:
@@ -260,13 +302,15 @@ async def execute_sql_query(
                 return f"SQL query execution failed (no data returned)\nServer: {machbase_url}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
             
             if format.lower() == "json":
-                headers = [h.strip() for h in lines[0].split(',')]
-                rows = []
-                for line in lines[1:]:
-                    if line.strip():
-                        row_data = [col.strip() for col in line.split(',')]
-                        row_dict = {headers[i]: row_data[i] if i < len(row_data) else '' for i in range(len(headers))}
-                        rows.append(row_dict)
+                # Use csv module for proper parsing (handles special characters and quoted fields)
+                csv_reader = csv.reader(io.StringIO(response.text.strip()))
+                rows_list = list(csv_reader)
+
+                if len(rows_list) < 1:
+                    return f"SQL query execution failed (no data returned)\nServer: {machbase_url}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+
+                headers = rows_list[0]
+                rows = [dict(zip(headers, row)) for row in rows_list[1:]]
                 
                 result = {
                     "query": sql_query,
@@ -296,30 +340,138 @@ async def execute_sql_query(
 @mcp.tool()
 async def execute_tql_script(
     tql_content: str,
-    host: str = None,
-    port: int = None,
+    host: Optional[str] = None,
+    port: Optional[int] = None,
     timeout_seconds: int = 60
-    
+
 ) -> str:
     """
-        Execute TQL script via HTTP API. 
+    **MANDATORY EXECUTION WORKFLOW - MUST FOLLOW IN ORDER:**
 
-        **CRITICAL: Before executing, analyze target table structure and time intervals (minute/hour/daily data) as TQL operations heavily depend on correct time-based aggregations.**
-        **MANDATORY: TQL syntax is unique to Machbase Neo. Must reference documentation using get_full_document_content or extract_code_blocks before writing any TQL scripts. Only use syntax and examples found in official documentation - no assumptions or general query language knowledge allowed.**
-        **EXECUTION POLICY: Must test and verify all TQL scripts before providing them as answers. Only provide successfully executed and validated code to users.**
+    1. **PRE-EXECUTION VALIDATION (REQUIRED BEFORE CALLING THIS FUNCTION):**
+    - Use execute_sql_query to verify table exists and has data
+    - Check actual data samples: SELECT * FROM table LIMIT 10
+    - Identify column names, data types, and time ranges
+    - For tag tables: use list_table_tags to verify tag names
+    - NEVER call this function without verifying data exists first
 
-        Args:
-            tql_content: TQL script content to execute
-            host: Machbase Neo host (optional)
-            port: Machbase Neo port (optional)
-            timeout_seconds: HTTP request timeout in seconds (default: 60)
+    2. **DOCUMENTATION CHECK (REQUIRED):**
+    - TQL syntax is unique to Machbase Neo
+    - MUST use get_full_document_content('tql/tql-*.md') before writing TQL
+    - MUST use extract_code_blocks('tql/tql-*.md') to see exact syntax
+    - Only use syntax and examples from official documentation
+    - NO assumptions or general query language knowledge allowed
+
+    3. **EXECUTION BEFORE RESPONSE (CRITICAL - MUST EXECUTE FIRST):**
+    **NEVER create artifacts or provide code without executing TQL first**
+    **ALWAYS call execute_tql_script() BEFORE responding to user**
+    **Test at least ONE complete example before creating any artifact**
+    
+    Workflow:
+    a) Write TQL code
+    b) Execute with execute_tql_script()
+    c) Verify execution success
+    d) Only then provide code to user or create artifact
+    
+    If execution fails:
+    - Fix the code
+    - Execute again
+    - Repeat until successful
+    - NEVER give users code that hasn't been successfully executed
+
+    4. **TQL CHART SYNTAX (CRITICAL - STRICT VALIDATION):**
+    - SQL returns columns: value(0), value(1), value(2)...
+    - column(N) collects ALL records' Nth value as array
+    - **FORBIDDEN SYNTAX: column(N, M) does NOT exist in TQL**
+    - **ONLY VALID: column(N) where N is a single integer**
+    - For time-series charts:
+        * xAxis: { type: "category", data: column(0) }  // time axis
+        * series: [{ data: column(1) }]  // value data
+    - ALWAYS separate: time in xAxis.data, values in series.data
+
+    5. **EXECUTION & RESULT VALIDATION:**
+    - This function executes TQL and validates the response
+    - HTTP 200 + empty response = FAILURE (no data)
+    - HTTP 200 + chartID only = UNVERIFIED (cannot confirm data)
+    - Must contain actual data or explicit success indicators
+
+    6. **POST-EXECUTION POLICY:**
+    - NEVER provide TQL code to user if this function returns FAILURE
+    - If result says "no data returned", DO NOT give code to user
+    - If result is "UNVERIFIED", run additional SQL checks to confirm
+    - Only provide successfully validated code to users
+    
+    7. **TQL COMMENT SYNTAX:**
+    - ONLY use single-line comments with //
+    - Block comments /* */ are NOT supported in TQL
+    - All comments must use // syntax only
+
+    8. **HTTP() FUNCTION RESTRICTIONS:**
+    - NEVER use SCRIPT() function inside HTTP() function calls
+    - HTTP() must only contain direct HTTP endpoint URLs or string values
+    - For dynamic content generation, use QUERY() or CSV() functions instead
+    - SCRIPT() should be used separately, not nested in HTTP()
+
+    Example:
+    WRONG: HTTP(SCRIPT({...some logic...}))
+    CORRECT: HTTP("http://example.com/data")
+    CORRECT: QUERY("sql", "SELECT ...", ...) | HTTP()
+
+    WRONG: Write code → Create artifact → Hope it works
+    CORRECT: Write code → Execute → Verify → Create artifact
     """
+    
     if not tql_content or not tql_content.strip():
-        return "Please provide TQL script content to execute."
+        return "ERROR: Please provide TQL script content to execute."
     
     machbase_url = get_machbase_url(host, port)
     execution_id = str(uuid.uuid4())[:8]
     
+    # Syntax validation: column() must have single argument only
+    if re.search(r'column\s*\([^)]*,[^)]*\)', tql_content):
+        return (
+            "INVALID TQL SYNTAX\n\n"
+            "Error: column() accepts ONLY ONE argument\n\n"
+            "WRONG: column(0, 1)\n"
+            "CORRECT: column(0) and column(1) separately\n\n"
+            "Example:\n"
+            "  xAxis: { data: column(0) },\n"
+            "  series: [{ data: column(1) }]\n"
+        )
+        
+    # Detect time() function usage with TIME columns (check all value(N))
+    if re.search(r'MAPVALUE\s*\([^)]*,\s*time\s*\(\s*value\s*\(\s*\d+\s*\)', tql_content):
+        return (
+            "INVALID TQL SYNTAX\n\n"
+            "Error: time() function is not valid for formatting in MAPVALUE\n\n"
+            "WRONG: MAPVALUE(0, time(value(1), \"DEFAULT\", \"Local\"))\n"
+            "CORRECT: MAPVALUE(0, strTime(value(1), \"15:04:05\", tz(\"Local\")))\n"
+        )
+
+    # Warn if value(N) is used without formatting
+    if re.search(r'MAPVALUE\s*\(\s*\d+\s*,\s*value\s*\(\s*\d+\s*\)\s*\)', tql_content):
+        # Only warn if strTime or other conversion functions are not present
+        return (
+            "POTENTIAL TQL ISSUE\n\n"
+            "If the value is a TIME column, use strTime() for formatting:\n"
+            "  MAPVALUE(0, strTime(value(N), \"15:04:05\", tz(\"Local\")))\n"
+        )
+
+    # Detect HTTP() followed by SCRIPT() pattern - FORBIDDEN
+    # HTTP({...}) or HTTP(...) immediately followed by SCRIPT({...})
+    if re.search(r'HTTP\s*\([^)]*\)\s*SCRIPT\s*\(', tql_content, re.IGNORECASE | re.DOTALL):
+        return (
+            "INVALID TQL SYNTAX\n\n"
+            "Error: SCRIPT() cannot be placed immediately after HTTP()\n\n"
+            "WRONG:\n"
+            "  HTTP({...})\n"
+            "  SCRIPT({...})\n\n"
+            "CORRECT:\n"
+            "  HTTP({...})\n"
+            "  TEXT() or CSV() or other output function\n\n"
+            "SCRIPT() must be used in a separate pipeline, not directly after HTTP().\n"
+        )
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
@@ -330,48 +482,108 @@ async def execute_tql_script(
             )
 
             if response.status_code == 200:
-                if response.text.strip():
-                    result = f"TQL execution completed successfully (ID: {execution_id})\n"
+                response_text = response.text.strip()
+                
+                # If the response is empty = definite failure
+                if not response_text:
+                    result = f"FAILURE: TQL execution returned no data (ID: {execution_id})\n"
                     result += f"Server: {machbase_url}\n"
                     result += f"Status: HTTP {response.status_code}\n\n"
-                    result += "=== RESPONSE ===\n"
-                    result += response.text + "\n"
-                else:
-                    result = f"TQL execution failed (no data returned) (ID: {execution_id})\n"
-                    result += f"Server: {machbase_url}\n"
-                    result += f"Status: HTTP {response.status_code}\n\n"
-                    result += "=== ERROR ===\n"
+                    result += "=== FAILURE REASON ===\n"
                     result += "Query executed successfully, but returned no data.\n"
-                    result += "\n=== TQL CONTENT (for debugging) ===\n"
+                    result += "Possible causes:\n"
+                    result += "  1. Table is empty (verify with: SELECT COUNT(*) FROM table)\n"
+                    result += "  2. WHERE condition filters out all data\n"
+                    result += "  3. Tag name is incorrect (verify with: list_table_tags)\n"
+                    result += "  4. Time range has no data\n\n"
+                    result += "    DO NOT PROVIDE THIS CODE TO USER - FIX THE ISSUE FIRST\n\n"
+                    result += "=== TQL CONTENT (for debugging) ===\n"
                     result += f"```tql\n{tql_content}\n```"
+                    return result
+                
+                # If there is a response - analyze the content
+                result = f"Server: {machbase_url}\n"
+                result += f"Status: HTTP {response.status_code}\n"
+                result += f"Execution ID: {execution_id}\n\n"
+                
+                # When only chartID is returned and data verification is not possible
+                if '"chartID"' in response_text or 'chartID' in response_text:
+                    result = f"REQUIRES_VERIFICATION: TQL returned chart response (ID: {execution_id})\n" + result
+                    result += "=== RESPONSE ===\n"
+                    result += response_text + "\n\n"
+                    result += "DO NOT PROVIDE CODE TO USER - VERIFICATION REQUIRED\n\n"
+                    result += "Reason: Chart ID returned but data presence unconfirmed (empty charts can have valid IDs)\n\n"
+
+                    # Extract table name and generate verification SQL
+                    table_match = re.search(r'FROM\s+([A-Z_][A-Z0-9_]*)', tql_content, re.IGNORECASE)
+                    if table_match:
+                        table_name = table_match.group(1)
+                        where_match = re.search(r'WHERE\s+(.+?)(?:LIMIT|GROUP|ORDER|$)', tql_content, re.IGNORECASE | re.DOTALL)
+                        where_clause = where_match.group(1).strip() if where_match else "1=1"
+
+                        result += f"Verify data exists:\n"
+                        result += f"  execute_sql_query(\"SELECT COUNT(*) FROM {table_name} WHERE {where_clause}\")\n\n"
+                    else:
+                        result += "Manually verify: SELECT COUNT(*) FROM your_table WHERE your_conditions\n\n"
+
+                    result += "Only provide code to user after confirming COUNT > 0\n"
+                
+                # When CSV or clearly identifiable data exists
+                elif 'csv' in response_text.lower() or '\n' in response_text[:200]:
+                    result = f"   SUCCESS: TQL execution completed with data (ID: {execution_id})\n" + result
+                    result += "=== RESPONSE ===\n"
+                    result += response_text + "\n\n"
+                    result += "   Code verified and safe to provide to user.\n"
+                
+                # Other types of responses
+                else:
+                    result = f"    UNVERIFIED: TQL returned unknown response format (ID: {execution_id})\n" + result
+                    result += "=== RESPONSE ===\n"
+                    result += response_text + "\n\n"
+                    result += "    Cannot determine if execution was successful.\n"
+                    result += "    Verify result manually before providing code to user.\n"
+                
+                return result
+                
             else:
-                result = f"TQL execution failed (ID: {execution_id})\n"
+                # HTTP error
+                result = f"FAILURE: TQL execution failed (ID: {execution_id})\n"
                 result += f"Server: {machbase_url}\n"
                 result += f"Status: HTTP {response.status_code}\n\n"
+                
                 if response.text.strip():
                     result += "=== ERROR RESPONSE ===\n"
-                    result += response.text + "\n"
-                result += "\n=== TQL CONTENT (for debugging) ===\n"
+                    result += response.text + "\n\n"
+                
+                result += "DO NOT PROVIDE THIS CODE TO USER - FIX THE ERROR FIRST\n\n"
+                result += "=== TQL CONTENT (for debugging) ===\n"
                 result += f"```tql\n{tql_content}\n```"
-
-            return result
+                
+                return result
                 
     except httpx.ConnectError:
-        return f"Cannot connect to Machbase Neo server ({machbase_url})\n" + \
+        return f"FAILURE: Cannot connect to Machbase Neo server\n" + \
+               f"Server: {machbase_url}\n" + \
                f"Execution ID: {execution_id}\n\n" + \
+               "    DO NOT PROVIDE CODE TO USER - Server connection failed\n\n" + \
                "=== TQL CONTENT (for debugging) ===\n" + \
                f"```tql\n{tql_content}\n```"
                
     except httpx.TimeoutException:
-        return f"TQL execution timeout after {timeout_seconds} seconds (ID: {execution_id})\n" + \
-               f"Server: {machbase_url}\n\n" + \
+        return f"FAILURE: TQL execution timeout after {timeout_seconds} seconds\n" + \
+               f"Server: {machbase_url}\n" + \
+               f"Execution ID: {execution_id}\n\n" + \
+               "    DO NOT PROVIDE CODE TO USER - Query timeout\n" + \
+               "    Possible causes: Query too complex, large data, or server overload\n\n" + \
                "=== TQL CONTENT (for debugging) ===\n" + \
                f"```tql\n{tql_content}\n```"
                
     except Exception as e:
         logger.error(f"TQL execution error: {e}")
-        return f"TQL execution error (ID: {execution_id}): {str(e)}\n" + \
-               f"Server: {machbase_url}\n\n" + \
+        return f"FAILURE: TQL execution error (ID: {execution_id})\n" + \
+               f"Server: {machbase_url}\n" + \
+               f"Error: {str(e)}\n\n" + \
+               "    DO NOT PROVIDE CODE TO USER - Unexpected error occurred\n\n" + \
                "=== TQL CONTENT (for debugging) ===\n" + \
                f"```tql\n{tql_content}\n```"
                
@@ -410,8 +622,8 @@ class FullDocument:
 
 class DocumentContentExtractor:
     """Extract complete document content with structure"""
-    
-    def __init__(self, docs_folder: str = None):
+
+    def __init__(self, docs_folder: Optional[str] = None):
         script_dir = os.path.dirname(__file__) if '__file__' in globals() else "."
         
         # Find documentation folder
@@ -437,20 +649,23 @@ class DocumentContentExtractor:
         
         self._build_file_index()
 
-    def _build_file_index(self):
-        """Build index of all markdown files"""
+    def _build_file_index(self) -> None:
+        """Build index of all markdown files in documentation folder.
+
+        Creates mappings from filenames and relative paths to full file paths.
+        """
         if not os.path.exists(self.docs_folder):
             return
-        
+
         for root, dirs, files in os.walk(self.docs_folder):
             for filename in files:
                 if filename.endswith('.md'):
                     full_path = os.path.join(root, filename)
                     relative_path = os.path.relpath(full_path, self.docs_folder)
-                    
+
                     # Primary key: relative path only
                     self.file_index[relative_path] = full_path
-                    
+
                     # Alias only if unique filename
                     if filename not in [os.path.basename(p) for p in self.file_index.values()]:
                         self.file_index[filename] = full_path
@@ -459,7 +674,7 @@ class DocumentContentExtractor:
         """Get complete document content by filename or path"""
         # Try to find the file
         full_path = None
-        
+
         if file_identifier in self.file_index:
             full_path = self.file_index[file_identifier]
         else:
@@ -511,25 +726,47 @@ class DocumentContentExtractor:
             return None
     
     def _extract_title(self, content: str, filename: str) -> str:
-        """Extract document title"""
+        """Extract document title.
+
+        Args:
+            content: Full document content
+            filename: Original filename
+
+        Returns:
+            Extracted or generated title
+        """
         lines = content.split('\n')
         for line in lines[:10]:
             if line.startswith('# '):
                 return line[2:].strip()
-        
+
         # Fallback to filename
         title = filename.replace('.md', '').replace('-', ' ').replace('_', ' ')
         return ' '.join(word.capitalize() for word in title.split())
-    
+
     def _detect_category(self, path: str, content: str) -> str:
-        """Detect document category"""
+        """Detect document category.
+
+        Args:
+            path: Relative file path
+            content: Document content
+
+        Returns:
+            Detected category string
+        """
         path_lower = path.lower()
         content_sample = content[:1000].lower()
-        
+
+        # Check specific combinations first (order matters)
         if "tql" in path_lower and "chart" in path_lower:
             return "tql_charts"
         elif "api" in path_lower and "example" in path_lower:
             return "api_examples"
+        # Check main categories
+        elif "dbms" in path_lower:
+            return "dbms"
+        elif "security" in path_lower:
+            return "security"
         elif "tql" in path_lower:
             return "tql"
         elif "api" in path_lower:
@@ -548,7 +785,14 @@ class DocumentContentExtractor:
             return "utilities"
     
     def _extract_sections(self, content: str) -> List[DocumentSection]:
-        """Extract document sections with headers"""
+        """Extract document sections with headers.
+
+        Args:
+            content: Full document content
+
+        Returns:
+            List of DocumentSection objects
+        """
         sections = []
         lines = content.split('\n')
         current_section = None
@@ -589,7 +833,14 @@ class DocumentContentExtractor:
         return sections
     
     def _extract_code_blocks_detailed(self, content: str) -> List[CodeBlock]:
-        """Extract code blocks with detailed information"""
+        """Extract code blocks with detailed information.
+
+        Args:
+            content: Full document content
+
+        Returns:
+            List of CodeBlock objects with language and position info
+        """
         code_blocks = []
         lines = content.split('\n')
         
@@ -627,14 +878,21 @@ class DocumentContentExtractor:
         return code_blocks
     
     def search_files(self, pattern: str) -> List[str]:
-        """Search for files matching pattern"""
+        """Search for files matching pattern.
+
+        Args:
+            pattern: Search pattern to match against file names
+
+        Returns:
+            List of matching file names (limited to 10 results)
+        """
         pattern_lower = pattern.lower()
         matching_files = []
-        
+
         for key in self.file_index.keys():
             if pattern_lower in key.lower():
                 matching_files.append(key)
-        
+
         return matching_files[:10]  # Limit results
 
 # Global document extractor
@@ -673,10 +931,17 @@ async def list_available_documents() -> str:
         
         result += "---\n\n"
         result += "**Usage examples**:\n"
-        result += "• `get_full_document_content('rollup.md')`\n"
-        result += "• `extract_code_blocks('sql/rollup.md', 'sql')`\n"
-        result += "• `get_document_sections('rollup.md', 'create')`\n"
-        
+        result += "• `get_full_document_content('installation/installation.md')` - Installation guide\n"
+        result += "• `get_full_document_content('operations/service-linux.md')` - Service management\n"
+        result += "• `extract_code_blocks('tql/tql_guide.md', 'tql')` - TQL code examples\n"
+        result += "• `get_document_sections('sql/sql_guide.md', 'SELECT')` - SQL sections\n\n"
+        result += "**IMPORTANT - dbms/ folder policy**:\n"
+        result += "The dbms/ folder contains low-level DBMS internals.\n"
+        result += "Only search dbms/ folder when:\n"
+        result += "  1. User explicitly asks about DBMS internals\n"
+        result += "  2. Information is NOT found in other folders (installation/, operations/, sql/, tql/, api/)\n"
+        result += "Always search non-dbms folders FIRST.\n"
+
         return result
         
     except Exception as e:
@@ -686,8 +951,8 @@ async def list_available_documents() -> str:
 @mcp.tool()
 async def get_full_document_content(file_identifier: str) -> str:
     """Get complete content of a specific document file.
-    
-    **MANDATORY RESTRICTION**: 
+
+    **MANDATORY RESTRICTION**:
     ALWAYS search non-dbms folders (operations/, sql/, tql/, api/, utilities/, etc.) FIRST for all questions.
 
     Use paths starting with "dbms/" ONLY when:
@@ -695,15 +960,24 @@ async def get_full_document_content(file_identifier: str) -> str:
     - You have already searched at least one relevant non-dbms folder and found no information
 
     Before using dbms/, briefly state which non-dbms folder you searched.
-    
+
+    **CRITICAL - EXAMPLE CODE EXECUTION POLICY:**
+    When providing TQL/SQL examples from documentation to users:
+    - MUST execute ALL TQL examples with execute_tql_script() before providing to user
+    - MUST execute ALL SQL examples with execute_sql_query() before providing to user
+    - Verify every single example code block is executable and returns valid results
+    - NEVER provide example code without execution validation
+    - If any example fails execution, fix it or inform user that example needs updating
+    - Document examples may be outdated - always validate before providing
+
     Args:
         file_identifier: relative path (e.g., "sql/rollup.md")
     """
     global document_extractor
-    
+
     try:
         file_identifier = os.path.normpath(file_identifier)
-        
+
         doc = document_extractor.get_full_document(file_identifier)
         
         if not doc:
@@ -749,8 +1023,8 @@ async def get_full_document_content(file_identifier: str) -> str:
 @mcp.tool()
 async def extract_code_blocks(file_identifier: str, language: str = None) -> str:
     """Extract all code blocks from a document.
-    
-    **MANDATORY RESTRICTION**: 
+
+    **MANDATORY RESTRICTION**:
     ALWAYS search non-dbms folders (operations/, sql/, tql/, api/, utilities/, etc.) FIRST for all questions.
 
     Use paths starting with "dbms/" ONLY when:
@@ -758,16 +1032,25 @@ async def extract_code_blocks(file_identifier: str, language: str = None) -> str
     - You have already searched at least one relevant non-dbms folder and found no information
 
     Before using dbms/, briefly state which non-dbms folder you searched.
-    
+
+    **CRITICAL - EXAMPLE CODE EXECUTION POLICY:**
+    When providing TQL/SQL examples from documentation to users:
+    - MUST execute ALL TQL examples with execute_tql_script() before providing to user
+    - MUST execute ALL SQL examples with execute_sql_query() before providing to user
+    - Verify every single example code block is executable and returns valid results
+    - NEVER provide example code without execution validation
+    - If any example fails execution, fix it or inform user that example needs updating
+    - Document examples may be outdated - always validate before providing
+
     Args:
         file_identifier: Filename or path
         language: Filter by programming language (optional)
     """
     global document_extractor
-    
+
     try:
         file_identifier = os.path.normpath(file_identifier)
-        
+
         doc = document_extractor.get_full_document(file_identifier)
         
         if not doc:
@@ -812,8 +1095,8 @@ async def extract_code_blocks(file_identifier: str, language: str = None) -> str
 @mcp.tool()
 async def get_document_sections(file_identifier: str, section_filter: str = None) -> str:
     """Get document content organized by sections.
-    
-    **MANDATORY RESTRICTION**: 
+
+    **MANDATORY RESTRICTION**:
     ALWAYS search non-dbms folders (operations/, sql/, tql/, api/, utilities/, etc.) FIRST for all questions.
 
     Use paths starting with "dbms/" ONLY when:
@@ -821,16 +1104,25 @@ async def get_document_sections(file_identifier: str, section_filter: str = None
     - You have already searched at least one relevant non-dbms folder and found no information
 
     Before using dbms/, briefly state which non-dbms folder you searched.
-    
+
+    **CRITICAL - EXAMPLE CODE EXECUTION POLICY:**
+    When providing TQL/SQL examples from documentation to users:
+    - MUST execute ALL TQL examples with execute_tql_script() before providing to user
+    - MUST execute ALL SQL examples with execute_sql_query() before providing to user
+    - Verify every single example code block is executable and returns valid results
+    - NEVER provide example code without execution validation
+    - If any example fails execution, fix it or inform user that example needs updating
+    - Document examples may be outdated - always validate before providing
+
     Args:
         file_identifier: Filename or path
         section_filter: Filter sections containing this text (optional)
     """
     global document_extractor
-    
+
     try:
         file_identifier = os.path.normpath(file_identifier)
-        
+
         doc = document_extractor.get_full_document(file_identifier)
         
         if not doc:

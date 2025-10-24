@@ -6,7 +6,7 @@
 
 
 
-## Overview (Version 0.5.2)
+## Overview (Version 0.6.0)
 [블로그 읽기 : 클로드 MCP를 Machbase Neo에 연동하고, AI스럽게 사용해보기](https://www.machbase.com/post/machbase)
 
 This project is an **MCP (Model Context Protocol)** based server that enables natural language-based database operations through integration between **Claude Desktop** and **Machbase Neo**.
@@ -133,12 +133,13 @@ You can make natural language requests in Claude Desktop like these:
 
 ### Machbase MCP Server Evaluation Score ###
 
-| Update Date| Version | Score | Average Response Time | Overall Evaluation |
-|:------:|:----:|:----:|:--------:|-------------|
-| 2025-08-28| v0.2.0 | 96 / 100 | 22 second | The quality of responses has improved compared to previous versions; <br> however, performance regarding TQL-related questions still appears to be less than perfect. |
-| 2025-09-03| v0.3.0 | 99 / 100 | 61.5 second | The response time is much longer, but the explanation is far more accurate and detailed than the previous version. |
-| 2025-09-09| v0.4.0 | 141 / 150   |  45.29 second  | The speed has improved compared to before, but the script and TQL parts are still somewhat lacking|
-| 2025-10-14| v0.5.0 | 185 / 200   |  3 second  | Thinking time significantly improved compared to before, but TQL and HTML-related areas still need improvement. |
+| Update Date| Version | Score | Average Response Time | Overall Evaluation | Model | 
+|:------:|:----:|:----:|:--------:|-------------| :-------------:|
+| 2025-08-28| v0.2.0 | 96 / 100 | 22 second | The quality of responses has improved compared to previous versions; <br> however, performance regarding TQL-related questions still appears to be less than perfect. | Claude Sonnet 4 |
+| 2025-09-03| v0.3.0 | 99 / 100 | 61.5 second | The response time is much longer, but the explanation is far more accurate and detailed than the previous version. | Claude Sonnet 4 | 
+| 2025-09-09| v0.4.0 | 141 / 150   | 45.29 second | The speed has improved compared to before, but the script and TQL parts are still somewhat lacking| Claude Sonnet 4 |
+| 2025-10-14| v0.5.0 | 185 / 200   | 3 second | Thinking time significantly improved compared to before, but TQL and HTML-related areas still need improvement. | Claude Sonnet 4.5 |
+| 2025-10-24| v0.6.0 | 196 / 200   | 2.6 second | Improved accuracy compared to version 0.5.0. DBMS-related content needs re-verification. Overall performance and response time have improved significantly. | Claude Sonnet 4.5 |
 
 
 
