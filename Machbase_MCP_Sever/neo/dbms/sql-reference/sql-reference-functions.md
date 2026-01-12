@@ -10,6 +10,7 @@
 * [DATE_BIN](#date_bin)
 * [DAYOFWEEK](#dayofweek)
 * [DECODE](#decode)
+* [EXTRACT_*](#extract_)
 * [FIRST / LAST](#first--last)
 * [FROM_UNIXTIME](#from_unixtime)
 * [FROM_TIMESTAMP](#from_timestamp)
@@ -82,6 +83,7 @@ ABS(c1)                     ABS(c2)
 1                           1
 [3] row(s) selected.
 ```
+
 
 ## ADD_TIME
 
@@ -214,6 +216,7 @@ ID          DT
 [3] row(s) selected.
 ```
 
+
 ## AVG
 
 This function is an aggregate function that operates on a numeric column and prints the average value of that column.
@@ -254,6 +257,7 @@ id1         AVG(id2)
 NULL             4
 1                2
 ```
+
 
 ## BITAND / BITOR
 
@@ -346,6 +350,7 @@ BITOR(i1, i6)
 [0] row(s) selected.
 ```
 
+
 ## COUNT
 
 This function is an aggregate function that obtains the number of records in a given column.
@@ -391,6 +396,7 @@ COUNT(id1)
 6
 [1] row(s) selected.
 ```
+
 
 ## DATE_TRUNC
 
@@ -552,6 +558,7 @@ The allowable time ranges for time units and time units are as follows.
 |month|
 |year|
 
+
 ## DAYOFWEEK
 
 This function returns a natural number representing the day of the week for a given datetime value.
@@ -573,6 +580,7 @@ The returned natural number represents the next day of the week.
 |4|Thursday|
 |5|Friday|
 |6|Saturday|
+
 
 ## DECODE
 
@@ -621,6 +629,69 @@ NULL
 [2] row(s) selected.
 ```
 
+
+## EXTRACT_*
+
+Bit-extraction helpers for binary frames. All functions accept
+`BINARY/VARBINARY` frames; NULL frames return NULL.
+
+- Bit index is zero-based across the whole frame, bytes in big-endian order,
+  and within each byte bit0 is the MSB.
+- Valid ranges: single bit `0 <= bit_pos < frame_bits`; ranges require
+  `start_bit >= 0`, `bit_count` 1~64, and `start_bit + bit_count <= frame_bits`.
+- Range violations raise runtime errors; `EXTRACT_SCALED_DOUBLE` reports
+  `[ERR-02229: Invalid argument value for function (EXTRACT_SCALED_DOUBLE).]`.
+
+### EXTRACT_BIT(frame, bit_pos) → TINYINT
+
+Returns a single bit as 0 or 1.
+
+```sql
+-- frame = 0x80
+SELECT EXTRACT_BIT(frame, 0) AS msb, EXTRACT_BIT(frame, 7) AS lsb FROM t;
+```
+
+### EXTRACT_ULONG(frame, start_bit, bit_count) → BIGINT UNSIGNED
+### EXTRACT_LONG(frame, start_bit, bit_count) → BIGINT
+
+Reads 1~64 bits as unsigned or two's-complement signed integer.
+
+```sql
+-- frame = 0x12 34 56 (0001 0010 0011 0100 0101 0110)
+SELECT EXTRACT_ULONG(frame, 0, 8)   AS b0,   -- 0x12
+       EXTRACT_ULONG(frame, 4, 12)  AS mid,  -- 0x234
+       EXTRACT_LONG(frame, 12, 12)  AS tail  -- 0x456 as signed
+FROM t;
+```
+
+### EXTRACT_FLOAT(frame, start_bit) → FLOAT
+### EXTRACT_DOUBLE(frame, start_bit) → DOUBLE
+
+Reinterprets 32 or 64 bits as IEEE754 float/double; the bit window must fit
+within the frame.
+
+```sql
+SELECT EXTRACT_FLOAT(frame, 0)  AS f0,
+       EXTRACT_DOUBLE(frame, 64) AS d0
+FROM sensor_bin;
+```
+
+### EXTRACT_SCALED_DOUBLE(frame, start_bit, bit_count, signed, scale, offset)
+→ DOUBLE
+
+Reads 1~64 bits as unsigned (`signed=0`) or two's-complement (`signed=1`)
+integer, then returns `raw * scale + offset`.
+
+```sql
+-- frame = 0xF2 34 56 78 12 34 56 78
+SELECT EXTRACT_SCALED_DOUBLE(frame, 0, 8, 0, 1, 0)  AS u8,
+       EXTRACT_SCALED_DOUBLE(frame, 0, 8, 1, 1, 0)  AS s8;
+
+-- 20-bit current sensor: 0.01A/LSB, offset -100A
+SELECT EXTRACT_SCALED_DOUBLE(frame, 0, 20, 0, 0.01, -100.0) AS current_a FROM t;
+```
+
+
 ## FIRST / LAST
 
 This function is an aggregate function that returns the specific value of the highest (or last) record in the sequence in which the 'reference value' in each group is in order.
@@ -664,6 +735,7 @@ group_no    last(id, name)
 0           Ryan
 ```
 
+
 ## FROM_UNIXTIME
 
 This function converts a 32-bit UNIXTIME value entered as an integer to a datetime datatype value. (UNIX_TIMESTAMP converts datetime data to 32-bit UNIXTIME integer data.)
@@ -683,6 +755,7 @@ FROM_UNIXTIME(UNIX_TIMESTAMP('2001-01-01'))
 ------------------------------------------
 2001-01-01 00:00:00 000:000:000
 ```
+
 
 ## FROM_TIMESTAMP
 
@@ -719,11 +792,14 @@ sysdate                         from_timestamp(sysdate-1000000)
 [1] row(s) selected.
 ```
 
+
 ## GROUP_CONCAT
 
 This function is an aggregate function that outputs the value of the corresponding column in the group in a string.
 
+{{<callout type="warning">}}
 This function cannot be used in Cluster Edition.
+{{</callout>}}
 
 ```sql
 GROUP_CONCAT(
@@ -800,6 +876,7 @@ John,Zara,Jill
 [2] row(s) selected.
 ```
 
+
 ## INSTR
 
 This function returns the index of the number of characters in the string entered together. The index starts at 1.
@@ -828,6 +905,7 @@ override              0
 abstract              6
 [2] row(s) selected.
 ```
+
 
 ## LEAST / GREATEST
 
@@ -886,6 +964,7 @@ aa
 abstract
 [2] row(s) selected.
 ```
+
 
 ## LENGTH
 
@@ -954,6 +1033,7 @@ NULL
 [4] row(s) selected.
 ```
 
+
 ## LOWER
 
 This function converts an English string to lowercase.
@@ -991,6 +1071,7 @@ james backley
 NULL
 [5] row(s) selected.
 ```
+
 
 ## LPAD / RPAD
 
@@ -1057,6 +1138,7 @@ Johnathan*
 Antonio***
 [3] row(s) selected.
 ```
+
 
 ## LTRIM / RTRIM
 
@@ -1131,6 +1213,7 @@ NULL
 [1] row(s) selected.
 ```
 
+
 ## MAX
 
 This function is an aggregate function that obtains the maximum value of a given numeric column.
@@ -1158,6 +1241,7 @@ MAX(c)
 30
 [1] row(s) selected.
 ```
+
 
 ## MIN
 
@@ -1187,6 +1271,7 @@ MIN(c1)
 [1] row(s) selected.
 ```
 
+
 ## NVL
  
 This function returns value if the value of the column is NULL, or the value of the original column if it is not NULL.
@@ -1212,6 +1297,7 @@ Thomas
 Johnathan
 ```
 
+
 ## ROUND
 
 This function returns the result of rounding off the digits of the input value (input digit +1). If no digits are entered, the rounding is done at position 0. It is possible to enter a negative number in decimals place to round the decimal place.
@@ -1236,6 +1322,7 @@ c1                          ROUND(c1, 2)
 1.995                       2
 1.994                       1.99
 ```
+
 
 ## ROWNUM
 
@@ -1312,6 +1399,7 @@ ROWNUM()             SORT                        NAME
 [4] row(s) selected.
 ```
 
+
 ## SERIESNUM
 
 Returns a number indicating how many of the records belong to the series grouped by SERIES BY. The return type is BIGINT type, and always returns 1 if the SERIES BY clause is not used.
@@ -1360,6 +1448,7 @@ SERIESNUM() C1 C2
 [5] row(s) selected.
 ```
 
+
 ## STDDEV / STDDEV_POP
 
 This function is an aggregate function that returns the (standard) deviation and the population standard deviation of the (input) column. Equivalent to the square root of the VARIANCE and VAR_POP values, respectively.
@@ -1398,6 +1487,7 @@ c2                          STDDEV_POP(c1)
 2                           0.5
 [2] row(s) selected.
 ```
+
 
 ## SUBSTR
 
@@ -1470,6 +1560,7 @@ BCDEFG
 [1] row(s) selected.
 ```
 
+
 ## SUBSTRING_INDEX
 
 Returns the duplicate string until the given delim is found by the count entered. If count is a negative value, it checks the delimiter from the end of the input string and returns it from the position where the delimiter was found to the end of the string.
@@ -1517,6 +1608,7 @@ SUBSTRING_INDEX(url, '.', 0)
 NULL
 [1] row(s) selected.
 ```
+
 
 ## SUM
 
@@ -1568,6 +1660,7 @@ c1          SUM(c2)
 [3] row(s) selected.
 ```
 
+
 ## SUMSQ
 
 SUMSQ returns the sum of squares of the numeric values.
@@ -1603,6 +1696,7 @@ c1          SUMSQ(c2)
 [2] row(s) selected.
 ```
 
+
 ## SYSDATE / NOW
 
 SYSDATE is a pseudocolumn, not a function, that returns the system's current time.
@@ -1621,6 +1715,7 @@ SYSDATE                         NOW
 -------------------------------------------------------------------
 2017-01-16 14:14:53 310:973:000 2017-01-16 14:14:53 310:973:000
 ```
+
 
 ## TO_CHAR
 
@@ -1845,6 +1940,7 @@ Currently, TO_CHAR is not supported for binary types.
 
 This is because it is impossible to convert to plain text. If you want to output it to the screen, you can check it by outputting hexadecimal value through TO_HEX () function.
 
+
 ## TO_DATE
 
 This function converts a string represented by a given format string to a datetime type.
@@ -1950,6 +2046,7 @@ id           TO_DATE('1999-12-31 13:12:32 123:456:789', 'YYYY-MM-DD HH24:MI:SS m
 [1] row(s) selected.
 ```
 
+
 ## TO_DATE_SAFE
 
 Similar to TO_DATE (), but returns NULL without error if conversion fails.
@@ -1977,6 +2074,7 @@ NULL
 2016-01-01 00:00:00 000:000:000
 [3] row(s) selected.
 ```
+
 
 ## TO_HEX
 
@@ -2008,6 +2106,7 @@ TO_HEX(id10)                                                                    
 62696E617279                                                                      0CB325846E226000
 [1] row(s) selected.
 ```
+
 
 ## TO_IPV4 / TO_IPV4_SAFE
 
@@ -2067,6 +2166,7 @@ NULL
 192.168.0.1
 [4] row(s) selected.
 ```
+
 
 ## TO_IPV6 / TO_IPV6_SAFE
 
@@ -2139,6 +2239,7 @@ NULL
 [8] row(s) selected.
 ```
 
+
 ## TO_NUMBER / TO_NUMBER_SAFE
 
 This function converts a given string to a numeric double. If the string can not be converted to a numeric value, the TO_NUMBER () function returns an error and terminates the operation.
@@ -2190,6 +2291,7 @@ NULL
 [1] row(s) selected.
 ```
 
+
 ## TO_TIMESTAMP
 
 This function converts a datetime data type to nanosecond data that has passed since 1970-01-01 09:00.
@@ -2211,6 +2313,7 @@ to_timestamp(c1)
 1262308210000000000
 [1] row(s) selected.
 ```
+
 
 ## TRUNC
 
@@ -2241,6 +2344,7 @@ TRUNC(i1, 2)                TRUNC(i1, -2)
 158.79                      100
 [1] row(s) selected.
 ```
+
 
 ## TS_CHANGE_COUNT
 
@@ -2291,6 +2395,7 @@ id          TS_CHANGE_COUNT(ip)
 [2] row(s) selected.
 ```
 
+
 ## UNIX_TIMESTAMP
 
 UNIX_TIMESTAMP is a function that converts a date type value to a 32-bit integer value that is converted by unix's time () system call. (FROM_UNIXTIME is a function that converts integer data to a date type value on the contrary.)
@@ -2312,6 +2417,7 @@ C1
 978274800
 [1] row(s) selected.
 ```
+
 
 ## UPPER
 
@@ -2346,6 +2452,7 @@ id          UPPER(name)
 1           NULL
 [4] row(s) selected.
 ```
+
 
 ## VARIANCE / VAR_POP
 
@@ -2385,6 +2492,7 @@ VAR_POP(c1)
 [1] row(s) selected.
 ```
 
+
 ## YEAR / MONTH / DAY
 
 These functions extract the corresponding year, month, and day from the input datetime column value and return it as an integer type value.
@@ -2407,6 +2515,7 @@ year(c1)    month(c1)   day(c1)
 ----------------------------------------
 2001        1           1
 ```
+
 
 ## ISNAN / ISINF
 
@@ -2441,6 +2550,7 @@ I1                          I2                          I3
 nan                         inf                         0
 [1] row(s) selected.
 ```
+
 
 ## Support Type of Built-In Function 
 
@@ -2488,6 +2598,7 @@ nan                         inf                         0
 |VARIANCE / VAR_POP|o|o|o|o|o|x|x|x|x|x|x|
 |YEAR / MONTH / DAY|x|x|x|x|x|x|x|x|x|o|x|
 |ISNAN / ISINF|o|o|o|o|o|x|x|x|x|x|x|
+
 
 ## JSON-related function 
 
@@ -2544,6 +2655,7 @@ name2                 String
 name1                 String                                                                           
 [4] row(s) selected.
 ```
+
 
 ## JSON Operator
 
@@ -2637,6 +2749,7 @@ name1       2024-01-02 00:00:00 000:000:000 2           1
 name1       2024-01-03 00:00:00 000:000:000 3           2             
 [3] row(s) selected.
 ```
+
 
 #### LEAD
 

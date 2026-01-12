@@ -38,8 +38,10 @@ These values are set when the Machbase server starts and are used continuously d
 - [DUMP_TRACE_INFO](#dump_trace_info)
 - [DURATION_BEGIN](#duration_begin)
 - [DURATION_GAP](#duration_gap)
+- [ENABLE_CASE_SENSITIVE_PASSWORD](#enable_case_sensitive_password)
 - [FEEDBACK_APPEND_ERROR](#feedback_append_error)
 - [GRANT_REMOTE_ACCESS](#grant_remote_access)
+- [BIND_IP_ADDRESS](#bind_ip_address)
 - [HTTP_THREAD_COUNT](#http_thread_count)
 - [INDEX_BUILD_MAX_ROW_COUNT_PER_THREAD](#index_build_max_row_count_per_thread)
 - [INDEX_BUILD_THREAD_COUNT](#index_build_thread_count)
@@ -49,6 +51,10 @@ These values are set when the Machbase server starts and are used continuously d
 - [INDEX_LEVEL_PARTITION_BUILD_THREAD_COUNT](#index_level_partition_build_thread_count)
 - [LOOKUP_APPEND_UPDATE_ON_DUPKEY](#lookup_append_update_on_dupkey)
 - [MAX_QPX_MEM](#max_qpx_mem)
+- [MAX_SESSION_COUNT](#max_session_count)
+- [MAX_STMT_COUNT_PER_SESSION](#max_stmt_count_per_session)
+- [SESSION_IDLE_TIMEOUT_SEC](#session_idle_timeout_sec)
+- [SESSION_QUERY_TIMEOUT_SEC](#session_query_timeout_sec)
 - [MEMORY_ROW_TEMP_TABLE_PAGESIZE](#memory_row_temp_table_pagesize)
 - [PID_PATH](#pid_path)
 - [PORT_NO](#port_no)
@@ -63,6 +69,11 @@ These values are set when the Machbase server starts and are used continuously d
 - [RS_CACHE_TIME_BOUND_MSEC](#rs_cache_time_bound_msec)
 - [SHOW_HIDDEN_COLS](#show_hidden_cols)
 - [TABLE_SCAN_DIRECTION](#table_scan_direction)
+- [TAG_CACHE_ENABLE](#tag_cache_enable)
+- [TAG_CACHE_MAX_MEMORY_SIZE](#tag_cache_max_memory_size)
+- [TAG_CACHE_POOL_COUNT](#tag_cache_pool_count)
+- [TAG_MEMORY_INDEX_TYPE](#tag_memory_index_type)
+- [TAG_MEMORY_INDEX_PANOUT](#tag_memory_index_panout)
 - [TAGDATA_AUTO_META_INSERT](#tagdata_auto_meta_insert)
 - [TAG_TABLE_META_MAX_SIZE](#tag_table_meta_max_size)
 - [TAG_PARTITION_COUNT](#tag_partition_count)
@@ -72,6 +83,7 @@ These values are set when the Machbase server starts and are used continuously d
 - [TRACE_LOGFILE_SIZE](#trace_logfile_size)
 - [UNIX_PATH](#unix_path)
 - [VOLATILE_TABLESPACE_MEMORY_MAX_SIZE](#volatile_tablespace_memory_max_size)
+
 
 ## CPU_AFFINITY_BEGIN_ID
 
@@ -92,11 +104,12 @@ This is the start number of the CPU used by the Machbase server. It is used to c
       <td>2 ^ 32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## CPU_AFFINITY_COUNT
 
@@ -117,11 +130,12 @@ This is the number of CPUs that the Machbase server will use. If set to 0, the M
       <td>2 ^ 32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## CPU_COUNT
 
@@ -142,7 +156,7 @@ Specifies the number of CPUs set in the system. Based on this value, the Machbas
       <td>2 ^ 32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
@@ -167,11 +181,12 @@ Specifies the number of threads to spawn per CPU. If this value is 2 and the num
       <td>2 ^ 32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DBS_PATH
 
@@ -184,11 +199,12 @@ Specifies the path where the basic data of the Machbase server will be stored. T
   </thead>
   <tbody>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>?/dbs</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DEFAULT_LSM_MAX_LEVEL
 
@@ -209,11 +225,12 @@ Sets the base level of the LSM index. If you do not enter a MAX_LEVEL value when
       <td>3</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>2</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_BUFFER_COUNT
 
@@ -234,11 +251,12 @@ Specifies the number of buffers for disk I/O.
       <td>4G (4 * 1024 * 1024 * 1024)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>16</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_INDEX_CHECKPOINT_INTERVAL_SEC
 
@@ -259,15 +277,17 @@ Sets the checkpoint interval for the index. If set too long, errors may occur du
       <td>2^32 -1 (sec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>120 (sec)</td>
     </tr>
   </tbody>
 </table>
 
+
 ## DISK_COLUMNAR_INDEX_FDCACHE_COUNT
 
 Specifies the number of opened index partition file descriptors.
+
 
 <table>
   <thead>
@@ -284,11 +304,12 @@ Specifies the number of opened index partition file descriptors.
       <td>2 ^ 32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_INDEX_SHUTDOWN_BUILD_FINISH
 
@@ -309,15 +330,17 @@ Sets whether or not to reflect index information on the disk when the Machbase s
       <td>1 (True)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0 (False)</td>
     </tr>
   </tbody>
 </table>
 
+
 ## DISK_COLUMNAR_PAGE_CACHE_MAX_SIZE
 
 Sets the maximum size of the page cache.
+
 
 <table>
   <thead>
@@ -334,11 +357,12 @@ Sets the maximum size of the page cache.
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>2 * 1024 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLE_CHECKPOINT_INTERVAL_SEC
 
@@ -359,11 +383,12 @@ Sets checkpoint period of table data. If this value is too large, the recovery t
       <td>2 ^ 32 - 1 (sec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>120 (sec)</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLE_COLUMN_FDCACHE_COUNT
 
@@ -384,11 +409,12 @@ Specifies the maximum number of open file descriptors for column data in the tab
       <td>2 ^ 32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLE_COLUMN_MINMAX_CACHE_SIZE
 Sets the size of the default MINMAX cache set in the _ARRIVAL_TIME column.
@@ -408,11 +434,12 @@ Sets the size of the default MINMAX cache set in the _ARRIVAL_TIME column.
       <td>2 ^ 64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>100 *1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLE_COLUMN_PART_FLUSH_MODE
 
@@ -433,14 +460,16 @@ Sets the automatic flush interval for column partition files.
       <td>2^32-1 (sec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>60 (sec)</td>
     </tr>
   </tbody>
 </table>
 
+
 ## DISK_COLUMNAR_TABLE_COLUMN_PART_IO_INTERVAL_MIN_SEC
 Sets the frequency with which the partition file is reflected on the disk. When more data is input than the number of partitions set, it is reflected on the disk regardless of this period.
+
 
 <table>
   <thead>
@@ -457,11 +486,12 @@ Sets the frequency with which the partition file is reflected on the disk. When 
       <td>2^32-1 (sec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>3 (sec)</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLE_TIME_INVERSION_MODE
 
@@ -482,11 +512,12 @@ If set to 1, the input is allowed even if the value of the _ARRIVAL_TIME column 
       <td>1 (True)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1 (True)</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_DWFILE_EXT_SIZE
 
@@ -507,11 +538,12 @@ Specifies the size at which the double write file used for recovery at startup i
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_DWFILE_INT_SIZE
 Specifies the amount of space secured by the double write file when the file is created.
@@ -531,11 +563,12 @@ Specifies the amount of space secured by the double write file when the file is 
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>2 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_MEMORY_EXT_SIZE
 
@@ -556,11 +589,12 @@ Specifies the block size of the memory to reserve for the column partition.
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>2 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_MEMORY_MAX_SIZE
 
@@ -581,17 +615,19 @@ Specifies the maximum amount of memory allocated by the log table. If the server
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>8 * 1024 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_MEMORY_MIN_SIZE
 
 When the Machbase server starts, it pre-allocates memory by this value to prevent performance degradation due to memory allocation. Since this memory is used only as a data input buffer, it is recommended to use it only when memory is sufficient.
 
 Table 24. Range of values
+
 
 <table>
   <thead>
@@ -608,11 +644,12 @@ Table 24. Range of values
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>100 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_MEMORY_SLOWDOWN_HIGH_LIMIT_PCT
 
@@ -637,11 +674,12 @@ DISK_COLUMNAR_TABLESPACE_MEMORY_MAX_SIZE * (DISK_COLUMNAR_TABLESPACE_MEMORY_SLOW
       <td>100</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>80</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_COLUMNAR_TABLESPACE_MEMORY_SLOWDOWN_MSEC
 
@@ -662,11 +700,12 @@ Sets the next wait time for each record entry if the memory usage for the column
       <td>2^32 - 1 (msec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1 (msec)</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_IO_THREAD_COUNT
 
@@ -687,11 +726,12 @@ Sets the number of I/O threads that write data to disk.
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>3</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_TABLESPACE_DIRECT_IO_FSYNC
 
@@ -713,11 +753,12 @@ Although fsync is unncessary, fsync must be set to perform in case of failure si
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_TABLESPACE_DIRECT_IO_READ
 
@@ -738,11 +779,12 @@ Sets whether to use DIRECT I/O for data read operation.
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DISK_TABLESPACE_DIRECT_IO_WRITE
 
@@ -753,6 +795,7 @@ Sets whether to use DIRECT I/O for data write operation. If DIRECT I/O is not su
 |Minimum|    0|  
 |Maximum|    1|  
 |Default|    1|
+
 
 ## DUMP_APPEND_ERROR
 If this value is set to 1, the $MACHBASE_HOME/trc/machbase.trc file will record the error if the Append API fails.
@@ -775,11 +818,12 @@ If you want to check for errors in the user application,  it is helpful to use t
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DUMP_TRACE_INFO
 
@@ -801,11 +845,12 @@ If it is set to 0, it is not recorded.
       <td>2^32 - 1 (sec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>60 (sec)</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DURATION_BEGIN
 
@@ -829,11 +874,12 @@ The default is 0 to retrieve all data.
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## DURATION_GAP
 Sets the start time of the duration value that sets the default for the SELECT statements that do not specify the DURATION clause.
@@ -858,11 +904,41 @@ The default is 0 to retrieve all data.
       <td>Non-zero</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
+
+## ENABLE_CASE_SENSITIVE_PASSWORD
+
+Determines whether passwords are case-sensitive.
+
+* 0: Case-insensitive. Passwords are converted to uppercase on create/alter/auth.
+* 1: Case-sensitive.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+
 
 ## FEEDBACK_APPEND_ERROR
 
@@ -883,11 +959,12 @@ Sets whether to send error data to the client when an Append API error occurs. I
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1</td>
     </tr>
   </tbody>
 </table>
+
 
 ## GRANT_REMOTE_ACCESS
 
@@ -908,11 +985,30 @@ Determines whether the database can be accessed remotely. If 0, the remote conne
       <td>1 (True)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1 (True)</td>
     </tr>
   </tbody>
 </table>
+
+
+## BIND_IP_ADDRESS
+
+Specifies the bind IP address for INET/HTTP listeners. When `GRANT_REMOTE_ACCESS=1`, the server binds to this address. When `GRANT_REMOTE_ACCESS=0`, it binds only to loopback.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Default</td>
+      <td>0.0.0.0</td>
+    </tr>
+  </tbody>
+</table>
+
 
 ## HTTP_THREAD_COUNT
 
@@ -923,6 +1019,7 @@ Set the number of threads to be used by the Machbase web server.
 |Minimum| 0|  
 |Maximum| 1024|
 |Default| 32| 
+
 
 ## INDEX_BUILD_MAX_ROW_COUNT_PER_THREAD
 If the number of records not indexed is greater than this value, the index build thread begins to add indexes.
@@ -942,11 +1039,12 @@ If the number of records not indexed is greater than this value, the index build
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>100000</td>
     </tr>
   </tbody>
 </table>
+
 
 ## INDEX_BUILD_THREAD_COUNT
 Specifies the number of index creation threads. If set to 0, no index is created.
@@ -966,11 +1064,12 @@ Specifies the number of index creation threads. If set to 0, no index is created
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>3</td>
     </tr>
   </tbody>
 </table>
+
 
 ## INDEX_FLUSH_MAX_REQUEST_COUNT_PER_INDEX
 Specifies the maximum number of flush requests per index.
@@ -990,7 +1089,7 @@ Specifies the maximum number of flush requests per index.
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>3</td>
     </tr>
   </tbody>
@@ -998,6 +1097,7 @@ Specifies the maximum number of flush requests per index.
 
 ## INDEX_LEVEL_PARTITION_AGER_THREAD_COUNT
 Specifies the number of threads to delete index files that are not needed when creating LSM indexes.
+
 
 <table>
   <thead>
@@ -1014,11 +1114,12 @@ Specifies the number of threads to delete index files that are not needed when c
       <td>1024</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1</td>
     </tr>
   </tbody>
 </table>
+
 
 ## INDEX_LEVEL_PARTITION_BUILD_MEMORY_HIGH_LIMIT_PCT
 Sets the maximum memory usage for LSM index creation as a percent. This percent is set based on the maximum memory usage used by Machbase. If the memory usage exceeds the limit, the LSM partition merge is stopped.
@@ -1038,7 +1139,7 @@ Sets the maximum memory usage for LSM index creation as a percent. This percent 
       <td>100</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>70</td>
     </tr>
   </tbody>
@@ -1062,11 +1163,12 @@ Determines the number of threads performing the merge operation for the creation
       <td>1024</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>3</td>
     </tr>
   </tbody>
 </table>
+
 
 ## LOOKUP_APPEND_UPDATE_ON_DUPKEY
 When appending to the lookup table, it specifies how to handle duplicate primary keys.
@@ -1089,11 +1191,12 @@ When appending to the lookup table, it specifies how to handle duplicate primary
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## MAX_QPX_MEM
 
@@ -1106,9 +1209,55 @@ If one query uses memory with a larger value, the query is canceled. At this tim
 |Maximum|    2^64 - 1|
 |Default|    500 * 1024 * 1024|
 
+
+## MAX_SESSION_COUNT
+
+Sets the maximum number of concurrent sessions. When exceeded, new sessions are rejected.
+
+||Value|
+|--|----|
+|Minimum|    64|
+|Maximum|    2^64 - 1|
+|Default|    4096|
+
+
+## MAX_STMT_COUNT_PER_SESSION
+
+Sets the maximum number of statements allowed per session. Statement creation fails when the limit is exceeded.
+
+||Value|
+|--|----|
+|Minimum|    512|
+|Maximum|    2^32 - 1|
+|Default|    1024|
+
+
+## SESSION_IDLE_TIMEOUT_SEC
+
+Sets the maximum idle time for a session in seconds. If the idle time exceeds this value, the connection is closed. 0 disables the idle timeout.
+
+||Value|
+|--|----|
+|Minimum|    0 (sec)|
+|Maximum|    2^64 - 1 (sec)|
+|Default|    0 (sec)|
+
+
+## SESSION_QUERY_TIMEOUT_SEC
+
+Sets the maximum query execution time in seconds. If the query time exceeds this value, the query is canceled. 0 disables the query timeout.
+
+||Value|
+|--|----|
+|Minimum|    0 (sec)|
+|Maximum|    2^64 - 1 (sec)|
+|Default|    0 (sec)|
+
+
 ## MEMORY_ROW_TEMP_TABLE_PAGESIZE
 Sets the page size of the temporary tablespace for volatile tables and lookup tables. Because this page stores volatile tables and lookup table records, it should be larger than the maximum record size for volatile tables.
 If you want to enter N records into the page, you should set this value to the maximum record size * N.
+
 
 <table>
   <thead>
@@ -1125,11 +1274,12 @@ If you want to enter N records into the page, you should set this value to the m
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>32 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## PID_PATH
 Specifies the location where the PID file of the Machbase server process is to be written. The default is "?/Conf", which means $MACHBASE_HOME/conf.
@@ -1141,7 +1291,7 @@ Specifies the location where the PID file of the Machbase server process is to b
   </thead>
   <tbody>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>?/conf</td>
     </tr>
   </tbody>
@@ -1149,8 +1299,8 @@ Specifies the location where the PID file of the Machbase server process is to b
 
 <table>
   <thead>
-    <th style="background-color: lightyellow;">PID_PATH Value</th>
-    <th style="background-color: lightyellow;">PID File Location Path</th>
+    <th>PID_PATH Value</th>
+    <th>PID File Location Path</th>
   </thead>
   <tbody>
     <tr>
@@ -1168,8 +1318,10 @@ Specifies the location where the PID file of the Machbase server process is to b
   </tbody>
 </table>
 
+
 ## PORT_NO
 Specifies the TCP/IP port for the Machbase server process to communicate with the client. The Default is 5656.
+
 
 <table>
   <thead>
@@ -1186,11 +1338,12 @@ Specifies the TCP/IP port for the Machbase server process to communicate with th
       <td>65535</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>5656</td>
     </tr>
   </tbody>
 </table>
+
 
 ## PROCESS_MAX_SIZE
 Specifies the maximum memory size used by machbased programs that are Machbase server processes. If you try to use more memory than the set limit, the server operates as follows to reduce the memory usage.
@@ -1199,6 +1352,7 @@ Specifies the maximum memory size used by machbased programs that are Machbase s
 * Decreased index creation speed
 
 In this case, the performance is greatly degraded, so the cause of overuse of the memory must be found and solved.
+
 
 <table>
   <thead>
@@ -1215,11 +1369,12 @@ In this case, the performance is greatly degraded, so the cause of overuse of th
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>8 * 1024 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## QUERY_PARALLEL_FACTOR
 Specifies the number of execution threads of the parallel query executor.
@@ -1239,16 +1394,18 @@ Specifies the number of execution threads of the parallel query executor.
       <td>100</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>8</td>
     </tr>
   </tbody>
 </table>
 
+
 ## ROLLUP_FETCH_COUNT_LIMIT
 Limits the amount of data the rollup thread can fetch at one time.
 
 If set to 0, there is no limit.
+
 
 <table>
   <thead>
@@ -1265,11 +1422,12 @@ If set to 0, there is no limit.
       <td>2^32 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>3000000</td>
     </tr>
   </tbody>
 </table>
+
 
 ## RS_CACHE_APPROXIMATE_RESULT_ENABLE
 Determines whether to use the approximate result mode of the result cache. If this value is 1, the speculative value is obtained (very fast but the data may be inaccurate) when using the result cache, and if it is 0, the correct value is obtained.
@@ -1289,11 +1447,12 @@ Determines whether to use the approximate result mode of the result cache. If th
       <td>1 (True)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0 (False)</td>
     </tr>
   </tbody>
 </table>
+
 
 ## RS_CACHE_ENABLE
 Determines whether to use the result cache.
@@ -1313,14 +1472,16 @@ Determines whether to use the result cache.
       <td>1 (True)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1 (True)</td>
     </tr>
   </tbody>
 </table>
 
+
 ## RS_CACHE_MAX_MEMORY_PER_QUERY
 Sets the amount of memory the result cache will use. If the memory usage of a particular query result exceeds this value, the result of the query is not stored in the result cache.
+
 
 <table>
   <thead>
@@ -1337,14 +1498,16 @@ Sets the amount of memory the result cache will use. If the memory usage of a pa
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>16 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
 
+
 ## RS_CACHE_MAX_MEMORY_SIZE
 Specifies the maximum memory usage of the result cache.
+
 
 <table>
   <thead>
@@ -1361,11 +1524,12 @@ Specifies the maximum memory usage of the result cache.
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>512 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## RS_CACHE_MAX_RECORD_PER_QUERY
 The maximum number of records to be stored in the result cache. If the number of records resulting from the query is greater than this value, the query result is not stored in the cache.
@@ -1385,11 +1549,12 @@ The maximum number of records to be stored in the result cache. If the number of
       <td>2^64 - 1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>10000</td>
     </tr>
   </tbody>
 </table>
+
 
 ## RS_CACHE_TIME_BOUND_MSEC
 If a particular query is executed very quickly, it is better not to store it in the result cache because it can reduce memory usage.
@@ -1410,14 +1575,16 @@ This value determines how fast the query executed should not be stored in the ca
       <td>2^64 - 1 (msec)</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1000 (msec)</td>
     </tr>
   </tbody>
 </table>
 
+
 ## SHOW_HIDDEN_COLS
 If set to the Default of 0, the _ARRIVAL_TIME column is not displayed by the SELECT * FROM query. If this value is set to 1, the corresponding column is displayed.
+
 
 <table>
   <thead>
@@ -1434,11 +1601,12 @@ If set to the Default of 0, the _ARRIVAL_TIME column is not displayed by the SEL
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
+
 
 ## TABLE_SCAN_DIRECTION
 You can set the scan direction of the tag table. The property value is one of -1, 0, and 1, and the default value is 0.
@@ -1462,16 +1630,83 @@ You can set the scan direction of the tag table. The property value is one of -1
       <td>1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>0</td>
     </tr>
   </tbody>
 </table>
 
-## TAGDATA_AUTO_META_INSERT
 
+## TAG_CACHE_ENABLE
+
+Enables the key-value (TAG) cache by bitwise OR flags.
+
+* 0: Disable cache
+* 1: TAG map cache
+* 2: Row data cache
+* 4: Data file cache
+* 8: External VARCHAR file cache
+* 16: Delete vector cache
+
+||Value|
+|--|----|
+|Minimum|    0|
+|Maximum|    31|
+|Default|    31|
+
+
+## TAG_CACHE_MAX_MEMORY_SIZE
+
+Sets the maximum memory size (bytes) per TAG cache pool. The total reserved cache memory is `TAG_CACHE_MAX_MEMORY_SIZE * TAG_CACHE_POOL_COUNT`.
+
+||Value|
+|--|----|
+|Minimum|    32 * 1024|
+|Maximum|    2^64 - 1|
+|Default|    512 * 1024 * 1024|
+
+
+## TAG_CACHE_POOL_COUNT
+
+Sets the number of TAG cache pools.
+
+||Value|
+|--|----|
+|Minimum|    1|
+|Maximum|    128|
+|Default|    1|
+
+
+## TAG_MEMORY_INDEX_TYPE
+
+Selects the memory index type for TAG tables.
+
+* 0: RBTree
+* 1: BTree
+
+||Value|
+|--|----|
+|Minimum|    0|
+|Maximum|    1|
+|Default|    1|
+
+
+## TAG_MEMORY_INDEX_PANOUT
+
+Sets the B-Tree order (fanout) for the TAG memory index. Effective when `TAG_MEMORY_INDEX_TYPE=1`.
+
+||Value|
+|--|----|
+|Minimum|    127|
+|Maximum|    65536|
+|Default|    255|
+
+
+## TAGDATA_AUTO_META_INSERT
+{{<callout type="info">}}
 In 5.5 version, this property name was TAGDATA_AUTO_NAME_INSERT and supports only 0 or 1.
 Below 5.7 version, default value is 1.
+{{</callout>}}
 
 When entering data through APPEND / INSERT into the TAGDATA table, specify how to handle it if there is no matching TAG_NAME.
 
@@ -1496,11 +1731,12 @@ When entering data through APPEND / INSERT into the TAGDATA table, specify how t
       <td>2</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>1</td>
     </tr>
   </tbody>
 </table>
+
 
 ## TAG_TABLE_META_MAX_SIZE
 
@@ -1511,6 +1747,7 @@ When creating the TAGDATA table, set the maximum size of memory to store the met
 |Minimum|    1024*1024|
 |Maximum|    2^32-1|
 |Default|    100\*1024\*1024|
+
 
 ## TAG_PARTITION_COUNT
 
@@ -1544,6 +1781,7 @@ If more than the maximum number of log trace files is created and the oldest fil
 |Maximum|    2^32 - 1|
 |Default|    1000|
 
+
 ## TRACE_LOGFILE_PATH
 Set the path of the log trace files (machbase.trc, machadmin.trc, machsql.trc). 
 These files continuously record internal information at the start, end, and run of Machbase. The default ?/trc  means $MACHBASE_HOME/trc.
@@ -1555,7 +1793,7 @@ These files continuously record internal information at the start, end, and run 
   </thead>
   <tbody>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>?/conf</td>
     </tr>
   </tbody>
@@ -1563,8 +1801,8 @@ These files continuously record internal information at the start, end, and run 
 
 <table>
   <thead>
-    <th style="background-color: lightyellow;">TRACE_LOGFILE_PATH </th>
-    <th style="background-color: lightyellow;">trc direction location</th>
+    <th>TRACE_LOGFILE_PATH </th>
+    <th>trc direction location</th>
   </thead>
   <tbody>
     <tr>
@@ -1582,8 +1820,10 @@ These files continuously record internal information at the start, end, and run 
   </tbody>
 </table>
 
+
 ## TRACE_LOGFILE_SIZE
 Sets the maximum size of the log trace file. If it is necessary to record more data than the size, a new log file is created.
+
 
 <table>
   <thead>
@@ -1600,11 +1840,12 @@ Sets the maximum size of the log trace file. If it is necessary to record more d
       <td>2^32-1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>10 * 1024 * 1024</td>
     </tr>
   </tbody>
 </table>
+
 
 ## UNIX_PATH
 Sets the path to the Unix domain socket file. The Default when not set by user is ?/conf/machbase-unix.
@@ -1616,14 +1857,16 @@ Sets the path to the Unix domain socket file. The Default when not set by user i
   </thead>
   <tbody>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>?/conf/machbase-unix</td>
     </tr>
   </tbody>
 </table>
 
+
 ## VOLATILE_TABLESPACE_MEMORY_MAX_SIZE
 Sets the total amount of memory usage for all volatile and lookup tables in the system.
+
 
 <table>
   <thead>
@@ -1640,7 +1883,7 @@ Sets the total amount of memory usage for all volatile and lookup tables in the 
       <td>2^64-1</td>
     </tr>
     <tr>
-      <td style="background-color: #F0FFFF;">Default</td>
+      <td>Default</td>
       <td>2 * 1024 * 1024 * 1024</td>
     </tr>
   </tbody>

@@ -6,8 +6,10 @@
 * [NOPARALLEL](#noparallel)
 * [FULL](#full)
 * [NO_INDEX](#no_index)
+* [ROLLUP_TABLE](#rollup_table)
 * [RID_RANGE](#rid_range)
 * [SCAN_FORWARD, SCAN_BACKWARD](#scan_forward-scan_backward)
+
 
 Hints that can be used in a SELECT queries are described.
 
@@ -40,6 +42,7 @@ PLAN
 [7] row(s) selected.
 ```
 
+
 ##  NOPARALLEL
 
 Does not perform in parallel.
@@ -68,6 +71,7 @@ PLAN
      * ts <= TO_DATE('2007-07-31', 'YYYY-MM-DD')                                 
 [7] row(s) selected.
 ```
+
 
 ##  FULL
 
@@ -98,6 +102,7 @@ PLAN
   FULL SCAN                                                                      
 [2] row(s) selected.
 ```
+
 
 ##  NO_INDEX
 
@@ -189,6 +194,30 @@ PLAN
 [7] row(s) selected.
 ```
 
+
+##  ROLLUP_TABLE
+
+Forces a specific rollup table when multiple rollups match. If the hint is present, it always takes precedence over automatic selection.
+
+```sql
+SELECT /*+ ROLLUP_TABLE(rollup_table_name) */ ...
+```
+
+- Without the hint, the engine prefers an unfiltered rollup among candidates with the same interval/value column/JSON path.
+- Use the hint when a filtered rollup must be selected.
+- When using `FIRST()`/`LAST()`, point the hint to an `EXTENSION` rollup.
+
+```sql
+SELECT /*+ ROLLUP_TABLE(_tag_rollup_cond_1s) */
+       rollup('sec', 30, time) AS rt, AVG(value), COUNT(value)
+FROM   tag_bulk
+WHERE  name = 'dev9'
+  AND  time BETWEEN '2020-01-02 00:00:00' AND '2020-01-02 00:10:00'
+GROUP BY rt
+ORDER BY rt;
+```
+
+
 ##  RID_RANGE
 
 Runs within RID range.
@@ -208,6 +237,7 @@ _RID                 I1
 45                   1
 [5] row(s) selected.
 ```
+
 
 ##  SCAN_FORWARD, SCAN_BACKWARD
 

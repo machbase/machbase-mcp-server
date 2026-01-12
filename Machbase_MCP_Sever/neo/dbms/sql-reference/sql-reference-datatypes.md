@@ -21,7 +21,7 @@
 |ipv4|Version 4 Internet address type (4 bytes)|"0.0.0.0" ~ "255.255.255.255"|-|
 |ipv6|Version 6 Internet address type (16 bytes)|"0000:0000:0000:0000:0000:0000:0000:0000" ~ "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"|-|
 |text|Text data type (keyword index can be generated)|Length : 0 ~ 64M|-|
-|binary|Binary data type  (index creation not possible)|Length: 0 ~ 64M|-|
+|binary|Binary (Log: 0~64M) / Tag fixed-length (1~32K-1)|Log: 0 ~ 64M<br>Tag: 1 ~ 32767 bytes|-|
 |json|json data type|json data length : 1 ~ 32768 (32K)<br><br>json path length : 1 ~ 512|-|
 
 ### short
@@ -82,10 +82,18 @@ This type is mainly used to store and retrieve large text files as separate colu
 
 ### binary
 
-This type is a supported type for storing unstructured data in columns.
+Binary columns in log/lookup/volatile tables store unstructured data such as
+images or documents. Indexes cannot be created, and up to 64 megabytes can be
+stored (same as TEXT).
 
-It is used to store binary data such as image, video, or audio. Indexes can not be created for this type. 
-The maximum data size for storing is up to 64 megabytes, the same as the TEXT type.
+Tag-table `BINARY(n)` is a fixed-length variant for sensor frames.
+Valid sizes are 1 to 32K-1 (32767) bytes. Inputs must be hex strings (0x prefix
+optional); odd-length inputs pad the leading nibble with 0, and shorter values
+pad with 0x00 to the declared length. Over-length or non-hex input raises
+`[ERR-02233: Error occurred at column (n): (Invalid insert value.)]`. `LENGTH`
+and metadata report the declared byte length, and machsql displays uppercase
+hex without the `0x` prefix. This fixed-length `BINARY(n)` is accepted only in
+Tag tables.
 
 ### json
 
@@ -94,6 +102,7 @@ This type is a data type for storing json data.
 Json is a format to store data object, consisting of "Key-Value" pairs, into text format.
 
 The maximum size of data is 32K bytes which is same as varchar type.
+
 
 ## SQL Datatype Table
 
@@ -114,5 +123,5 @@ The following table shows the SQL data types and C data types corresponding to t
 |ipv4|SQL_IPV4|SQL_VARCHAR|SQL_C_CHAR|char * (enter ip string)<br><br>unsigned char[4]|Version 4 Internet address type|
 |ipv6|SQL_IPV6|SQL_VARCHAR|SQL_C_CHAR|char * (enter ip string)<br><br>unsigned char[16]|Version 6 Internet address type|
 |text|SQL_TEXT|SQL_LONGVARCHAR|SQL_C_CHAR|char *|Text|
-|binary|SQL_BINARY|SQL_BINARY|SQL_C_BINARY|char *|Binary data|
+|binary|SQL_BINARY|SQL_BINARY|SQL_C_BINARY|char *|Tag-table binary (fixed length)|
 |json|SQL_JSON|SQL_JSON|SQL_C_CHAR|json_t|json data type|

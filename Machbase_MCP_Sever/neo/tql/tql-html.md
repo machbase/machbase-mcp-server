@@ -8,7 +8,7 @@ The `HTML()` SINK generates an HTML document or an element as output, using the 
 
 **Parameters**:
 - `templates`: One or more template strings or `file(path)` references. Each argument can be a direct template string or a file path using `file(path)` to load the template from a file. The template content uses the Go HTML template language. For more information, see the [template documentation](https://pkg.go.dev/html/template).
-- `cache()`: Cache result data. See [Cache Result Data](../reading/#cache-result-data) for details.
+- `cache()`: Cache result data. See Cache Result Data for details.
 
 Within the template, you have access to a value object that exposes the current record's field values and row number. The following fields and properties are available within the HTML template context:
 

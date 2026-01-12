@@ -53,3 +53,44 @@ ALTER TABLE {table_name} set TAG_DUPLICATE_CHECK_DURATION={duration in minutes};
 
 * The duplication removal setting can be configured on a minute basis, with a maximum limit of 43200 minutes (30 days).
 * If the existing input data has already been deleted, any subsequent occurrence of the same data will not be considered as a duplicate for the purpose of duplication removal.
+
+## Checking duplicates via TRACE log
+Adding 32(SM_2) to TRACE_LOG_LEVEL outputs deduplication logs.
+```sql
+-- Check current setting
+select name, value from v$property where name = 'TRACE_LOG_LEVEL';
+
+-- Change setting
+alter system set TRACE_LOG_LEVEL={current_value + 32};
+```
+
+**Configuration Example**
+```sql
+-- Check current value
+Mach> select name, value from v$property where name = 'TRACE_LOG_LEVEL';
+name                                                          value
+---------------------------------------------------------------------------------------------------------------------------------------------------
+TRACE_LOG_LEVEL                                               277
+[1] row(s) selected.
+
+-- Add 32 (277 + 32 = 309)
+Mach> alter system set TRACE_LOG_LEVEL=309;
+Altered successfully.
+```
+
+- Log file location: `$MACHBASE_HOME/trc/machbase.trc`
+- Quick filter:
+  ```bash
+  tail -n 50 $MACHBASE_HOME/trc/machbase.trc | grep DUP_DROP
+  ```
+- Log format: `DUP_DROP Table=<table> TAG=<tag id> TIME=<timestamp> COL<n>=<value> ...`
+- Real sample (same TIME for TAG=1, different COL3 values):
+  ```
+  [2025-11-29 13:50:27 P-151395 T-126344581076672][SM-INFO] DUP_DROP Table=TAG TAG=1 TIME=1998-12-24 09:00:00 000:000:012  COL3=12.000000
+  ...
+  [2025-11-29 13:50:27 P-151395 T-126344581076672][SM-INFO] DUP_DROP Table=TAG TAG=1 TIME=1998-12-24 09:00:00 000:000:048  COL3=48.000000
+  ```
+- How to use it
+  - Check the TIME field to see which duplicates were dropped at the same timestamp.
+  - Add `grep "Table=TAG"` or `grep "TAG=1"` for faster narrowing to a specific table/tag.
+- Note: Each line is capped at ~4KB; with very many columns the tail may be truncated, but it won’t crash.

@@ -8,6 +8,8 @@ Rollup tables provide automatic time-based aggregation of tag data, dramatically
 
 When user create tag table, Rollup does not created default, user must create by themselves. Syntax is as follow.
 
+![create-rollup](/dbms/table-types/tag-tables/create-rollup.png)
+
 * rollup name : rollup table's name (Can be freely created with string up to 40)
 * source table name : Name of source table which rollup will aggregate data.
 * src_table_column : rollup target data column name
@@ -22,6 +24,7 @@ When user create tag table, Rollup does not created default, user must create by
     * Source table for aggregation can specify only tag table or rollup table
     * Only one rollup table can be exist to source table for aggregation
     * If source table for aggregation is rollup table, time for rollup table must be bigger than time for source table. And it must be multiple.
+
 
 Example for Creating rollup table
 
@@ -111,6 +114,75 @@ CREATE ROLLUP _tag_rollup_sec ON tag(value) INTERVAL 1 SEC EXTENSION;
 CREATE TAG TABLE tagtbl (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) WITH ROLLUP EXTENSION;
 ```
 
+## Conditional Rollups, Filters, and Hints
+
+### What this feature solves
+When multiple rollups share the same interval, value column, and JSON path, the engine now distinguishes between “plain” rollups and “filtered” rollups. It automatically prefers the unfiltered one, yet lets you force a specific rollup with a hint. Filters are validated at creation time to prevent confusing or unsafe definitions.
+
+### How to create a filtered rollup
+```sql
+CREATE ROLLUP <rollup_name>
+  ON <table_name>(<value_col>)
+  INTERVAL <n> <SEC|MIN|HOUR>
+  [WITH <props>]
+  [WHERE <predicate>];
+```
+- The predicate is applied to source rows **before** aggregation; predicate columns are not stored in the rollup table.
+- Allowed: regular scalar expressions (AND/OR/NOT, comparison, BETWEEN, IN, LIKE, CASE, non-aggregate functions) that reference existing columns, including non‑summarized columns such as `value2` or `status`.
+- Not allowed: subqueries, aggregate functions, unknown columns, or the tag-name (PK) column of a tag table (it is internally numeric, so string comparison is meaningless).
+- Validation happens during `CREATE ROLLUP`; invalid predicates fail fast with an error.
+
+### Automatic selection order (no hint)
+1. If a `ROLLUP_TABLE(<rollup_table_name>)` hint exists, it always wins.
+2. Otherwise, among rollups that match interval/value/JSON path, one **without** a predicate is chosen first.
+3. If no plain rollup exists, a predicate rollup is used.
+4. If multiple candidates remain, the existing rule is kept: pick the largest frequency that divides the requested interval; for equal frequencies, the first registered rollup stays selected.
+
+### Quick recipe (mirrors the regression scenario)
+1) Create a tag table with extra columns you want to filter on, for example `value2 DOUBLE`, `status INTEGER` in addition to the summarized `value`.  
+2) Create both plain and filtered rollups:
+```sql
+CREATE ROLLUP _tag_rollup_plain_1s      ON tag_bulk(value) INTERVAL 1 SEC;
+CREATE ROLLUP _tag_rollup_plain_1m      FROM _tag_rollup_plain_1s INTERVAL 1 MIN;
+CREATE ROLLUP _tag_rollup_cond_1s       ON tag_bulk(value) INTERVAL 1 SEC
+  WHERE value2 >= 50 AND status >= 2;
+CREATE ROLLUP _tag_rollup_cond_1m       FROM _tag_rollup_cond_1s INTERVAL 1 MIN;
+
+-- Extended rollups for FIRST()/LAST()
+CREATE ROLLUP _tag_rollup_plain_1s_ext  ON tag_bulk(value) INTERVAL 1 SEC EXTENSION;
+CREATE ROLLUP _tag_rollup_cond_1s_ext   ON tag_bulk(value) INTERVAL 1 SEC EXTENSION
+  WHERE value2 >= 50 AND status >= 2;
+```
+3) Load data (bulk loader or INSERT), then flush to make aggregates available:
+```sql
+EXEC ROLLUP_FORCE(_TAG_BULK_ROLLUP_SEC);   -- auto rollup from WITH ROLLUP
+EXEC ROLLUP_FORCE(_tag_rollup_plain_1s);
+EXEC ROLLUP_FORCE(_tag_rollup_cond_1s);
+```
+4) Query without a hint (uses the plain rollup automatically):
+```sql
+SELECT rollup('sec', 30, time) AS rt, AVG(value), COUNT(value)
+FROM   tag_bulk
+WHERE  name = 'dev9' AND time BETWEEN '2020-01-02 00:00:00' AND '2020-01-02 00:10:00'
+GROUP BY rt
+ORDER BY rt;
+```
+5) Force a filtered rollup when you must honor the predicate:
+```sql
+SELECT /*+ ROLLUP_TABLE(_tag_rollup_cond_1s) */
+       rollup('sec', 30, time) AS rt, AVG(value), COUNT(value)
+FROM   tag_bulk
+WHERE  name = 'dev9' AND time BETWEEN '2020-01-02 00:00:00' AND '2020-01-02 00:10:00'
+GROUP BY rt
+ORDER BY rt;
+```
+6) Using FIRST()/LAST()? Point the hint to an `EXTENSION` rollup; the functions are not available on non-extension rollups.
+
+### Metadata and upgrade notes
+- `V$ROLLUP` now shows a `PREDICATE` column so you can confirm which filter a rollup was created with.
+- The meta version is bumped to 10.0 to add this column. On first server start after upgrade, the catalog is altered automatically. If the upgrade fails (for example on a very old or corrupted meta), stop the server, create a fresh database, and recreate rollups.
+- Rollup creation still enforces the existing rules on intervals and value types; filters do not change those constraints.
+
 ## Start/Stop Rollup Table
 
 When rollup is created, rollup thread is automatically started, and the user can start/stop rollup thread arbitrarily.
@@ -123,6 +195,7 @@ EXEC ROLLUP_START(rollup_name)
 EXEC ROLLUP_STOP(rollup_name)
 ```
 
+
 ## Collect Rollup Instantly
 
 rollup basically aggregate data in set time unit.
@@ -134,6 +207,7 @@ User can aggregate data in force.
 -- Execute specific rollup flush immediately
 EXEC ROLLUP_FORCE(rollup_name)
 ```
+
 
 ## Drop Rollup
 
@@ -268,6 +342,7 @@ GROUP BY mtime;
 
 ```
 
+
 ## Data Sample
 
 Below is sample data for rollup test.
@@ -300,6 +375,8 @@ insert into tag values('TAG_0001', '2018-01-01 03:02:02 000:000:000', 6);
 ```
 
 For one tag, different values ​​in seconds were input for 3 hours.
+
+
 
 ## Get ROLLUP AVG
 
@@ -352,6 +429,7 @@ mtime                           avg(value)
 [3] row(s) selected.
 ```
 
+
 ## Get ROLLUP MIN/MAX Value
 
 Below is the case of getting min/max value of seconds, minutes, hours of tag table. The difference between others, you can get minimum value and maximum value at the same time with just one query.
@@ -380,6 +458,7 @@ mtime                           min(value)                  max(value)
 [9] row(s) selected.
 ```
 
+
 ## Get ROLLUP SUM/COUNT
 
 Below is the case of getting sum/count value. Also you can get  sum value and count value at the same time with just one query.
@@ -399,6 +478,7 @@ mtime                           sum(value)                  count(value)
 2018-01-01 03:02:00 000:000:000 11                          2
 [9] row(s) selected.
 ```
+
 
 ## Get ROLLUP Sum of Squares
 

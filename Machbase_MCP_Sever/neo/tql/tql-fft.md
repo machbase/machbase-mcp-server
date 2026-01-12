@@ -103,20 +103,20 @@ CHART_LINE(
 ```js
 SQL_SELECT('time', 'value', from('example', 'signal'), between('last-10s', 'last'))
 SCRIPT({
-    var list = [];
-    function finalize() {
-        for(var i = 0; i < list.length; i++) {
-            $.yield(list[i][0], list[i][1]);
-        }
-    }
+    var times = [];
+    var values = [];
 },{
     ts = $.values[0];
     val = $.values[1];
-    list.push([ts, val]);
+    times.push(ts);
+    values.push(val);
+},{
+    const ana = require("@jsh/analysis");
+    result = ana.fft(times, values);
+    for(i = 0; i < result.x.length; i++) {
+        $.yield(result.x[i], result.y[i]);
+    }
 })
-MAPKEY('sample')
-GROUPBYKEY()
-FFT()
 CHART_LINE(
   size("600px", "350px"), 
   xAxis(0, 'Hz'),
