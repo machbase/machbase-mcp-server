@@ -21,7 +21,7 @@
 |ipv4|Version 4 Internet address type (4 bytes)|"0.0.0.0" ~ "255.255.255.255"|-|
 |ipv6|Version 6 Internet address type (16 bytes)|"0000:0000:0000:0000:0000:0000:0000:0000" ~ "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"|-|
 |text|Text data type (keyword index can be generated)|Length : 0 ~ 64M|-|
-|binary|Binary (Log: 0~64M) / Tag fixed-length (1~32K-1)|Log: 0 ~ 64M<br>Tag: 1 ~ 32767 bytes|-|
+|binary|Binary (Log: 0 ~ 64M) / Tag fixed-length (1 ~ 32K-1)|Log: 0 ~ 64M<br>Tag: 1 ~ 32767 bytes|-|
 |json|json data type|json data length : 1 ~ 32768 (32K)<br><br>json path length : 1 ~ 512|-|
 
 ### short

@@ -3,8 +3,8 @@
 ## Overview
 
 `BINARY(n)` in Tag tables stores fixed-length binary values for sensor frames.
-It is rejected in other table types or protocols. Length must be 1~32K-1
-(1~32767) bytes. Indexes cannot be created on binary columns.
+It is rejected in other table types or protocols. Length must be `1~32K-1
+(1~32767)` bytes. Indexes cannot be created on binary columns.
 
 ## DDL Rules
 
