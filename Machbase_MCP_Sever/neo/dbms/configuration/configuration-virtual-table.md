@@ -7,6 +7,7 @@ In addition, various information can be obtained through JOIN operation with oth
 
 Virtual Tables are read-only and can not be added / deleted / updated by the user.
 
+
 ## Index
 
 - [Session/System](#sessionsystem)
@@ -82,6 +83,8 @@ Virtual Tables are read-only and can not be added / deleted / updated by the use
   - [V$COLUMNS](#vcolumns)
   - [V$RETENTION\_JOB](#vretention_job)
 
+
+
 ## Session/System
 
 ### V$PROPERTY
@@ -127,6 +130,7 @@ Displays session information connected to the Machbase server.
 |IDLE_TIMEOUT|Terminate the session if the client does nothing for that time after the session connected.|
 |QUERY_TIMEOUT|Response waiting time for query execution|
 
+
 ### V$SESMEM
 ---
 
@@ -138,6 +142,7 @@ Displays session memory information.
 |ID|Memory manager identifier|
 |USAGE|Usage size|
 
+
 ### V$SESSTAT
 ---
 
@@ -148,6 +153,7 @@ Displays statistical information of the session.
 |SID|Session identifier|
 |ID|Statistical information identifier|
 |VALUE|Statistical information value|
+
 
 ### V$SESTIME
 ---
@@ -161,6 +167,7 @@ Displays the time information of the session.
 |ACCUM_TICK|Cumulative time|
 |MAX_TICK|Maximum time (per each performance unit)|
 
+
 ## V$SYSMEM
 
 Displays memory information of the system.
@@ -172,6 +179,7 @@ Displays memory information of the system.
 |USAGE|Current usage|
 |MAX_USAGE|(Recorded) Maximum usage|
 
+
 ### V$SYSSTAT
 ---
 
@@ -182,6 +190,7 @@ Displays statistical information of the system.
 |ID|Statistical information identifier|
 |NAME|Statistical information name|
 |VALUE|Statistical information value|
+
 
 ### V$SYSTIME
 ---
@@ -197,6 +206,7 @@ Displays the time information of the system.
 |MIN_TICK|Minimum Time (per each performance unit)|
 |MAX_TICK|Maximum Time (per each performance unit)|
 |COUNT|Performance frequency|
+
 
 ### V$STMT
 ---
@@ -235,6 +245,7 @@ Displays information about Machbase version.
 |FILE_CREATE_TIME|File creation time|
 |EDITION|Machbase type|
 
+
 ## Result Cache
 
 ### V$RS_CACHE_LIST
@@ -255,10 +266,12 @@ Display the result cache list.
 |AGGR_TOUCH_TIME|Time the cache was used or created for aggregate results|
 |AGGR_HIT_COUNT|Cache hit count for aggregate results|
 
+
 ### V$RS_CACHE_STAT
 ---
 
 Display statistical information of result cache in one session.
+
 
 |Column Name|Description|
 |--|--|
@@ -267,6 +280,7 @@ Display statistical information of result cache in one session.
 |AGGR_HIT|Total cache hit count for aggregate results|
 |CACHE_REPLACED|Cache replacement count|
 |CACHE_MEMORY_USAGE|Size of cache memory used|
+
 
 ## Storage
 
@@ -281,6 +295,7 @@ Displays internal information of the storage system.
 |DC_INDEX_FILE_SIZE|Total capacity of index file data|
 |DC_TABLESPACE_DWFILE_SIZE|Total capacity of DWFILE for all column data|
 |DC_KV_TABLE_FILE_SIZE|Total number of data files of TAGDATA table partition tables|
+
 
 ### V$STORAGE_MOUNT_DATABASES
 ---
@@ -299,6 +314,7 @@ Displays the information of the mounted backup database using the mount function
 |BACKUP_BEGIN_TIME|Backup begin time|
 |BACKUP_END_TIME|Backup end time|
 |FLAG|Property flag|
+
 
 ### V$CACHE
 ---
@@ -320,6 +336,7 @@ Displays information about each cache object that contains the results read from
 |REF_COUNT|Reference count|
 |FLAG|(Internal server use flag)|
 
+
 ### V$STORAGE_DC_TABLESPACES
 ---
 
@@ -332,6 +349,7 @@ Displays the table space information of the storage system.
 |FLAG|Flag indicating tablespace property|
 |REF_COUNT|Tablespace reference count|
 |DISK_COUNT|Tablespace disk count|
+
 
 ### V$STORAGE_DC_TABLESPACE_DISKS
 ---
@@ -348,10 +366,12 @@ Displays the table space information of the storage system.
 |IO_JOB_COUNT|I/O Job count|
 |VIRTUAL_DISK_COUNT|Virtual disk count|
 
+
 ### V$STORAGE_DC_DWFILES
 ---
 
 Displays the information of the double-write file (DW File) operated by the storage system.
+
 
 |Column Name|Description|
 |--|--|
@@ -370,6 +390,7 @@ Displays the information of the double-write file (DW File) operated by the stor
 |HEAD_TIMESTAMP_PAGE|Head Timestamp Page|
 |TAIL_TIMESTAMP_PAGE|Tail Timestamp Page|
 
+
 ### V$STORAGE_DC_PAGECACHE
 ---
 
@@ -382,10 +403,12 @@ Displays information about the Page Cache operating on the storage system
 |PAGE_CNT|Number of cached pages|
 |CHECK_TIME|Check time|
 
+
 ### V$STORAGE_DC_PAGECACHE_LRU_LST
 ---
 
 Displays information about the LRU List of Page Cache operated by the storage system.
+
 
 |Column Name|Description|
 |--|--|
@@ -408,6 +431,7 @@ Displays the amount of storage used by the storage system.
 |USED_RATIO|Percentage of usage(%)|
 |RATIO_CAP|Storage usage limit. Data input/index construction stops when USED_RATIO reaches this limit.|
 
+
 ### V$STORAGE_TABLES
 ---
 
@@ -419,6 +443,7 @@ Display table details.
 |TYPE|Table type<br> - Persistent: LOG / TAG Table<br> - Volatile: Volatile Table - Key-Value: Accompanying table of TAG table|
 |STATUS|Current Status<br> - Creating...: Creating table by CREATE TABLE query<br> - Normal: normal<br> - Predrop: DROP TABLE query accepted<br> - Dropping...: DROP TABLE query processing<br> - Dropped: DROP TABLE query completed<br> - Mounted: The backed up database loaded with the MOUNT query|
 |STORAGE_USAGE|Capacity occupied by the table in storage|
+
 
 ## Log Table
 
@@ -483,6 +508,7 @@ Displays information about the columns in the Log Table.
 |MEMORY_TOTAL_SIZE|Memory size used by table|
 |MEMORY_ALLOC_SIZE|Memory size allocated by table|
 
+
 ### V$STORAGE_DC_TABLE_COLUMN_PARTS
 ---
 
@@ -511,6 +537,7 @@ Displays column partition information of log table.
 |MIN_VALUE|Minimum column partition value|
 |MAX_VALUE|Maximum column partition value|
 
+
 ### V$STORAGE_DC_TABLE_INDEXES
 ---
 
@@ -536,7 +563,10 @@ Displays index information generated in Log Table.
 |DISK_FILE_SIZE|Total size of index partition file for that index|
 |LAST_CHECKPOINT_TIME|Last checkpoint time|
 
+
+
 ## LSM(Log Structured Merge) Index
+
 
 ### V$STORAGE_DC_LSMINDEX_LEVEL_PARTS
 ---
@@ -565,10 +595,12 @@ Displays information about LSM Index partitions.
 |KEYVAL_BUILD_MSEC|Total time to complete partition for KeyValue Mode|
 |BITMAP_BUILD_MSEC|Total time to complete partition for Bitmap Mode|
 
+
 ### V$STORAGE_DC_LSMINDEX_LEVEL_PARTS_CACHE
 ---
 
 Displays information about the LSM Index partition cache.
+
 
 |Column Name|Description|
 |--|--|
@@ -589,6 +621,7 @@ Displays information about the LSM Index partition cache.
 |MEMORY_SIZE|Memory usage|
 |MEMORY_SIZE_RBTREE|Redblack Tree memory usage|
 
+
 ### V$STORAGE_DC_LSMINDEX_LEVELS
 ---
 
@@ -606,6 +639,7 @@ Displays information about the level of the LSM index.
 |META_END_RID|RID at end time of recording meta information|
 |DELETE_END_RID|Maximum deleted RID + 1|
 
+
 ### V$STORAGE_DC_LSMINDEX_FILES
 ---
 
@@ -622,6 +656,7 @@ Displays information about the files that make up the LSM Index.
 |END_RID|Partition last RID + 1|
 |PATH|Index file location|
 
+
 ### V$STORAGE_DC_LSMINDEX_AGER_JOBS
 ---
 
@@ -636,6 +671,7 @@ Displays working status of Ager responsible for LSM Index deletion.
 |END_RID|Last partition RID + 1|
 |STATE|Index Ager working status|
 
+
 ## Volatile Table
 
 ### V$STORAGE_DC_VOLATILE_TABLE
@@ -643,10 +679,12 @@ Displays working status of Ager responsible for LSM Index deletion.
 
 Displays information about Volatile Table.
 
+
 |Column Name|Description|
 |--|--|
 |MAX_MEM_SIZE|Maximum Volatile Tablespace size|
 |CUR_MEM_SIZE|Current Volatile Tablespace size|
+
 
 ## Tag Table
 
@@ -654,6 +692,7 @@ Displays information about Volatile Table.
 ---
 
 Displays information about the partition table in the Tagdata Table.
+
 
 |Column Name|Description|
 |--|--|
@@ -672,10 +711,12 @@ Displays information about the partition table in the Tagdata Table.
 |SAVE_STATE|Current Table Save operation state.<br> - IDLE: Save Complete, waiting<br> - PROGRESS: Save in progress<br> - IOWAIT: Waiting for I/O operation in storage<br> - PENDING: Waiting for table read lock<br> - SHUTDOWN: Stopped. DELETE operation or DROP operation in progress.<br> - ABNORMAL: Abnormal end|
 |VINDEX_STATE|Current VARCHAR Index Build State<br> - IDLE: Build Complete, waiting<br> - PROGRESS: Build in progress<br> - IOWAIT: Waiting for I/O operation in storage<br> - PENDING: Waiting for table read lock<br> - SHUTDOWN:  Stopped. DELETE operation or DROP operation in progress.<br> - ABNORMAL: Abnormal end|
 
+
 ### V$STORAGE_TAG_CACHE
 ---
 
 Displays the cache information used in the partition table of the Tagdata Table.
+
 
 |Column Name|Description|
 |--|--|
@@ -711,10 +752,12 @@ Displays detailed information about each cache block used in the partition table
 |OFFSET|Datafile offset|
 |DATA_SIZE|Data size before compression, or 0|
 
+
 ### V$STORAGE_TAG_TABLE_FILES
 ---
 
 Displays the file information of the partition table of the Tag Table.
+
 
 |Column Name|Description|
 |--|--|
@@ -726,6 +769,7 @@ Displays the file information of the partition table of the Tag Table.
 |DEL_COUNT|Number of records deleted from the file|
 |MIN_DATE|Minimum datatime value of this data file.|
 |MAX_DATE|Maximum datatime value of this data file.|
+
 
 ### V$STORAGE_TAG_INDEX
 ---
@@ -741,6 +785,7 @@ Displays index information generated in Tag Table.
 |MEMORY_INDEX_END_RID|Table end RID in memory index|
 |TABLE_END_RID|Table end RID|
 
+
 ## Tag Rollup
 
 ### V$ROLLUP
@@ -750,15 +795,25 @@ Displays the Rollup information that stores information of the Tagdata table.
 
 |Column Name|Description|
 |--|--|
+|DATABASE_ID|Database identifier (always -1 for local DB)|
 |ID|Rollup job ID|
-|ROLLUP_TABLE_NAME|Table name to store Rollup information|
-|SOURCE_TABLE_NAME|Name of tag table that Rollup will query|
-|USER_ID|User ID of Rollup Table and Source Table|
-|ROOT_TABLE|Root Source Table Name|
-|INTERVAL|Rollup execution cycle (sec)|
-|END_RID|Source Table end RID|
-|ENABLED|Indicates Rollup progress status|
-|LAST_ELAPSED_MSEC|Number of recently entered records|
+|ROLLUP_TABLE|Name of the rollup table|
+|SOURCE_TABLE|Source table name (TAG/ROLLUP)|
+|COLUMN_NAME|Target value column aggregated by this rollup|
+|ROOT_TABLE|Root source tag table name|
+|USER_ID|Owner user ID|
+|INTERVAL_TIME|Rollup interval (msec)|
+|WAKEUP_INTERVAL|Wakeup interval (msec)|
+|LAST_WAKEUP_TIME|Last time the rollup thread woke up|
+|NEXT_WAKEUP_TIME|Next scheduled wakeup time|
+|ENABLED|Whether the rollup is enabled (1/0)|
+|END_RID|Source table end RID processed by this rollup|
+|LAST_ELAPSED_MSEC|Elapsed time of the last rollup run (msec)|
+|EXT_TYPE|Extension flag (supports FIRST/LAST when set)|
+|PREDICATE|Filter predicate for conditional rollups (NULL if none)|
+|RUN_STATE|Current worker state: I=INIT, S=SLEEPING, R=RUNNING|
+
+
 
 ## Stream
 
@@ -776,12 +831,14 @@ Displays the Rollup information that stores information of the Tagdata table.
 |ERROR_MSG|Error message of the last stream execution|
 |FREQUENCY|Minimum wait time for query execution. If it is 0, it is executed every record. If it is not 0, it is executed each time. The unit is nanoseconds.|
 
+
 ## License
 
 ### V$LICENSE_INFO
 ---
 
 Displays license information.
+
 
 |Column Name|Description|
 |--|--|
@@ -802,6 +859,7 @@ Displays license information.
 ### V$LICENSE_STATUS
 ---
 
+
 Displays the license status.
 
 |Column Name|Description|
@@ -810,6 +868,7 @@ Displays the license status.
 |PREVIOUS_CHECK_DATE|Previous license check date|
 |VIOLATION_COUNT|License violation count|
 |STOP_ENABLED|Display whether license restrictions are enabled or not.|
+
 
 ## Mutex
 
@@ -833,6 +892,7 @@ Displays current mutex status.
 |HELD_TICK|Total time from acquiring the mutex to releasing it| - Collect only when TRACE_MUTEX_WAIT_STATUS=1<br> - Do not write to RW Mutex|
 |HELD_TICK_AVG|Average time from acquisition to release of mutex| - Collect only when TRACE_MUTEX_WAIT_STATUS=1<br> - Do not write to RW Mutex|
 
+
 ### V$MUTEX_WAIT_STAT
 ---
 
@@ -845,6 +905,8 @@ Shows the call stack of the currently waiting mutex.
 |DEPTH|Call stack depth| - Collect only when TRACE_MUTEX_WAIT_STATUS=1|
 |SYMBOL|Symbol of function that called acquire mutex| - Collect only when TRACE_MUTEX_WAIT_STATUS=1|
 
+
+
 ## Cluster
 
 ### V$NODE_STATUS
@@ -852,10 +914,12 @@ Shows the call stack of the currently waiting mutex.
 
 Displays the Node status for each Cluster. Only one is displayed.
 
+
 |Column Name|Description|
 |--|--|
 |NODETYPE|Node type. There are two types that can be viewed by queries.<br> - Broker<br> - Warehouse|
 |STATE|Node status|
+
 
 ### V$DDL_INFO
 ---
@@ -877,6 +941,7 @@ Displays DDL information performed by Cluster.
 
 Displays information about the replication operation.
 
+
 |Column Name|Description|
 |--|--|
 |HOSTNAME|Replication Node Hostname|
@@ -892,6 +957,7 @@ Displays information about the replication operation.
 
 Displays Sender replication when running Replication.
 
+
 |Column Name|Description|
 |--|--|
 |HOSTNAME|Replication Node Hostname|
@@ -905,10 +971,12 @@ Displays Sender replication when running Replication.
 |NET_RECV_COUNT|Net receive count|
 |NET_RECV_SIZE|Net receive size|
 
+
 ### V$REPL_SENDER_META
 ---
 
 Displays Sender metadata when running Replication.
+
 
 |Column Name|Description|
 |--|--|
@@ -923,6 +991,7 @@ Displays Sender metadata when running Replication.
 ---
 
 Displays Receiver information when running Replication.
+
 
 |Column Name|Description|
 |--|--|
@@ -949,6 +1018,7 @@ Displays Receiver metadata when running Replication.
 |BEGIN_RID|Target record start RID|
 |END_RID|Target record end RID|
 
+
 ### V$REPL_READER
 ---
 
@@ -967,6 +1037,8 @@ Displays Reader information when running Replication.
 
 Displays Reader metadata when running Replication.
 
+
+
 |Column Name|Description|
 |--|--|
 |HOSTNAME|Replication Node Hostname|
@@ -977,10 +1049,12 @@ Displays Reader metadata when running Replication.
 |BEGIN_RID|Target record start RID|
 |END_RID|Target record end RID|
 
+
 ### V$REPL_WRITER
 ---
 
 Displays Writer information when running Replication.
+
 
 |Column Name|Description|
 |--|--|
@@ -1003,6 +1077,7 @@ Displays Writer metadata when running Replication.
 |BEGIN_RID|Target record start RID|
 |END_RID|Target record end RID|
 
+
 ## Others
 
 ### V$TABLES
@@ -1018,6 +1093,7 @@ Displays all Virtual Tables that start with "V$".
 |ID|Table identifier|
 |USER ID|User who created table|
 |COLCOUNT|Column count|
+
 
 ### V$COLUMNS
 ---

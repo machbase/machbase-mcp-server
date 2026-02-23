@@ -1,3 +1,4 @@
+# System/Session Management
 
 # Index
 
@@ -17,6 +18,7 @@
     * [SET SESSION_IDLE_TIMEOUT_SEC](#set-session_idle_timeout_sec)
     * [SET QUERY_TIMEOUT](#set-query_timeout)
 
+
 ## ALTER SYSTEM
 
 This statement is the syntax for managing system-wide resources or changing settings.
@@ -25,17 +27,30 @@ This statement is the syntax for managing system-wide resources or changing sett
 
 **alter_system_kill_session_stmt:**
 
+![alter_system_kill_session_stmt](/images/sql/sys/alter_system_kill_session_stmt.png)
+
 ```sql
 alter_system_kill_session_stmt: 'ALTER SYSTEM KILL SESSION' number
 ```
 
 Terminates a specific session with a SessionID.
 
-However, only the SYS user can execute this statement and can not KILL their own session
+- Only `SYS` can execute this statement; self-kill or non-SYS attempts return `[ERR-03025: Not enough privileges to manipulate the session. (<sid>)]`.
+- If the session does not exist, an `ERR_MM_SESSION_ID_NOT_FOUND` error is returned.
+- Use this when you need to drop the connection entirely; the target session is disconnected and any in-flight transaction is rolled back.
+
+Example
+```sql
+-- As SYS
+SELECT id, user_id, program FROM v$session;
+ALTER SYSTEM KILL SESSION 12;
+```
 
 ### CANCEL SESSION
 
 **alter_system_cancel_session_stmt:**
+
+![alter_system_cancel_session_stmt](/images/sql/sys/alter_system_cancel_session_stmt.png)
 
 ```sql
 alter_system_cancel_session_stmt ::= 'ALTER SYSTEM CANCEL SESSION' number
@@ -43,11 +58,25 @@ alter_system_cancel_session_stmt ::= 'ALTER SYSTEM CANCEL SESSION' number
 
 Cancels a specific session with a SessionID.
 
-Rather than disconnecting the connection, it cancels the action being performed and returns an error code to the user that the action was aborted. However, like KILL, you can not cancel your own connected sessions.
+- Cancels only the currently running statement and leaves the connection alive; the target session receives `[ERR-03027: This statement has been canceled.]`.
+- Allowed for the same user or `SYS`. Different users get `[ERR-03026: You should log in with the same user name in the target session. Now (<me>) Target(<them>)]`.
+- Self-cancel is rejected with the privilege error `[ERR-03025: Not enough privileges to manipulate the session. (<sid>)]`.
+- If the session ID is not found, an `ERR_MM_SESSION_ID_NOT_FOUND` error is returned.
+
+Example
+```sql
+-- Session A: find target SID
+SELECT id, user_id, program, sql_text FROM v$session;
+
+-- Session B (same user or SYS): cancel the running statement on SID 6
+ALTER SYSTEM CANCEL SESSION 6;
+```
 
 ### CHECK DISK_USAGE
 
 **alter_system_check_disk_stmt:**
+
+![alter_system_check_disk_stmt](/images/sql/sys/alter_system_check_disk_stmt.png)
 
 ```sql
 alter_system_check_disk_stmt ::= 'ALTER SYSTEM CHECK DISK_USAGE'
@@ -61,6 +90,8 @@ Disk usage may be inaccurate when process failures or power failures occur. This
 
 **alter_system_install_license_stmt:**
 
+![alter_system_install_license_stmt](/images/sql/sys/alter_system_install_license_stmt.png)
+
 ```sql
 alter_system_install_license_stmt ::= 'ALTER SYSTEM INSTALL LICENSE'
 ```
@@ -73,6 +104,8 @@ It is installed after determining whether the license is suitable for installati
 
 **alter_system_install_license_path_stmt:**
 
+![alter_system_install_license_path_stmt](/images/sql/sys/alter_system_install_license_path_stmt.png)
+
 ```sql
 alter_system_install_license_path_stmt: ::= 'ALTER SYSTEM INSTALL LICENSE' '=' "'" path "'"
 ```
@@ -84,6 +117,8 @@ An error occurs when you enter a license file that does not exist at that locati
 ### SET
 
 **alter_system_set_stmt:**
+
+![alter_system_set_stmt](/images/sql/sys/alter_system_set_stmt.png)
 
 ```sql
 alter_system_set_stmt ::= 'ALTER SYSTEM SET' prop_name '=' value
@@ -99,6 +134,63 @@ The list of properties that can be modified is as follows.
 * PROCESS_MAX_SIZE
 * TAG_CACHE_MAX_MEMORY_SIZE
 
+For numeric properties, extended expression syntax is supported.
+
+Supported syntax
+- Direct assignment (numeric or string):
+  - `ALTER SYSTEM SET <name> = <value>;`
+- Flag add (bitwise OR):
+  - `ALTER SYSTEM SET <name> = <name> | <number>;`
+  - `ALTER SYSTEM SET <name> = <number> | <name>;`
+- Flag remove (bitwise AND + NOT):
+  - `ALTER SYSTEM SET <name> = <name> & ~<number>;`
+  - `ALTER SYSTEM SET <name> = ~<number> & <name>;`
+
+Literal rules
+- `<number>` accepts decimal (`123`) or hexadecimal (`0x7B`, `0X7B`).
+- Bitwise expressions are allowed only for numeric properties. Non-numeric properties return an error.
+- If you need a literal string such as `0xABCD`, use quotes:
+  - `ALTER SYSTEM SET <name> = '0xABCD';`
+
+Notes
+- In bitwise expressions, the property name in the expression must match the left-hand side.
+- Existing non-expression behavior remains unchanged.
+
+Example
+```sql
+-- Set TRACE_LOG_LEVEL to a hex value
+ALTER SYSTEM SET TRACE_LOG_LEVEL=0x00000003;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+-- Add flags (bitwise OR)
+ALTER SYSTEM SET TRACE_LOG_LEVEL = TRACE_LOG_LEVEL | 0x00000004;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+ALTER SYSTEM SET TRACE_LOG_LEVEL = 0x00000008 | TRACE_LOG_LEVEL;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+ALTER SYSTEM SET TRACE_LOG_LEVEL = 16 | TRACE_LOG_LEVEL;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+-- Remove flags (bitwise AND + NOT)
+ALTER SYSTEM SET TRACE_LOG_LEVEL = TRACE_LOG_LEVEL & ~0x00000001;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+ALTER SYSTEM SET TRACE_LOG_LEVEL = ~0x00000002 & TRACE_LOG_LEVEL;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+ALTER SYSTEM SET TRACE_LOG_LEVEL = ~4 & TRACE_LOG_LEVEL;
+SELECT VALUE FROM V$PROPERTY WHERE NAME='TRACE_LOG_LEVEL';
+
+-- Non-numeric properties are not allowed in bitwise expressions (error)
+ALTER SYSTEM SET TRACE_LOG_LEVEL = 1 | DEFAULT_DATE_FORMAT;
+ALTER SYSTEM SET DEFAULT_DATE_FORMAT = DEFAULT_DATE_FORMAT | 1;
+
+-- Decimal assignment
+ALTER SYSTEM SET TRACE_LOG_LEVEL=277;
+```
+
+
 ## ALTER SESSION
 
 This is the syntax for managing resources or changing settings on a per-session basis.
@@ -106,6 +198,8 @@ This is the syntax for managing resources or changing settings on a per-session 
 ### SET SQL_LOGGING
 
 **alter_session_sql_logging_stmt:**
+
+![alter_session_sql_logging_stmt](/images/sql/sys/alter_session_sql_logging_stmt.png)
 
 ```sql
 alter_session_sql_logging_stmt ::= 'ALTER SESSION SET SQL_LOGGING' '=' flag
@@ -129,6 +223,8 @@ Mach> exit
 ### SET DEFAULT_DATE_FORMAT
 
 **alter_session_set_defalut_dateformat_stmt:**
+
+![alter_session_set_defalut_dateformat_stmt](/images/sql/sys/alter_session_set_defalut_dateformat_stmt.png)
 
 ```sql
 alter_session_set_defalut_dateformat_stmt ::= 'ALTER SESSION SET DEFAULT_DATE_FORMAT' '=' date_format
@@ -179,6 +275,8 @@ TIME
 
 **alter_session_set_hidden_column_stmt:**
 
+![alter_session_set_hidden_column_stmt](/images/sql/sys/alter_session_set_hidden_column_stmt.png)
+
 ```sql
 alter_session_set_hidden_column_stmt ::= 'ALTER SESSION SET SHOW_HIDDEN_COLS' '=' ( '0' | '1' )
 ```
@@ -188,6 +286,7 @@ Decides whether to output the hidden column (_arrival_time) in the column repres
 When the server is started, the value of the global property SHOW_HIDDEN_COLS is set to 0 for the session attribute. 
 If you want to change the default behavior of your session, you can set this value to 1.
 V$session has a SHOW_HIDDEN_COLS value set for each session.
+
 
 ```sql
 Mach> SELECT * FROM  v$session;
@@ -214,6 +313,8 @@ SHOW_HIDDEN_COLS DEFAULT_DATE_FORMAT                                            
 
 **alter_session_set_feedback_append_err_stmt:**
 
+![alter_session_set_feedback_append_err_stmt](/images/sql/sys/alter_session_set_feedback_append_err_stmt.png)
+
 ```sql
 alter_session_set_feedback_append_err_stmt ::= 'ALTER SESSION SET FEEDBACK_APPEND_ERROR' '=' ( '0' | '1' )
 ```
@@ -233,6 +334,8 @@ Altered successfully.
 ### SET MAX_QPX_MEM
 
 **alter_session_set_max_qpx_mem_stmt:**
+
+![alter_session_set_max_qpx_mem_stmt](/images/sql/sys/alter_session_set_max_qpx_mem_stmt.png)
 
 ```sql
 alter_session_set_max_qpx_mem_stmt ::= 'ALTER SESSION SET MAX_QPX_MEM' '=' value
@@ -285,6 +388,8 @@ Elapsed time: 0.447
 
 **alter_session_set_session_idle_timeout_sec_stmt:**
 
+![alter_session_set_session_idle_timeout_sec_stmt](/images/sql/sys/alter_session_set_session_idle_timeout_sec_stmt.png)
+
 ```sql
 alter_session_set_session_idle_timeout_sec_stmt ::= 'ALTER SESSION SET SESSION_IDLE_TIMEOUT_SEC' '=' value
 ```
@@ -308,6 +413,8 @@ IDLE_TIMEOUT
 ### SET QUERY_TIMEOUT
 
 **alter_session_set_query_timeout_stmt:**
+
+![alter_session_set_query_timeout_stmt](/images/sql/sys/alter_session_set_query_timeout_stmt.png)
 
 ```sql
 alter_session_set_query_timeout_stmt ::= 'ALTER SESSION SET QUERY_TIMEOUT' '=' value

@@ -4,7 +4,7 @@
 
 * [Overview](#overview)
 * [Install](#install)
-* [NuGet (Unified 8.0.51+)](#nuget-unified-connector)
+* [NuGet (Unified 8.0.53+)](#nuget-unified-connector)
 * [NuGet (Legacy 5.x) — Package Manager](#install-connector-via-nuget-package-manager)
 * [Connection String Reference](#connection-string-reference)
 * [API Reference](#api-reference)
@@ -13,36 +13,36 @@
 
 ## Overview
 
-Machbase ships a universal ADO.NET provider, **UniMachNetConnector**, that wraps every supported Machbase wire protocol (2.1 through 4.0). Beginning with Machbase 8.0.51, this universal connector is bundled with the server packages, and the version number appended to the DLL name matches the Machbase release you built or installed. The connector automatically chooses the correct protocol at runtime based on the connection string.
+Machbase ships a universal ADO.NET provider, **UniMachNetConnector**, that wraps every supported Machbase wire protocol (2.1 through 4.0). Beginning with Machbase 8.0.51, this universal connector is bundled with the server packages, and the version number appended to the DLL name matches the Machbase release you built or installed. As of Machbase 8.0.53, a .NET Framework 4.5.2 (net452) build is included for classic CLR or Mono deployments. The connector automatically chooses the correct protocol at runtime based on the connection string.
 
 ## Install
 
 The Machbase server and client installers include the universal .NET provider under `$MACHBASE_HOME/lib/`. After installation you will see:
 
-- **UniMachNetConnector** – the framework-neutral entry point. The files are named `UniMachNetConnector-net{50|60|70|80}-<version>.dll` so you can pick the build that matches your target framework.
-- **Legacy protocol connectors** – optional protocol-specific assemblies that the universal loader can activate on demand, such as `machNetConnector-XX-net{50|60|70|80}-<version>.dll`.
+- **UniMachNetConnector** – the framework-neutral entry point. The files are named `UniMachNetConnector-net{452|50|60|70|80}-<version>.dll` so you can pick the build that matches your target framework (`UniMachNetConnector-net452-8.0.53.dll` for .NET Framework 4.5.2/Mono, `...-net80-8.0.53.dll` for .NET 8.0, etc.).
+- **Legacy protocol connectors** – optional protocol-specific assemblies that the universal loader can activate on demand, such as `machNetConnector-XX-net{452|50|60|70|80}-<version>.dll`. The 4.0 full/limited connectors also ship as net452 (`machNetConnector-40-net452-3.2.0.dll`).
 
-Reference the DLL that matches your application (for example `UniMachNetConnector-net80-8.0.51.dll`) or copy it next to your binaries when you deploy.
+Reference the DLL that matches your application (for example `UniMachNetConnector-net452-8.0.53.dll` for .NET Framework apps or `UniMachNetConnector-net80-8.0.53.dll` for .NET 8) or copy it next to your binaries when you deploy.
 
-## Install via NuGet (Unified Connector, 8.0.51+) {#nuget-unified-connector}
+## Install via NuGet (Unified Connector, 8.0.53+) {#nuget-unified-connector}
 
-As of Machbase 8.0.51, the unified provider is also published to NuGet as package ID `UniMachNetConnector`. This is the recommended way for new apps because it keeps your project self-contained without shipping loose DLLs.
+As of Machbase 8.0.51 (net452 added in 8.0.53), the unified provider is also published to NuGet as package ID `UniMachNetConnector`. This is the recommended way for new apps because it keeps your project self-contained without shipping loose DLLs.
 
-- Supported target frameworks: net5.0, net6.0, net7.0, net8.0.
+- Supported target frameworks: net452, net5.0, net6.0, net7.0, net8.0.
 - No external NuGet dependencies are required; the package is self-contained.
 
 ### Quick start (CLI)
 
 ```bash
 # From your project folder
-dotnet add package UniMachNetConnector --version 8.0.51
+dotnet add package UniMachNetConnector --version 8.0.53
 dotnet build
 ```
 
 If you added the reference but need to control sources (CI, offline, or corporate feed), add first then restore explicitly:
 
 ```bash
-dotnet add package UniMachNetConnector --version 8.0.51 --no-restore
+dotnet add package UniMachNetConnector --version 8.0.53 --no-restore
 
 # Restore from nuget.org only (force fresh metadata)
 dotnet nuget locals http-cache --clear
@@ -51,22 +51,22 @@ dotnet restore --no-cache --source https://api.nuget.org/v3/index.json
 
 ### Visual Studio
 
-- Right-click your project → Manage NuGet Packages → Browse tab → search “UniMachNetConnector” → select version 8.0.51 → Install.
+- Right-click your project → Manage NuGet Packages → Browse tab → search “UniMachNetConnector” → select version 8.0.53 → Install.
 
 ### Project file example
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="UniMachNetConnector" Version="8.0.51" />
+  <PackageReference Include="UniMachNetConnector" Version="8.0.53" />
   <!-- no other Machbase packages required -->
-  <!-- targets: net5.0|net6.0|net7.0|net8.0 -->
+  <!-- targets: net452|net5.0|net6.0|net7.0|net8.0 -->
   <!-- keep AnyCPU/x64 per your app; Machbase server side is unaffected -->
 </ItemGroup>
 ```
 
 ### Using a local or private feed (optional)
 
-If your environment uses a local folder feed or an internal registry, point restore to those sources. For a folder feed, place `UniMachNetConnector.8.0.51.nupkg` under a directory and add it as a source:
+If your environment uses a local folder feed or an internal registry, point restore to those sources. For a folder feed, place `UniMachNetConnector.8.0.53.nupkg` under a directory and add it as a source:
 
 ```bash
 # one-time setup
@@ -86,7 +86,7 @@ NUGET_PACKAGES="$PKG_DIR" dotnet restore --no-cache --source /path/to/local-nuge
 NUGET_PACKAGES="$PKG_DIR" dotnet run --no-restore
 ```
 
-> Tip: If you recently published 8.0.51 and `dotnet add package` still reports 8.0.50 as the newest, clear the HTTP cache and use `--no-cache` as shown above. A transient “incompatible with 'all' frameworks” message is usually a side effect of failed restore, not a real TFM mismatch.
+> Tip: If you recently published 8.0.53 and `dotnet add package` still reports an older version, clear the HTTP cache and use `--no-cache` as shown above. A transient “incompatible with 'all' frameworks” message is usually a side effect of failed restore, not a real TFM mismatch.
 
 ### Minimal usage sample
 
@@ -117,7 +117,7 @@ If you use Visual Studio, you can still obtain the pre-unified connector from Nu
 7. Now, you can use machNetConnector by "using Mach.Data.MachClient" at Program.cs.
 
 > Which NuGet should I use?
-> - Prefer `UniMachNetConnector` 8.0.51+ for new or upgraded apps. It supports net5.0–net8.0 and bundles all protocols, including the full provider surface (4.0-full).
+> - Prefer `UniMachNetConnector` 8.0.53+ for new or upgraded apps. It supports net452 and net5.0–net8.0 and bundles all protocols, including the full provider surface (4.0-full).
 > - Use `machNetConnector5.0` only for legacy scenarios where migrating to the unified package is not yet possible.
 
 ## Connection String Reference
@@ -883,10 +883,12 @@ conn.SetConnectAppendFlush(false);
 
 ## Full Provider APIs (Protocol 4.0-full)
 
-The `4.0-full` handshake unlocks the full ADO.NET surface that ships with Machbase 8.0.51 and later. Load one of the assemblies below when you need these provider features:
+The `4.0-full` handshake unlocks the full ADO.NET surface that ships with Machbase 8.0.51 and later; 8.0.53 adds a .NET Framework 4.5.2 build. Load one of the assemblies below when you need these provider features:
 
-- `UniMachNetConnector-net80-8.0.51.dll` – bundled with Machbase 8.0.51+.
-- `machNetConnector-40-net80-3.2.0.dll` – the standalone connector that exposes the same surface.
+- `UniMachNetConnector-net452-8.0.53.dll` – bundled for .NET Framework 4.5.2/Mono.
+- `UniMachNetConnector-net80-8.0.53.dll` – bundled for .NET 8.0 (net5/net6/net7 variants are also available).
+- `machNetConnector-40-net452-3.2.0.dll` – standalone full provider for .NET Framework 4.5.2.
+- `machNetConnector-40-net80-3.2.0.dll` – standalone full provider for .NET 8.0 (net5/net6/net7 variants available).
 
 ### Key types introduced by 4.0-full
 - `MachDbProviderFactory` (`Instance`, `Register()`, and the standard `Create*` methods) so frameworks can resolve the connector by invariant name `Mach.Data`.
