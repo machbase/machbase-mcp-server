@@ -140,6 +140,7 @@ You can make natural language requests in Claude Desktop like these:
 | 2025-09-09| v0.4.0 | 141 / 150   | 45.29 second | The speed has improved compared to before, but the script and TQL parts are still somewhat lacking| Claude Sonnet 4 |
 | 2025-10-14| v0.5.0 | 185 / 200   | 3 second | Thinking time significantly improved compared to before, but TQL and HTML-related areas still need improvement. | Claude Sonnet 4.5 |
 | 2025-10-24| v0.6.0 | 196 / 200   | 2.6 second | Improved accuracy compared to version 0.5.0. DBMS-related content needs re-verification. Overall performance and response time have improved significantly. | Claude Sonnet 4.5 |
+| 2026-02-25| v0.7.0 | 198 / 200   | 6.7 second | The enhanced execution verification feature visibly compensates for code answer mistakes; accuracy has improved compared to the previous version (0.6.x) | Claude Sonnet 4.6 |
 
 
 
