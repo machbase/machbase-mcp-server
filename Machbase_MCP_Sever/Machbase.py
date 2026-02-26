@@ -33,7 +33,7 @@ from fastmcp import FastMCP
 # ═══════════════════════════════════════════════════════════════
 
 VERSION = "0.7.0"
-BUILD_DATE = "2026-02-25"
+BUILD_DATE = "2026-02-26"
 DESCRIPTION = "Machbase Neo Unified MCP Server"
 
 # ── Server Connection ──
@@ -431,7 +431,7 @@ def _make_block(
     color: str = "#367FEB",
     user_name: str = "sys",
     is_visible: bool = True,
-    aggregator: str = "value",
+    aggregator: str = "avg",
 ) -> dict:
     """Create a single blockList entry matching Neo UI structure."""
     return {
@@ -623,7 +623,7 @@ def _make_chart_panel(
             elif chart_type in ("Gauge", "Liquid fill"):
                 agg = "last"
             else:
-                agg = "value"
+                agg = "avg"
 
             tags = [t.strip() for t in tag.split(",") if t.strip()]
             blocks = []
@@ -2557,7 +2557,7 @@ async def update_chart_in_dashboard(
             elif chart_type_effective in ("Gauge", "Liquid fill"):
                 agg = "last"
             else:
-                agg = "value"
+                agg = "avg"
 
             tags = [t.strip() for t in tg.split(",") if t.strip()]
             blocks = []
