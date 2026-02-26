@@ -1026,11 +1026,57 @@ async def execute_sql_query(
         **MANDATORY: Must use Machbase Neo documentation only. Use get_full_document_content or get_document_sections to find exact syntax before writing any queries. General SQL knowledge must not be used - only documented Machbase Neo syntax and functions are allowed.**
         **EXECUTION POLICY: Must test and verify all SQL queries before providing them as answers. Only provide successfully executed and validated code to users.**
 
+        **MATH FUNCTION LIMITATION:**
+        Machbase Neo SQL does NOT support: SQRT(), POW(), LOG(), LOG2(), LOG10(), EXP(), SIN(), COS(), TAN(), CEIL(), FLOOR()
+        Supported SQL math functions: ABS(), ROUND(), TRUNC(), SUMSQ(), STDDEV(), VARIANCE()
+        For unsupported math functions, use TQL with MAPVALUE instead:
+            SQL(`SELECT NAME, TIME, VALUE FROM table WHERE ...`)
+            MAPVALUE(2, sqrt(value(2)))
+            CHART() or CSV()
+
         If no data is returned, it will be treated as a failure.
     """
 
     if not sql_query or not sql_query.strip():
         return "Please enter SQL query."
+
+    # ── Detect unsupported SQL math functions → suggest TQL workaround ──
+    _TQL_ONLY_MATH_FUNCS = {
+        "SQRT": "sqrt",
+        "POW": "pow",
+        "LOG": "log",
+        "LOG2": "log2",
+        "LOG10": "log10",
+        "EXP": "exp",
+        "SIN": "sin",
+        "COS": "cos",
+        "TAN": "tan",
+        "CEIL": "ceil",
+        "FLOOR": "floor",
+    }
+    detected = []
+    for sql_fn, tql_fn in _TQL_ONLY_MATH_FUNCS.items():
+        if re.search(rf'\b{sql_fn}\s*\(', sql_query, re.IGNORECASE):
+            detected.append((sql_fn, tql_fn))
+
+    if detected:
+        fn_list = ", ".join(f"{s}()" for s, _ in detected)
+        tql_examples = "\n".join(
+            f"  MAPVALUE(N, {t}(value(N)))" for _, t in detected
+        )
+        return (
+            f"UNSUPPORTED SQL FUNCTION\n\n"
+            f"Machbase Neo SQL does not support: {fn_list}\n"
+            f"Supported SQL math functions: ABS(), ROUND(), TRUNC(), SUMSQ(), STDDEV(), VARIANCE()\n\n"
+            f"WORKAROUND: Use TQL with MAPVALUE instead.\n"
+            f"TQL supports these math functions via MAPVALUE:\n"
+            f"  sqrt, pow, log, log2, log10, exp, sin, cos, tan, ceil, floor, etc.\n\n"
+            f"Example TQL pattern:\n"
+            f"  SQL(`SELECT NAME, TIME, VALUE FROM table_name WHERE ...`)\n"
+            f"{tql_examples}\n"
+            f"  CHART() or CSV()\n\n"
+            f"Use execute_tql_script() to run TQL scripts."
+        )
 
     machbase_url = get_machbase_url(host, port)
 
@@ -1192,6 +1238,39 @@ async def execute_tql_script(
 
     WRONG: Write code → Create artifact → Hope it works
     CORRECT: Write code → Validate (if CHART) → Execute → Verify → Create artifact
+
+    10. **MATH FUNCTIONS (MUST USE MAPVALUE):**
+    TQL provides math functions NOT available in SQL: sqrt, pow, log, log2, log10, exp, sin, cos, tan, ceil, floor, etc.
+    These functions MUST be used inside MAPVALUE(), NOT inside SQL().
+
+    WRONG - math function inside SQL():
+        SQL(`SELECT sqrt(VALUE) FROM SENSOR WHERE ...`)
+
+    CORRECT - math function in MAPVALUE():
+        SQL(`SELECT NAME, TIME, VALUE FROM SENSOR WHERE ...`)
+        MAPVALUE(2, sqrt(value(2)))
+        CSV()
+
+    Multiple math operations example:
+        SQL(`SELECT NAME, TIME, VALUE FROM SENSOR WHERE ...`)
+        MAPVALUE(2, sqrt(value(2)))       // square root of VALUE
+        CSV()
+
+    With CHART:
+        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
+        MAPVALUE(1, sqrt(value(1)))       // sqrt applied to VALUE
+        CHART(
+            chartOption({
+                xAxis: { type: "time", data: column(0) },
+                yAxis: { type: "value" },
+                series: [{ type: "line", data: column(1) }]
+            })
+        )
+
+    Available TQL math functions:
+        sqrt(x), pow(x,y), log(x), log2(x), log10(x), exp(x), exp2(x),
+        sin(x), cos(x), tan(x), sinh(x), cosh(x), tanh(x),
+        ceil(x), floor(x), round(x), trunc(x), abs(x), mod(x,y)
     """
 
     if not tql_content or not tql_content.strip():
@@ -1211,6 +1290,28 @@ async def execute_tql_script(
             "  xAxis: { data: column(0) },\n"
             "  series: [{ data: column(1) }]\n"
         )
+
+    # Detect unsupported math functions inside SQL() blocks in TQL
+    sql_block_match = re.search(r'SQL\s*\(\s*`([^`]*)`\s*\)', tql_content, re.IGNORECASE | re.DOTALL)
+    if sql_block_match:
+        sql_inner = sql_block_match.group(1)
+        _TQL_ONLY_MATH = ["SQRT", "POW", "LOG", "LOG2", "LOG10", "EXP", "EXP2",
+                          "SIN", "COS", "TAN", "SINH", "COSH", "TANH", "CEIL", "FLOOR"]
+        found_in_sql = [fn for fn in _TQL_ONLY_MATH
+                        if re.search(rf'\b{fn}\s*\(', sql_inner, re.IGNORECASE)]
+        if found_in_sql:
+            fn_list = ", ".join(f"{f}()" for f in found_in_sql)
+            return (
+                "INVALID TQL SYNTAX\n\n"
+                f"Error: {fn_list} cannot be used inside SQL(). "
+                "These are TQL math functions, not SQL functions.\n\n"
+                "WRONG:\n"
+                f"  SQL(`SELECT {found_in_sql[0]}(VALUE) FROM table WHERE ...`)\n\n"
+                "CORRECT: Use MAPVALUE after SQL():\n"
+                "  SQL(`SELECT NAME, TIME, VALUE FROM table WHERE ...`)\n"
+                f"  MAPVALUE(2, {found_in_sql[0].lower()}(value(2)))\n"
+                "  CSV()\n"
+            )
 
     # Detect time() function usage with TIME columns
     if re.search(r'MAPVALUE\s*\([^)]*,\s*time\s*\(\s*value\s*\(\s*\d+\s*\)', tql_content):
