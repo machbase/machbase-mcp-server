@@ -51,10 +51,7 @@ setup_mcp() {
     
     echo "4. Upgrading pip and installing basic packages..."
     python -m pip install --upgrade pip
-    pip install aiohttp
-    pip install httpx
-    pip install fastmcp
-    pip install beautifulsoup4
+    pip install aiohttp httpx fastmcp beautifulsoup4
     
     echo "5. Checking requirements.txt file..."
     if [ ! -f "requirements.txt" ]; then
@@ -73,12 +70,6 @@ create_config() {
     echo "Setting up Claude Desktop files..."
     echo "========================================"
     
-    # Create Claude configuration directory
-    if [ ! -d "$CLAUDE_CONFIG_DIR" ]; then
-        echo "7. Creating Claude configuration directory..."
-        mkdir -p "$CLAUDE_CONFIG_DIR"
-    fi
-    
     # Check if Machbase.py file exists in current directory
     if [ ! -f "Machbase.py" ]; then
         echo "Warning: Machbase.py file not found in current directory."
@@ -87,7 +78,7 @@ create_config() {
     fi
     
     # Copy Machbase.py to Claude configuration directory
-    echo "8. Copying Machbase.py file to Claude configuration directory..."
+    echo "7. Copying Machbase.py file to Claude configuration directory..."
     cp "Machbase.py" "$CLAUDE_CONFIG_DIR/Machbase.py"
     
     if [ ! -f "$CLAUDE_CONFIG_DIR/Machbase.py" ]; then
@@ -98,7 +89,7 @@ create_config() {
     # ========================================
     # NEW SECTION: Move neo folder
     # ========================================
-    echo "9. Checking neo folder..."
+    echo "8. Checking neo folder..."
     if [ -d "neo" ]; then
         echo "Found neo folder in current directory."
         
@@ -142,19 +133,23 @@ create_json() {
     JSON_PYTHON_PATH="$MCP_PYTHON_PATH"
     JSON_MACHBASE_PATH="$CLAUDE_CONFIG_DIR/Machbase.py"
     
-    echo "10. Creating claude_desktop_config.json file..."
+    echo "9. Creating claude_desktop_config.json file..."
     cat > "$CLAUDE_CONFIG_DIR/claude_desktop_config.json" << EOF
 {
-    "mcpServers": {
-      "machbase": {
-        "command": "$JSON_PYTHON_PATH",
-        "args": ["$JSON_MACHBASE_PATH"],
-        "env": {
-          "MACHBASE_HOST": "localhost",
-          "MACHBASE_PORT": "5654"
-        }
+  "mcpServers": {
+    "machbase": {
+      "command": "$JSON_PYTHON_PATH",
+      "args": [
+        "$JSON_MACHBASE_PATH"
+      ],
+      "env": {
+        "MACHBASE_HOST": "localhost",
+        "MACHBASE_PORT": "5654",
+        "MACHBASE_USER": "sys",
+        "MACHBASE_PASSWORD": "manager"
       }
     }
+  }
 }
 EOF
     
@@ -229,6 +224,11 @@ ANACONDA_PATH="$HOME/anaconda3"
 MCP_PYTHON_PATH="$ANACONDA_PATH/envs/mcp/bin/python"
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_CONFIG_DIR="$HOME/Library/Application Support/Claude"
+
+if [ ! -d "$CLAUDE_CONFIG_DIR" ]; then
+    echo "Claude configuration directory not found. Creating..."
+    mkdir -p "$CLAUDE_CONFIG_DIR"
+fi
 
 echo "Current user: $CURRENT_USER"
 echo "Anaconda installation path: $ANACONDA_PATH"
@@ -320,15 +320,26 @@ else
         echo "Anaconda is already installed but not registered in PATH."
         setup_path
     else
-        echo "2. Downloading Anaconda... (This may take some time)"
-        
+        echo "2. Fetching latest Anaconda version and downloading..."
+
         # Check macOS architecture
         if [[ $(uname -m) == "arm64" ]]; then
-            DOWNLOAD_URL="https://repo.anaconda.com/archive/Anaconda3-2023.09-0-MacOSX-arm64.sh"
+            ARCH_SUFFIX="MacOSX-arm64"
         else
-            DOWNLOAD_URL="https://repo.anaconda.com/archive/Anaconda3-2023.09-0-MacOSX-x86_64.sh"
+            ARCH_SUFFIX="MacOSX-x86_64"
         fi
-        
+
+        # Auto-detect latest version from archive page
+        ANACONDA_INSTALLER=$(curl -s https://repo.anaconda.com/archive/ | grep -oE "Anaconda3-20[2-9][0-9][^\"]*-${ARCH_SUFFIX}\.sh" | sort -t'-' -k2 -V | tail -1)
+
+        if [ -z "$ANACONDA_INSTALLER" ]; then
+            echo "Warning: Failed to detect latest version. Using fallback version."
+            ANACONDA_INSTALLER="Anaconda3-2024.10-1-${ARCH_SUFFIX}.sh"
+        fi
+
+        echo "Detected installer: $ANACONDA_INSTALLER"
+        DOWNLOAD_URL="https://repo.anaconda.com/archive/$ANACONDA_INSTALLER"
+
         curl -L -o Anaconda3-installer.sh "$DOWNLOAD_URL"
         
         if [ ! -f "Anaconda3-installer.sh" ]; then

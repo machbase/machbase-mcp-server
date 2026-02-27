@@ -15,6 +15,11 @@ set "MCP_PYTHON_PATH=!ANACONDA_PATH!\envs\mcp\python.exe"
 set "CURRENT_DIR=%~dp0"
 set "CLAUDE_CONFIG_DIR=%APPDATA%\Claude"
 
+if not exist "!CLAUDE_CONFIG_DIR!" (
+    echo Claude configuration directory not found. Creating...
+    mkdir "!CLAUDE_CONFIG_DIR!"
+)
+
 echo Current user: !CURRENT_USER!
 echo Anaconda installation path: !ANACONDA_PATH!
 echo MCP Python path: !MCP_PYTHON_PATH!
@@ -42,8 +47,14 @@ if exist "!ANACONDA_PATH!\python.exe" (
     goto :setup_path
 )
 
-echo 2. Downloading Anaconda... (This may take some time)
-powershell -Command "Invoke-WebRequest -Uri 'https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Windows-x86_64.exe' -OutFile 'Anaconda3-installer.exe'"
+echo 2. Fetching latest Anaconda version and downloading...
+for /f "delims=" %%v in ('powershell -Command "(Invoke-WebRequest -Uri 'https://repo.anaconda.com/archive/' -UseBasicParsing).Links.href | Where-Object { $_ -match 'Anaconda3-20[2-9][0-9].*-Windows-x86_64.exe$' } | Sort-Object -Descending | Select-Object -First 1"') do set "ANACONDA_INSTALLER=%%v"
+if not defined ANACONDA_INSTALLER (
+    echo Warning: Failed to detect latest version. Using fallback version.
+    set "ANACONDA_INSTALLER=Anaconda3-2024.10-1-Windows-x86_64.exe"
+)
+echo Detected installer: !ANACONDA_INSTALLER!
+powershell -Command "Invoke-WebRequest -Uri 'https://repo.anaconda.com/archive/!ANACONDA_INSTALLER!' -OutFile 'Anaconda3-installer.exe'"
 
 if not exist "Anaconda3-installer.exe" (
     echo Download failed. Please check your network connection.
@@ -54,9 +65,15 @@ if not exist "Anaconda3-installer.exe" (
 echo 3. Installing Anaconda... (silent installation)
 "Anaconda3-installer.exe" /InstallationType=JustMe /RegisterPython=1 /S /D=!ANACONDA_PATH!
 
-:: Check installation completion
+:: Wait for installation process to finish
 echo 4. Waiting for installation completion...
-timeout /t 10 /nobreak >nul
+:wait_install
+timeout /t 5 /nobreak >nul
+tasklist /fi "imagename eq Anaconda3-installer.exe" 2>nul | find /i "Anaconda3-installer.exe" >nul
+if %errorlevel% equ 0 (
+    echo     Still installing, please wait...
+    goto :wait_install
+)
 
 if not exist "!ANACONDA_PATH!\python.exe" (
     echo Error: Anaconda installation failed.
@@ -109,10 +126,7 @@ if %errorlevel% neq 0 (
 
 echo 4. Upgrading pip and installing basic packages...
 python -m pip install --upgrade pip
-pip install aiohttp
-pip install httpx
-pip install fastmcp
-pip install beautifulsoup4
+pip install aiohttp httpx fastmcp beautifulsoup4
 
 echo 5. Checking requirements.txt file...
 if not exist requirements.txt (
@@ -129,12 +143,6 @@ echo ========================================
 echo Setting up Claude Desktop files...
 echo ========================================
 
-:: Create Claude configuration directory
-if not exist "!CLAUDE_CONFIG_DIR!" (
-    echo 7. Creating Claude configuration directory...
-    mkdir "!CLAUDE_CONFIG_DIR!"
-)
-
 :: Check if Machbase.py file exists in current directory
 if not exist "Machbase.py" (
     echo Warning: Machbase.py file not found in current directory.
@@ -144,7 +152,7 @@ if not exist "Machbase.py" (
 )
 
 :: Copy Machbase.py to Claude configuration directory
-echo 8. Copying Machbase.py file to Claude configuration directory...
+echo 7. Copying Machbase.py file to Claude configuration directory...
 copy "Machbase.py" "!CLAUDE_CONFIG_DIR!\Machbase.py"
 
 if not exist "!CLAUDE_CONFIG_DIR!\Machbase.py" (
@@ -156,7 +164,7 @@ if not exist "!CLAUDE_CONFIG_DIR!\Machbase.py" (
 :: ========================================
 :: NEW SECTION: Move neo folder
 :: ========================================
-echo 9. Checking neo folder...
+echo 8. Checking neo folder...
 if exist "neo" (
     echo Found neo folder in current directory.
     
@@ -199,21 +207,25 @@ set "JSON_PYTHON_PATH=!MCP_PYTHON_PATH:\=/!"
 set "JSON_MACHBASE_PATH=!CLAUDE_CONFIG_DIR!\Machbase.py"
 set "JSON_MACHBASE_PATH=!JSON_MACHBASE_PATH:\=/!"
 
-echo 10. Creating claude_desktop_config.json file...
-(
+echo 9. Creating claude_desktop_config.json file...
+> "!CLAUDE_CONFIG_DIR!\claude_desktop_config.json" (
 echo {
-echo     "mcpServers": {
-echo       "machbase": {
-echo         "command": "!JSON_PYTHON_PATH!",
-echo         "args": ["!JSON_MACHBASE_PATH!"],
-echo         "env": {
-echo           "MACHBASE_HOST": "localhost",
-echo           "MACHBASE_PORT": "5654"
-echo         }
+echo   "mcpServers": {
+echo     "machbase": {
+echo       "command": "!JSON_PYTHON_PATH!",
+echo       "args": [
+echo         "!JSON_MACHBASE_PATH!"
+echo       ],
+echo       "env": {
+echo         "MACHBASE_HOST": "localhost",
+echo         "MACHBASE_PORT": "5654",
+echo         "MACHBASE_USER": "sys",
+echo         "MACHBASE_PASSWORD": "manager"
 echo       }
 echo     }
+echo   }
 echo }
-) > "!CLAUDE_CONFIG_DIR!\claude_desktop_config.json"
+)
 
 if exist "!CLAUDE_CONFIG_DIR!\claude_desktop_config.json" (
     echo claude_desktop_config.json file created successfully.

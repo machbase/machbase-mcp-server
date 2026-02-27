@@ -59,10 +59,7 @@ setup_mcp() {
     
     echo "4. Upgrading pip and installing basic packages..."
     python -m pip install --upgrade pip
-    pip install aiohttp
-    pip install httpx
-    pip install fastmcp
-    pip install beautifulsoup4
+    pip install aiohttp httpx fastmcp beautifulsoup4
     
     echo "5. Checking requirements.txt file..."
     if [ ! -f "requirements.txt" ]; then
@@ -81,12 +78,6 @@ create_config() {
     echo "Setting up Claude Desktop files..."
     echo "========================================"
     
-    # Create Claude configuration directory
-    if [ ! -d "$CLAUDE_CONFIG_DIR" ]; then
-        echo "7. Creating Claude configuration directory..."
-        mkdir -p "$CLAUDE_CONFIG_DIR"
-    fi
-    
     # Check if Machbase.py file exists in current directory
     if [ ! -f "Machbase.py" ]; then
         echo "Warning: Machbase.py file not found in current directory."
@@ -95,7 +86,7 @@ create_config() {
     fi
     
     # Copy Machbase.py to Claude configuration directory
-    echo "8. Copying Machbase.py file to Claude configuration directory..."
+    echo "7. Copying Machbase.py file to Claude configuration directory..."
     cp "Machbase.py" "$CLAUDE_CONFIG_DIR/Machbase.py"
     
     if [ ! -f "$CLAUDE_CONFIG_DIR/Machbase.py" ]; then
@@ -106,7 +97,7 @@ create_config() {
     # ========================================
     # NEW SECTION: Move neo folder
     # ========================================
-    echo "9. Checking neo folder..."
+    echo "8. Checking neo folder..."
     if [ -d "neo" ]; then
         echo "Found neo folder in current directory."
         
@@ -150,19 +141,23 @@ create_json() {
     JSON_PYTHON_PATH="$MCP_PYTHON_PATH"
     JSON_MACHBASE_PATH="$CLAUDE_CONFIG_DIR/Machbase.py"
     
-    echo "10. Creating claude_desktop_config.json file..."
+    echo "9. Creating claude_desktop_config.json file..."
     cat > "$CLAUDE_CONFIG_DIR/claude_desktop_config.json" << EOF
 {
-    "mcpServers": {
-      "machbase": {
-        "command": "$JSON_PYTHON_PATH",
-        "args": ["$JSON_MACHBASE_PATH"],
-        "env": {
-          "MACHBASE_HOST": "localhost",
-          "MACHBASE_PORT": "5654"
-        }
+  "mcpServers": {
+    "machbase": {
+      "command": "$JSON_PYTHON_PATH",
+      "args": [
+        "$JSON_MACHBASE_PATH"
+      ],
+      "env": {
+        "MACHBASE_HOST": "localhost",
+        "MACHBASE_PORT": "5654",
+        "MACHBASE_USER": "sys",
+        "MACHBASE_PASSWORD": "manager"
       }
     }
+  }
 }
 EOF
     
@@ -247,6 +242,11 @@ else
     CLAUDE_CONFIG_DIR="$HOME/.config/Claude"
 fi
 
+if [ ! -d "$CLAUDE_CONFIG_DIR" ]; then
+    echo "Claude configuration directory not found. Creating..."
+    mkdir -p "$CLAUDE_CONFIG_DIR"
+fi
+
 echo "Current user: $CURRENT_USER"
 echo "Anaconda installation path: $ANACONDA_PATH"
 echo "MCP Python path: $MCP_PYTHON_PATH"
@@ -289,58 +289,69 @@ elif [ -f "$ANACONDA_PATH/bin/python" ]; then
 else
     echo "1. Anaconda is not installed. Proceeding with installation..."
     
-    echo "2. Downloading Anaconda... (This may take some time)"
-    
+    echo "2. Fetching latest Anaconda version and downloading..."
+
     # Check Linux architecture
     if [[ $(uname -m) == "aarch64" ]]; then
-        DOWNLOAD_URL="https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-aarch64.sh"
+        ARCH_SUFFIX="Linux-aarch64"
     else
-        DOWNLOAD_URL="https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh"
+        ARCH_SUFFIX="Linux-x86_64"
     fi
-        
-        curl -L -o Anaconda3-installer.sh "$DOWNLOAD_URL"
-        
-        if [ ! -f "Anaconda3-installer.sh" ]; then
-            echo "Download failed. Please check your network connection."
-            exit 1
-        fi
-        
-        echo "3. Installing Anaconda... (silent installation)"
-        chmod +x Anaconda3-installer.sh
-        bash Anaconda3-installer.sh -b -p "$ANACONDA_PATH"
-        
-        # Check installation completion
-        if [ ! -f "$ANACONDA_PATH/bin/python" ]; then
-            echo "Error: Anaconda installation failed."
-            exit 1
-        fi
-        
-        echo "4. Anaconda installation completed."
-        echo "5. Deleting installation file..."
-        rm Anaconda3-installer.sh
-        
-        # PATH setup and initialization
-        echo "6. Setting PATH environment variable..."
-        export PATH="$ANACONDA_PATH/bin:$PATH"
-        
-        echo "7. Initializing conda..."
-        "$ANACONDA_PATH/bin/conda" init bash
-        
-        echo "8. conda initialization complete."
-        echo "9. Adding Anaconda to PATH permanently..."
-        
-        # Add Anaconda to .bashrc for permanent PATH setup
-        if ! grep -q "anaconda3" ~/.bashrc; then
-            echo "" >> ~/.bashrc
-            echo "# Anaconda PATH setup" >> ~/.bashrc
-            echo "export PATH=\"$ANACONDA_PATH/bin:\$PATH\"" >> ~/.bashrc
-        fi
-        
-        # Load conda profile
-        if [ -f "$ANACONDA_PATH/etc/profile.d/conda.sh" ]; then
-            . "$ANACONDA_PATH/etc/profile.d/conda.sh"
-        fi
-        
-        echo "10. Starting MCP environment setup..."
-        setup_mcp
+
+    # Auto-detect latest version from archive page
+    ANACONDA_INSTALLER=$(curl -s https://repo.anaconda.com/archive/ | grep -oP "Anaconda3-20[2-9][0-9][^\"]*-${ARCH_SUFFIX}\.sh" | sort -V | tail -1)
+
+    if [ -z "$ANACONDA_INSTALLER" ]; then
+        echo "Warning: Failed to detect latest version. Using fallback version."
+        ANACONDA_INSTALLER="Anaconda3-2024.10-1-${ARCH_SUFFIX}.sh"
     fi
+
+    echo "Detected installer: $ANACONDA_INSTALLER"
+    DOWNLOAD_URL="https://repo.anaconda.com/archive/$ANACONDA_INSTALLER"
+
+    curl -L -o Anaconda3-installer.sh "$DOWNLOAD_URL"
+
+    if [ ! -f "Anaconda3-installer.sh" ]; then
+        echo "Download failed. Please check your network connection."
+        exit 1
+    fi
+
+    echo "3. Installing Anaconda... (silent installation)"
+    chmod +x Anaconda3-installer.sh
+    bash Anaconda3-installer.sh -b -p "$ANACONDA_PATH"
+
+    # Check installation completion
+    if [ ! -f "$ANACONDA_PATH/bin/python" ]; then
+        echo "Error: Anaconda installation failed."
+        exit 1
+    fi
+
+    echo "4. Anaconda installation completed."
+    echo "5. Deleting installation file..."
+    rm Anaconda3-installer.sh
+
+    # PATH setup and initialization
+    echo "6. Setting PATH environment variable..."
+    export PATH="$ANACONDA_PATH/bin:$PATH"
+
+    echo "7. Initializing conda..."
+    "$ANACONDA_PATH/bin/conda" init bash
+
+    echo "8. conda initialization complete."
+    echo "9. Adding Anaconda to PATH permanently..."
+
+    # Add Anaconda to .bashrc for permanent PATH setup
+    if ! grep -q "anaconda3" ~/.bashrc; then
+        echo "" >> ~/.bashrc
+        echo "# Anaconda PATH setup" >> ~/.bashrc
+        echo "export PATH=\"$ANACONDA_PATH/bin:\$PATH\"" >> ~/.bashrc
+    fi
+
+    # Load conda profile
+    if [ -f "$ANACONDA_PATH/etc/profile.d/conda.sh" ]; then
+        . "$ANACONDA_PATH/etc/profile.d/conda.sh"
+    fi
+
+    echo "10. Starting MCP environment setup..."
+    setup_mcp
+fi

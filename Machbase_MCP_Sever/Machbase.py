@@ -32,8 +32,8 @@ from fastmcp import FastMCP
 # [Section 1] Configuration & Constants
 # ═══════════════════════════════════════════════════════════════
 
-VERSION = "0.7.0"
-BUILD_DATE = "2026-02-26"
+VERSION = "0.7.1"
+BUILD_DATE = "2026-02-27"
 DESCRIPTION = "Machbase Neo Unified MCP Server"
 
 # ── Server Connection ──
@@ -1243,22 +1243,32 @@ async def execute_tql_script(
     TQL provides math functions NOT available in SQL: sqrt, pow, log, log2, log10, exp, sin, cos, tan, ceil, floor, etc.
     These functions MUST be used inside MAPVALUE(), NOT inside SQL().
 
+    **CRITICAL: NEVER apply math to TIME column. Only apply to VALUE columns.**
+
+    MAPVALUE index MUST match the VALUE column index from SQL SELECT:
+        SQL SELECT columns → value(0), value(1), value(2)...
+        Apply math ONLY to VALUE columns, NEVER to TIME or NAME columns.
+
+    WRONG - math on TIME column (index 0):
+        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
+        MAPVALUE(0, value(0)*1000000)     // WRONG! This corrupts TIME
+
     WRONG - math function inside SQL():
         SQL(`SELECT sqrt(VALUE) FROM SENSOR WHERE ...`)
 
-    CORRECT - math function in MAPVALUE():
-        SQL(`SELECT NAME, TIME, VALUE FROM SENSOR WHERE ...`)
-        MAPVALUE(2, sqrt(value(2)))
+    CORRECT - 2 columns (TIME=0, VALUE=1) → math on index 1:
+        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
+        MAPVALUE(1, sqrt(value(1)))       // CORRECT: sqrt on VALUE (index 1)
         CSV()
 
-    Multiple math operations example:
+    CORRECT - 3 columns (NAME=0, TIME=1, VALUE=2) → math on index 2:
         SQL(`SELECT NAME, TIME, VALUE FROM SENSOR WHERE ...`)
-        MAPVALUE(2, sqrt(value(2)))       // square root of VALUE
+        MAPVALUE(2, sqrt(value(2)))       // CORRECT: sqrt on VALUE (index 2)
         CSV()
 
     With CHART:
         SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
-        MAPVALUE(1, sqrt(value(1)))       // sqrt applied to VALUE
+        MAPVALUE(1, sqrt(value(1)))       // sqrt on VALUE, not TIME
         CHART(
             chartOption({
                 xAxis: { type: "time", data: column(0) },
@@ -1310,6 +1320,22 @@ async def execute_tql_script(
                 "CORRECT: Use MAPVALUE after SQL():\n"
                 "  SQL(`SELECT NAME, TIME, VALUE FROM table WHERE ...`)\n"
                 f"  MAPVALUE(2, {found_in_sql[0].lower()}(value(2)))\n"
+                "  CSV()\n"
+            )
+
+    # Detect math operations applied to TIME column via MAPVALUE
+    if sql_block_match and re.search(r'SELECT\s+TIME\b', sql_block_match.group(1), re.IGNORECASE):
+        if re.search(r'MAPVALUE\s*\(\s*0\s*,\s*value\s*\(\s*0\s*\)\s*[*/+-]', tql_content):
+            return (
+                "INVALID TQL: Math operation on TIME column\n\n"
+                "MAPVALUE(0, value(0)*...) modifies the TIME column. "
+                "Math must target VALUE columns only.\n\n"
+                "WRONG:\n"
+                "  SQL(`SELECT TIME, VALUE FROM table WHERE ...`)\n"
+                "  MAPVALUE(0, value(0)*1000000)\n\n"
+                "CORRECT:\n"
+                "  SQL(`SELECT TIME, VALUE FROM table WHERE ...`)\n"
+                "  MAPVALUE(1, value(1)*1000000)   // math on VALUE (index 1)\n"
                 "  CSV()\n"
             )
 
