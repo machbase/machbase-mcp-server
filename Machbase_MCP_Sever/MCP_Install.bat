@@ -111,10 +111,21 @@ if %errorlevel% neq 0 (
 echo 1. Initializing conda command line environment...
 call conda init cmd.exe
 
-echo 2. Creating 'mcp' virtual environment... (Python 3.11)
-call conda create -n mcp python=3.11 -y
+echo 2. Accepting conda Terms of Service...
+call conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main >nul 2>nul
+call conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r >nul 2>nul
+call conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/msys2 >nul 2>nul
 
-echo 3. Activating 'mcp' virtual environment...
+echo 3. Checking 'mcp' virtual environment...
+call conda info --envs 2>nul | findstr /C:"mcp" >nul
+if %errorlevel% equ 0 (
+    echo 'mcp' virtual environment already exists. Skipping creation.
+) else (
+    echo Creating 'mcp' virtual environment... (Python 3.11)
+    call conda create -n mcp python=3.11 -y
+)
+
+echo 4. Activating 'mcp' virtual environment...
 call conda activate mcp
 
 if %errorlevel% neq 0 (
@@ -124,19 +135,24 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo 4. Upgrading pip and installing basic packages...
-python -m pip install --upgrade pip
-pip install aiohttp httpx fastmcp beautifulsoup4
+echo 5. Checking installed packages...
+pip show fastmcp >nul 2>nul
+if %errorlevel% equ 0 (
+    echo Required packages already installed. Skipping.
+) else (
+    echo Upgrading pip and installing basic packages...
+    python -m pip install --upgrade pip
+    pip install aiohttp httpx fastmcp beautifulsoup4
 
-echo 5. Checking requirements.txt file...
-if not exist requirements.txt (
-    echo Warning: requirements.txt file not found in current directory.
-    echo Only basic packages have been installed.
-    goto :create_config
+    echo Checking requirements.txt file...
+    if exist requirements.txt (
+        echo Installing libraries from requirements.txt...
+        pip install -r requirements.txt --ignore-installed --no-deps
+    ) else (
+        echo Warning: requirements.txt file not found in current directory.
+        echo Only basic packages have been installed.
+    )
 )
-
-echo 6. Installing libraries from requirements.txt...
-pip install -r requirements.txt --ignore-installed --no-deps
 
 :create_config
 echo ========================================
@@ -164,37 +180,25 @@ if not exist "!CLAUDE_CONFIG_DIR!\Machbase.py" (
 :: ========================================
 :: NEW SECTION: Move neo folder
 :: ========================================
-echo 8. Checking neo folder...
+echo 7. Checking neo folder...
 if exist "neo" (
     echo Found neo folder in current directory.
-    
-    :: Check if destination neo folder already exists
+
+    :: Remove existing neo folder if present
     if exist "!CLAUDE_CONFIG_DIR!\neo" (
-        echo Warning: !CLAUDE_CONFIG_DIR!\neo folder already exists.
-        set /p choice="Do you want to overwrite it? (y/n): "
-        if /i "!choice!" equ "y" (
-            echo Removing existing neo folder...
-            rmdir /s /q "!CLAUDE_CONFIG_DIR!\neo"
-            if errorlevel 1 (
-                echo Error: Failed to remove existing neo folder.
-                pause
-                exit /b 1
-            )
-        ) else (
-            echo Skipping neo folder move...
-            goto :create_json
-        )
+        echo Updating existing neo folder...
+        rmdir /s /q "!CLAUDE_CONFIG_DIR!\neo"
     )
-    
-    echo Moving neo folder to !CLAUDE_CONFIG_DIR!\neo...
-    move "neo" "!CLAUDE_CONFIG_DIR!\neo"
-    
+
+    echo Copying neo folder to !CLAUDE_CONFIG_DIR!\neo...
+    xcopy "neo" "!CLAUDE_CONFIG_DIR!\neo\" /E /I /Q >nul
+
     if errorlevel 1 (
-        echo Error: Failed to move neo folder.
+        echo Error: Failed to copy neo folder.
         pause
         exit /b 1
     ) else (
-        echo Neo folder successfully moved to !CLAUDE_CONFIG_DIR!\neo
+        echo Neo folder successfully copied to !CLAUDE_CONFIG_DIR!\neo
     )
 ) else (
     echo Warning: neo folder not found in current directory.

@@ -33,15 +33,25 @@ setup_mcp() {
     echo "1. Initializing conda command line environment..."
     source "$ANACONDA_PATH/etc/profile.d/conda.sh"
     
-    echo "2. Creating 'mcp' virtual environment... (Python 3.11)"
-    conda create -n mcp python=3.11 -y
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to create virtual environment."
-        echo "Conda installation may not be completely finished."
-        exit 1
+    echo "2. Accepting conda Terms of Service..."
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main > /dev/null 2>&1
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r > /dev/null 2>&1
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/msys2 > /dev/null 2>&1
+
+    echo "3. Checking 'mcp' virtual environment..."
+    if conda info --envs 2>/dev/null | grep -q "mcp"; then
+        echo "'mcp' virtual environment already exists. Skipping creation."
+    else
+        echo "Creating 'mcp' virtual environment... (Python 3.11)"
+        conda create -n mcp python=3.11 -y
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to create virtual environment."
+            echo "Conda installation may not be completely finished."
+            exit 1
+        fi
     fi
-    
-    echo "3. Activating 'mcp' virtual environment..."
+
+    echo "4. Activating 'mcp' virtual environment..."
     conda activate mcp
     if [ $? -ne 0 ]; then
         echo "Error: Failed to activate virtual environment."
@@ -49,20 +59,25 @@ setup_mcp() {
         exit 1
     fi
     
-    echo "4. Upgrading pip and installing basic packages..."
-    python -m pip install --upgrade pip
-    pip install aiohttp httpx fastmcp beautifulsoup4
-    
-    echo "5. Checking requirements.txt file..."
-    if [ ! -f "requirements.txt" ]; then
-        echo "Warning: requirements.txt file not found in current directory."
-        echo "Only basic packages have been installed."
-        create_config
+    echo "5. Checking installed packages..."
+    if pip show fastmcp > /dev/null 2>&1; then
+        echo "Required packages already installed. Skipping."
     else
-        echo "6. Installing libraries from requirements.txt..."
-        pip install -r requirements.txt --ignore-installed --no-deps
-        create_config
+        echo "Upgrading pip and installing basic packages..."
+        python -m pip install --upgrade pip
+        pip install aiohttp httpx fastmcp beautifulsoup4
+
+        echo "Checking requirements.txt file..."
+        if [ -f "requirements.txt" ]; then
+            echo "Installing libraries from requirements.txt..."
+            pip install -r requirements.txt --ignore-installed --no-deps
+        else
+            echo "Warning: requirements.txt file not found in current directory."
+            echo "Only basic packages have been installed."
+        fi
     fi
+
+    create_config
 }
 
 create_config() {
@@ -92,33 +107,21 @@ create_config() {
     echo "8. Checking neo folder..."
     if [ -d "neo" ]; then
         echo "Found neo folder in current directory."
-        
-        # Check if destination neo folder already exists
+
+        # Remove existing neo folder if present
         if [ -d "$CLAUDE_CONFIG_DIR/neo" ]; then
-            echo "Warning: $CLAUDE_CONFIG_DIR/neo folder already exists."
-            read -p "Do you want to overwrite it? (y/n): " choice
-            if [[ "$choice" =~ ^[Yy]$ ]]; then
-                echo "Removing existing neo folder..."
-                rm -rf "$CLAUDE_CONFIG_DIR/neo"
-                if [ $? -ne 0 ]; then
-                    echo "Error: Failed to remove existing neo folder."
-                    exit 1
-                fi
-            else
-                echo "Skipping neo folder move..."
-                create_json
-                return
-            fi
+            echo "Updating existing neo folder..."
+            rm -rf "$CLAUDE_CONFIG_DIR/neo"
         fi
-        
-        echo "Moving neo folder to $CLAUDE_CONFIG_DIR/neo..."
-        mv "neo" "$CLAUDE_CONFIG_DIR/neo"
-        
+
+        echo "Copying neo folder to $CLAUDE_CONFIG_DIR/neo..."
+        cp -r "neo" "$CLAUDE_CONFIG_DIR/neo"
+
         if [ $? -ne 0 ]; then
-            echo "Error: Failed to move neo folder."
+            echo "Error: Failed to copy neo folder."
             exit 1
         else
-            echo "Neo folder successfully moved to $CLAUDE_CONFIG_DIR/neo"
+            echo "Neo folder successfully copied to $CLAUDE_CONFIG_DIR/neo"
         fi
     else
         echo "Warning: neo folder not found in current directory."
