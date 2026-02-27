@@ -2002,21 +2002,12 @@ async def save_tql_file(
         # ── CHART validation: use validate_chart_tql for CHART() scripts ──
         if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
             try:
-                chart_report = await validate_chart_tql(tql_content, auto_fix=False, host=host, port=port)
+                chart_report = await validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
                 if "STATUS: NO_DATA" in chart_report:
                     return json.dumps(
                         {
                             "status": "validation_failed",
                             "message": "CHART validation failed: query returns no data. File NOT saved.",
-                            "detail": chart_report,
-                        },
-                        indent=2, ensure_ascii=False,
-                    )
-                if "STATUS: INVALID_COLUMN" in chart_report or "STATUS: NEGATIVE_INDEX" in chart_report:
-                    return json.dumps(
-                        {
-                            "status": "validation_failed",
-                            "message": "CHART validation failed: invalid column references. File NOT saved.",
                             "detail": chart_report,
                         },
                         indent=2, ensure_ascii=False,
@@ -2030,6 +2021,20 @@ async def save_tql_file(
                         },
                         indent=2, ensure_ascii=False,
                     )
+                # Fixable issues: extract fixed TQL and use it for saving
+                if "STATUS: INVALID_COLUMN" in chart_report or "STATUS: NEGATIVE_INDEX" in chart_report:
+                    fixed_match = re.search(r'=== FIXED TQL ===\s*```tql\s*\n(.*?)```', chart_report, re.DOTALL)
+                    if fixed_match:
+                        tql_content = fixed_match.group(1).strip()
+                    else:
+                        return json.dumps(
+                            {
+                                "status": "validation_failed",
+                                "message": "CHART validation failed: invalid column references and auto-fix unavailable. File NOT saved.",
+                                "detail": chart_report,
+                            },
+                            indent=2, ensure_ascii=False,
+                        )
             except Exception:
                 pass
 
