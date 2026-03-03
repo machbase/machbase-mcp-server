@@ -32,8 +32,8 @@ from fastmcp import FastMCP
 # [Section 1] Configuration & Constants
 # ═══════════════════════════════════════════════════════════════
 
-VERSION = "0.7.1"
-BUILD_DATE = "2026-02-27"
+VERSION = "0.7.2"
+BUILD_DATE = "2026-03-03"
 DESCRIPTION = "Machbase Neo Unified MCP Server"
 
 # ── Server Connection ──
@@ -431,7 +431,7 @@ def _make_block(
     color: str = "#367FEB",
     user_name: str = "sys",
     is_visible: bool = True,
-    aggregator: str = "avg",
+    aggregator: str = "value",
 ) -> dict:
     """Create a single blockList entry matching Neo UI structure."""
     return {
@@ -623,7 +623,7 @@ def _make_chart_panel(
             elif chart_type in ("Gauge", "Liquid fill"):
                 agg = "last"
             else:
-                agg = "avg"
+                agg = "value"
 
             tags = [t.strip() for t in tag.split(",") if t.strip()]
             blocks = []
@@ -1026,6 +1026,13 @@ async def execute_sql_query(
         **MANDATORY: Must use Machbase Neo documentation only. Use get_full_document_content or get_document_sections to find exact syntax before writing any queries. General SQL knowledge must not be used - only documented Machbase Neo syntax and functions are allowed.**
         **EXECUTION POLICY: Must test and verify all SQL queries before providing them as answers. Only provide successfully executed and validated code to users.**
 
+        **DATA RANGE POLICY (CRITICAL - DEFAULT BEHAVIOR):**
+        - ALWAYS use the FULL data range by default. Do NOT add WHERE time filters or LIMIT unless the user explicitly requests a specific time range or sample size.
+        - For large datasets, use ROLLUP to aggregate the full range rather than sampling a small time window.
+        - Only narrow down the time range or apply LIMIT when the user explicitly specifies it.
+        - WRONG: Arbitrarily picking 1-second or small windows to "sample" the data.
+        - CORRECT: Use ROLLUP('sec', N, TIME) or similar aggregation to cover the entire dataset.
+
         **MATH FUNCTION LIMITATION:**
         Machbase Neo SQL does NOT support: SQRT(), POW(), LOG(), LOG2(), LOG10(), EXP(), SIN(), COS(), TAN(), CEIL(), FLOOR()
         Supported SQL math functions: ABS(), ROUND(), TRUNC(), SUMSQ(), STDDEV(), VARIANCE()
@@ -1033,6 +1040,21 @@ async def execute_sql_query(
             SQL(`SELECT NAME, TIME, VALUE FROM table WHERE ...`)
             MAPVALUE(2, sqrt(value(2)))
             CHART() or CSV()
+
+        **RMS CALCULATION (CRITICAL):**
+        - RMS = sqrt(SUMSQ(VALUE) / COUNT(VALUE)). SUMSQ alone is NOT RMS.
+        - SQL cannot compute RMS directly (no SQRT). Use TQL:
+            SQL(`SELECT ROLLUP(...) as rtime, SUMSQ(VALUE) as SS, COUNT(VALUE) as CNT FROM ... GROUP BY rtime`)
+            MAPVALUE(1, sqrt(value(1)/value(2)))
+            POPVALUE(2)
+            CHART(
+                tz('Asia/Seoul'),
+                chartOption({
+                    xAxis: { type: "time", data: column(0) },
+                    yAxis: { type: "value" },
+                    series: [{ type: "line", data: column(1) }]
+                })
+            )
 
         If no data is returned, it will be treated as a failure.
     """
@@ -1152,6 +1174,14 @@ async def execute_tql_script(
     """
     **MANDATORY EXECUTION WORKFLOW - MUST FOLLOW IN ORDER:**
 
+    0. **DATA RANGE POLICY (CRITICAL - DEFAULT BEHAVIOR):**
+    - ALWAYS analyze and chart the FULL data range by default.
+    - Do NOT arbitrarily sample small time windows (e.g., 1-second snippets). This misrepresents the data.
+    - For high-frequency data, use ROLLUP to aggregate the entire dataset into a reasonable number of points.
+    - Only narrow down to a specific time range when the user explicitly requests it.
+    - WRONG: `WHERE TIME BETWEEN ... AND ...` with arbitrary small window for "sampling"
+    - CORRECT: `ROLLUP('sec', N, TIME)` covering the full dataset without time filter
+
     1. **PRE-EXECUTION VALIDATION (REQUIRED BEFORE CALLING THIS FUNCTION):**
     - Use execute_sql_query to verify table exists and has data
     - Check actual data samples: SELECT * FROM table LIMIT 10
@@ -1202,9 +1232,10 @@ async def execute_tql_script(
     - **ONLY VALID: column(N) where N is a single integer**
     - **USE validate_chart_tql() to verify column indices are valid**
     - For time-series charts:
-        * xAxis: { type: "category", data: column(0) }  // time axis
+        * xAxis: { type: "time", data: column(0) }  // time axis (use "time" for tz() support)
         * series: [{ data: column(1) }]  // value data
     - ALWAYS separate: time in xAxis.data, values in series.data
+    - ALWAYS use tz('Asia/Seoul') in CHART() for KST display
 
     6. **EXECUTION & RESULT VALIDATION:**
     - This function executes TQL and validates the response
@@ -1220,12 +1251,38 @@ async def execute_tql_script(
     - **For charts: If UNVERIFIED, run validate_chart_tql() immediately**
     - Only provide successfully validated code to users
 
-    8. **TQL COMMENT SYNTAX:**
+    8. **CHART TIMEZONE (CRITICAL - MUST USE tz()):**
+    - For time-series charts, ALWAYS use tz('Asia/Seoul') inside CHART() to display KST time.
+    - xAxis type MUST be "time" (NOT "category") for proper timezone conversion.
+    - NEVER use MAPVALUE(0, list(value(0)/1000000, value(1))) for time conversion. Use tz() instead.
+
+    WRONG - manual time conversion:
+        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
+        MAPVALUE(0, list(value(0)/1000000, value(1)))
+        CHART(chartOption({
+            xAxis: { type: "category", data: column(0) },
+            series: [{ data: column(1) }]
+        }))
+
+    CORRECT - use tz() in CHART():
+        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
+        CHART(
+            tz('Asia/Seoul'),
+            chartOption({
+                xAxis: { type: "time", data: column(0) },
+                yAxis: { type: "value" },
+                series: [{ type: "line", data: column(1) }]
+            })
+        )
+
+    - tz('Asia/Seoul') can be placed before or after chartOption() inside CHART(), but before is preferred for readability.
+
+    9. **TQL COMMENT SYNTAX:**
     - ONLY use single-line comments with //
     - Block comments /* */ are NOT supported in TQL
     - All comments must use // syntax only
 
-    9. **HTTP() FUNCTION RESTRICTIONS:**
+    10. **HTTP() FUNCTION RESTRICTIONS:**
     - NEVER use SCRIPT() function inside HTTP() function calls
     - HTTP() must only contain direct HTTP endpoint URLs or string values
     - For dynamic content generation, use QUERY() or CSV() functions instead
@@ -1239,7 +1296,7 @@ async def execute_tql_script(
     WRONG: Write code → Create artifact → Hope it works
     CORRECT: Write code → Validate (if CHART) → Execute → Verify → Create artifact
 
-    10. **MATH FUNCTIONS (MUST USE MAPVALUE):**
+    11. **MATH FUNCTIONS (MUST USE MAPVALUE):**
     TQL provides math functions NOT available in SQL: sqrt, pow, log, log2, log10, exp, sin, cos, tan, ceil, floor, etc.
     These functions MUST be used inside MAPVALUE(), NOT inside SQL().
 
@@ -1270,6 +1327,7 @@ async def execute_tql_script(
         SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
         MAPVALUE(1, sqrt(value(1)))       // sqrt on VALUE, not TIME
         CHART(
+            tz('Asia/Seoul'),
             chartOption({
                 xAxis: { type: "time", data: column(0) },
                 yAxis: { type: "value" },
@@ -1281,6 +1339,21 @@ async def execute_tql_script(
         sqrt(x), pow(x,y), log(x), log2(x), log10(x), exp(x), exp2(x),
         sin(x), cos(x), tan(x), sinh(x), cosh(x), tanh(x),
         ceil(x), floor(x), round(x), trunc(x), abs(x), mod(x,y)
+
+    **RMS CALCULATION (CRITICAL):**
+    - RMS = sqrt(SUMSQ(VALUE) / COUNT(VALUE)). SUMSQ alone is NOT RMS.
+    - Example TQL pattern:
+        SQL(`SELECT ROLLUP(...) as rtime, SUMSQ(VALUE) as SS, COUNT(VALUE) as CNT FROM ... GROUP BY rtime`)
+        MAPVALUE(1, sqrt(value(1)/value(2)))
+        POPVALUE(2)
+        CHART(
+            tz('Asia/Seoul'),
+            chartOption({
+                xAxis: { type: "time", data: column(0) },
+                yAxis: { type: "value" },
+                series: [{ type: "line", data: column(1) }]
+            })
+        )
     """
 
     if not tql_content or not tql_content.strip():
@@ -1369,6 +1442,42 @@ async def execute_tql_script(
             "  TEXT() or CSV() or other output function\n\n"
             "SCRIPT() must be used in a separate pipeline, not directly after HTTP().\n"
         )
+
+    # ── CHART pre-validation: auto-call validate_chart_tql for CHART() scripts ──
+    if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
+        try:
+            chart_report = await validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
+            if "STATUS: NO_DATA" in chart_report:
+                return (
+                    f"FAILURE: Chart validation failed - query returns no data (ID: {execution_id})\n"
+                    f"Server: {machbase_url}\n\n"
+                    "    DO NOT PROVIDE CODE TO USER - FIX THE ISSUE FIRST\n\n"
+                    f"=== VALIDATION REPORT ===\n{chart_report}\n\n"
+                    f"=== TQL CONTENT (for debugging) ===\n```tql\n{tql_content}\n```"
+                )
+            if "STATUS: ERROR" in chart_report:
+                return (
+                    f"FAILURE: Chart validation failed (ID: {execution_id})\n"
+                    f"Server: {machbase_url}\n\n"
+                    "    DO NOT PROVIDE CODE TO USER - FIX THE ISSUE FIRST\n\n"
+                    f"=== VALIDATION REPORT ===\n{chart_report}\n\n"
+                    f"=== TQL CONTENT (for debugging) ===\n```tql\n{tql_content}\n```"
+                )
+            if "STATUS: INVALID_COLUMN" in chart_report or "STATUS: NEGATIVE_INDEX" in chart_report:
+                fixed_match = re.search(r'=== FIXED TQL ===\s*```tql\s*\n(.*?)```', chart_report, re.DOTALL)
+                if fixed_match:
+                    tql_content = fixed_match.group(1).strip()
+                    logger.info(f"[{execution_id}] Chart validation auto-fixed column references")
+                else:
+                    return (
+                        f"FAILURE: Chart has invalid column references and auto-fix failed (ID: {execution_id})\n"
+                        f"Server: {machbase_url}\n\n"
+                        "    DO NOT PROVIDE CODE TO USER - FIX THE ISSUE FIRST\n\n"
+                        f"=== VALIDATION REPORT ===\n{chart_report}\n\n"
+                        f"=== TQL CONTENT (for debugging) ===\n```tql\n{tql_content}\n```"
+                    )
+        except Exception as e:
+            logger.warning(f"[{execution_id}] Chart pre-validation failed, proceeding with execution: {e}")
 
     try:
         async with httpx.AsyncClient() as client:
@@ -1582,6 +1691,7 @@ async def validate_chart_tql(
             transformation = "MAPVALUE(0, list(value(0), value(1)))\nPOPVALUE(1)\n"
 
         chart_template = """CHART(
+    tz('Asia/Seoul'),
     chartOption({
         title: { text: "Time Series Chart" },
         xAxis: { type: "time", name: "Time" },
@@ -1973,22 +2083,67 @@ async def save_tql_file(
                         },
                         indent=2, ensure_ascii=False,
                     )
-                # HTTP 200 but response contains error indicators
+                # ── JSON success:false 선체크 (키워드 무관하게) ──
+                try:
+                    err_body = resp.json()
+                    if err_body.get("success") is False:
+                        reason = err_body.get("reason", resp_text[:500])
+                        return json.dumps(
+                            {
+                                "status": "validation_failed",
+                                "message": f"TQL execution error: {reason}. File NOT saved.",
+                                "error": reason,
+                            },
+                            indent=2, ensure_ascii=False,
+                        )
+                except (json.JSONDecodeError, ValueError):
+                    pass
+
+                # ── 키워드 fallback (mach-err 추가) ──
                 resp_lower = resp_text.lower()
-                if any(kw in resp_lower for kw in ["error", "fail", "invalid", "not found", "no table"]):
-                    try:
-                        err_body = resp.json()
-                        if err_body.get("success") is False or "error" in err_body:
-                            return json.dumps(
-                                {
-                                    "status": "validation_failed",
-                                    "message": "TQL returned error in response body. File NOT saved.",
-                                    "error": resp_text[:500],
-                                },
-                                indent=2, ensure_ascii=False,
-                            )
-                    except Exception:
-                        pass
+                if any(kw in resp_lower for kw in ["error", "fail", "invalid", "not found", "no table", "mach-err"]):
+                    return json.dumps(
+                        {
+                            "status": "validation_failed",
+                            "message": "TQL response contains error indicators. File NOT saved.",
+                            "error": resp_text[:500],
+                        },
+                        indent=2, ensure_ascii=False,
+                    )
+
+                # ── CHART TQL: SQL 직접 실행으로 이중 검증 ──
+                if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
+                    sql_match = re.search(r'SQL\s*\(\s*`([^`]+)`', tql_content, re.IGNORECASE | re.DOTALL)
+                    if not sql_match:
+                        sql_match = re.search(r'SQL\s*\(\s*["\']([^"\']+)["\']', tql_content, re.IGNORECASE | re.DOTALL)
+                    if sql_match:
+                        test_sql = sql_match.group(1).strip()
+                        if 'LIMIT' not in test_sql.upper():
+                            test_sql += " LIMIT 1"
+                        try:
+                            db_base = get_machbase_url(host, port)
+                            params = urlencode({"q": test_sql, "format": "json"})
+                            async with httpx.AsyncClient(timeout=30) as sql_client:
+                                sql_resp = await sql_client.get(f"{db_base}/db/query?{params}")
+                                if sql_resp.status_code != 200:
+                                    return json.dumps(
+                                        {
+                                            "status": "validation_failed",
+                                            "message": f"SQL validation failed: {sql_resp.text[:300]}. File NOT saved.",
+                                        },
+                                        indent=2, ensure_ascii=False,
+                                    )
+                                sql_body = sql_resp.json()
+                                if sql_body.get("success") is False:
+                                    return json.dumps(
+                                        {
+                                            "status": "validation_failed",
+                                            "message": f"SQL error: {sql_body.get('reason', 'unknown')}. File NOT saved.",
+                                        },
+                                        indent=2, ensure_ascii=False,
+                                    )
+                        except Exception as e:
+                            logger.warning(f"SQL pre-validation skipped: {e}")
         except Exception as e:
             return json.dumps(
                 {
@@ -1998,6 +2153,26 @@ async def save_tql_file(
                 },
                 indent=2, ensure_ascii=False,
             )
+
+        # ── Static CHART option validation ──
+        if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
+            chart_section = tql_content[tql_content.lower().find('chart('):]
+            if 'series' not in chart_section:
+                return json.dumps(
+                    {
+                        "status": "validation_failed",
+                        "message": "CHART missing 'series' configuration. File NOT saved.",
+                    },
+                    indent=2, ensure_ascii=False,
+                )
+            if 'data' not in chart_section:
+                return json.dumps(
+                    {
+                        "status": "validation_failed",
+                        "message": "CHART series missing 'data' field. File NOT saved.",
+                    },
+                    indent=2, ensure_ascii=False,
+                )
 
         # ── CHART validation: use validate_chart_tql for CHART() scripts ──
         if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
@@ -2035,8 +2210,66 @@ async def save_tql_file(
                             },
                             indent=2, ensure_ascii=False,
                         )
-            except Exception:
-                pass
+
+                # ── JS asset validation: blank chart / data errors ──
+                try:
+                    chart_resp = resp.json()
+                    js_assets = chart_resp.get("jsCodeAssets", [])
+                    if js_assets and chart_resp.get("chartID"):
+                        js_url = f"{base.replace('/web/api', '')}{js_assets[0]}"
+                        async with httpx.AsyncClient(timeout=15) as js_client:
+                            js_resp = await js_client.get(js_url, headers=validate_headers)
+                            if js_resp.status_code == 200:
+                                js_content = js_resp.text
+
+                                # JS 파일 크기 체크 (빈 차트)
+                                if len(js_content) < 500:
+                                    return json.dumps(
+                                        {
+                                            "status": "validation_failed",
+                                            "message": "CHART JS too small - likely empty chart. File NOT saved.",
+                                        },
+                                        indent=2, ensure_ascii=False,
+                                    )
+
+                                # 숫자 데이터 존재 확인
+                                numbers = re.findall(r'[-+]?\d+\.?\d*(?:e[-+]?\d+)?', js_content)
+                                if len(numbers) < 10:
+                                    return json.dumps(
+                                        {
+                                            "status": "validation_failed",
+                                            "message": "CHART has insufficient data points. File NOT saved.",
+                                        },
+                                        indent=2, ensure_ascii=False,
+                                    )
+
+                                # undefined/NaN 감지
+                                if 'undefined' in js_content or 'NaN' in js_content.replace('name', '').replace('Name', ''):
+                                    return json.dumps(
+                                        {
+                                            "status": "validation_failed",
+                                            "message": "CHART contains undefined/NaN data. File NOT saved.",
+                                        },
+                                        indent=2, ensure_ascii=False,
+                                    )
+
+                                # ns→KST 시간 변환 누락 감지
+                                if '"time"' in js_content or "'time'" in js_content:
+                                    large_nums = [float(n) for n in numbers if float(n) > 1e15]
+                                    if large_nums:
+                                        return json.dumps(
+                                            {
+                                                "status": "validation_failed",
+                                                "message": "CHART time axis has nanosecond values (>1e15). "
+                                                           "Convert ns to ms (t/1000000) for KST display. File NOT saved.",
+                                            },
+                                            indent=2, ensure_ascii=False,
+                                        )
+                except Exception as e:
+                    logger.warning(f"JS asset validation skipped: {e}")
+
+            except Exception as e:
+                logger.warning(f"CHART validation skipped: {e}")
 
     elif filename.endswith(".sql"):
         sql_statements = [s.strip() for s in tql_content.split(";") if s.strip()]
@@ -2689,7 +2922,7 @@ async def update_chart_in_dashboard(
             elif chart_type_effective in ("Gauge", "Liquid fill"):
                 agg = "last"
             else:
-                agg = "avg"
+                agg = "value"
 
             tags = [t.strip() for t in tg.split(",") if t.strip()]
             blocks = []
