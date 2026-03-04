@@ -32,8 +32,8 @@ from fastmcp import FastMCP
 # [Section 1] Configuration & Constants
 # ═══════════════════════════════════════════════════════════════
 
-VERSION = "0.7.2"
-BUILD_DATE = "2026-03-03"
+VERSION = "0.7.3"
+BUILD_DATE = "2026-03-04"
 DESCRIPTION = "Machbase Neo Unified MCP Server"
 
 # ── Server Connection ──
@@ -1047,12 +1047,15 @@ async def execute_sql_query(
             SQL(`SELECT ROLLUP(...) as rtime, SUMSQ(VALUE) as SS, COUNT(VALUE) as CNT FROM ... GROUP BY rtime`)
             MAPVALUE(1, sqrt(value(1)/value(2)))
             POPVALUE(2)
+            SCRIPT({
+                $.yield([$.values[0], $.values[1]])
+            })
             CHART(
                 tz('Asia/Seoul'),
                 chartOption({
-                    xAxis: { type: "time", data: column(0) },
+                    xAxis: { type: "time" },
                     yAxis: { type: "value" },
-                    series: [{ type: "line", data: column(1) }]
+                    series: [{ type: "line", data: column(0) }]
                 })
             )
 
@@ -1231,10 +1234,12 @@ async def execute_tql_script(
     - **FORBIDDEN SYNTAX: column(N, M) does NOT exist in TQL**
     - **ONLY VALID: column(N) where N is a single integer**
     - **USE validate_chart_tql() to verify column indices are valid**
-    - For time-series charts:
-        * xAxis: { type: "time", data: column(0) }  // time axis (use "time" for tz() support)
-        * series: [{ data: column(1) }]  // value data
-    - ALWAYS separate: time in xAxis.data, values in series.data
+    - For time-series charts, use SCRIPT to create [time, value] pairs:
+        * SCRIPT({ $.yield([$.values[0], $.values[1]]) })
+        * xAxis: { type: "time" }  // NO data property
+        * series: [{ data: column(0) }]  // column(0) contains [time, value] pairs
+    - Machbase TIME is nanoseconds (10^18) which overflows JS MAX_SAFE_INTEGER
+    - tz('Asia/Seoul') converts nanoseconds to milliseconds for proper display
     - ALWAYS use tz('Asia/Seoul') in CHART() for KST display
 
     6. **EXECUTION & RESULT VALIDATION:**
@@ -1256,26 +1261,33 @@ async def execute_tql_script(
     - xAxis type MUST be "time" (NOT "category") for proper timezone conversion.
     - NEVER use MAPVALUE(0, list(value(0)/1000000, value(1))) for time conversion. Use tz() instead.
 
-    WRONG - manual time conversion:
-        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
-        MAPVALUE(0, list(value(0)/1000000, value(1)))
-        CHART(chartOption({
-            xAxis: { type: "category", data: column(0) },
-            series: [{ data: column(1) }]
-        }))
-
-    CORRECT - use tz() in CHART():
+    WRONG - separate xAxis.data and series.data (nanoseconds overflow JS MAX_SAFE_INTEGER):
         SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
         CHART(
             tz('Asia/Seoul'),
             chartOption({
                 xAxis: { type: "time", data: column(0) },
-                yAxis: { type: "value" },
                 series: [{ type: "line", data: column(1) }]
             })
         )
 
-    - tz('Asia/Seoul') can be placed before or after chartOption() inside CHART(), but before is preferred for readability.
+    CORRECT - use SCRIPT to create [time, value] pairs, then tz() in CHART():
+        SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
+        SCRIPT({
+            $.yield([$.values[0], $.values[1]])
+        })
+        CHART(
+            tz('Asia/Seoul'),
+            chartOption({
+                xAxis: { type: "time" },
+                yAxis: { type: "value" },
+                series: [{ type: "line", data: column(0) }]
+            })
+        )
+
+    - SCRIPT creates [time, value] pairs so column(0) contains the paired data
+    - tz('Asia/Seoul') converts nanosecond timestamps to milliseconds for display
+    - xAxis type MUST be "time" with NO data property when using paired data
 
     9. **TQL COMMENT SYNTAX:**
     - ONLY use single-line comments with //
@@ -1326,12 +1338,15 @@ async def execute_tql_script(
     With CHART:
         SQL(`SELECT TIME, VALUE FROM SENSOR WHERE NAME = 'tag-01'`)
         MAPVALUE(1, sqrt(value(1)))       // sqrt on VALUE, not TIME
+        SCRIPT({
+            $.yield([$.values[0], $.values[1]])
+        })
         CHART(
             tz('Asia/Seoul'),
             chartOption({
-                xAxis: { type: "time", data: column(0) },
+                xAxis: { type: "time" },
                 yAxis: { type: "value" },
-                series: [{ type: "line", data: column(1) }]
+                series: [{ type: "line", data: column(0) }]
             })
         )
 
@@ -1346,12 +1361,15 @@ async def execute_tql_script(
         SQL(`SELECT ROLLUP(...) as rtime, SUMSQ(VALUE) as SS, COUNT(VALUE) as CNT FROM ... GROUP BY rtime`)
         MAPVALUE(1, sqrt(value(1)/value(2)))
         POPVALUE(2)
+        SCRIPT({
+            $.yield([$.values[0], $.values[1]])
+        })
         CHART(
             tz('Asia/Seoul'),
             chartOption({
-                xAxis: { type: "time", data: column(0) },
+                xAxis: { type: "time" },
                 yAxis: { type: "value" },
-                series: [{ type: "line", data: column(1) }]
+                series: [{ type: "line", data: column(0) }]
             })
         )
     """
@@ -1369,9 +1387,12 @@ async def execute_tql_script(
             "Error: column() accepts ONLY ONE argument\n\n"
             "WRONG: column(0, 1)\n"
             "CORRECT: column(0) and column(1) separately\n\n"
-            "Example:\n"
-            "  xAxis: { data: column(0) },\n"
-            "  series: [{ data: column(1) }]\n"
+            "Example (time-series):\n"
+            "  SCRIPT({ $.yield([$.values[0], $.values[1]]) })\n"
+            "  CHART(tz('Asia/Seoul'), chartOption({\n"
+            "    xAxis: { type: 'time' },\n"
+            "    series: [{ data: column(0) }]\n"
+            "  }))\n"
         )
 
     # Detect unsupported math functions inside SQL() blocks in TQL
@@ -1684,17 +1705,17 @@ async def validate_chart_tql(
 
     def generate_default_chart(col_count: int) -> str:
         if col_count == 2:
-            transformation = "MAPVALUE(0, list(value(0), value(1)))\nPOPVALUE(1)\n"
+            transformation = "SCRIPT({\n    $.yield([$.values[0], $.values[1]])\n})\n"
         elif col_count == 3:
-            transformation = "MAPVALUE(0, list(value(1), value(2)))\nPOPVALUE(1, 2)\n"
+            transformation = "SCRIPT({\n    $.yield([$.values[1], $.values[2]])\n})\n"
         else:
-            transformation = "MAPVALUE(0, list(value(0), value(1)))\nPOPVALUE(1)\n"
+            transformation = "SCRIPT({\n    $.yield([$.values[0], $.values[1]])\n})\n"
 
         chart_template = """CHART(
     tz('Asia/Seoul'),
     chartOption({
         title: { text: "Time Series Chart" },
-        xAxis: { type: "time", name: "Time" },
+        xAxis: { type: "time" },
         yAxis: { type: "value", name: "Value" },
         tooltip: { trigger: "axis" },
         series: [{ type: "line", data: column(0), smooth: true }]
