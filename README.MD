@@ -103,14 +103,16 @@ For manual installation or if errors occur during the above installation process
    # Machbase.py to C:/Users/Username/AppData/Roaming/Claude/
 
    {
-       "mcpServers": {
-         "machbase": {
-           "command": "C:/Users/Username/anaconda3/envs/mcp/python.exe",
-           "args": ["C:/Users/Username/AppData/Roaming/Claude/Machbase.py"],
-           "env": {
-             "MACHBASE_HOST": "localhost",
-             "MACHBASE_PORT": "5654"
-             }
+   "mcpServers": {
+      "machbase": {
+         "command": "C:/Users/MACH-DE-28/anaconda3/envs/mcp/python.exe",
+         "args": ["C:/Users/MACH-DE-28/Desktop/실험/MCP/Machbase.py"],
+         "env": {
+         "MACHBASE_HOST": "localhost",
+         "MACHBASE_PORT": "5654",
+         "MACHBASE_USER": "sys",
+         "MACHBASE_PASSWORD": "manager"
+            }
          }
       }
    }
