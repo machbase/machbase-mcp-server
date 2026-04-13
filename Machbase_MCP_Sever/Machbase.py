@@ -920,7 +920,6 @@ async def list_tables(
 @mcp.tool()
 async def list_table_tags(
     table_name: str,
-    limit: int = 100,
     host: Optional[str] = None,
     port: Optional[int] = None
 ) -> str:
@@ -957,10 +956,7 @@ async def list_table_tags(
             if len(lines) < 2:
                 return f"Table '{table_name}' does not exist."
 
-        if limit > 0:
-            tags_query = f"SELECT DISTINCT NAME FROM {table_name} ORDER BY NAME LIMIT {limit}"
-        else:
-            tags_query = f"SELECT DISTINCT NAME FROM {table_name} ORDER BY NAME"
+        tags_query = f"SELECT * FROM _{table_name}_meta"
 
         params = urlencode({
             "q": tags_query,
@@ -982,8 +978,8 @@ async def list_table_tags(
 
             tags = []
             for row in rows[1:]:
-                if row and len(row) > 0 and row[0].strip():
-                    tags.append(f"• {row[0]}")
+                if row and len(row) > 0 and row[1].strip():
+                    tags.append(f"• {row[1]}")
 
             if tags:
                 tag_count = len(tags)
@@ -991,9 +987,6 @@ async def list_table_tags(
                 result = f"Tags in table '{table_name}' ({machbase_url}) :\n"
                 result += f"Tag column: NAME\n"
                 result += f"Found {tag_count} tags:\n\n{tag_list}"
-
-                if limit > 0 and tag_count >= limit:
-                    result += f"\n\n(Limited to {limit} tags. Use higher limit to see more.)"
 
                 return result
             else:
@@ -1007,7 +1000,6 @@ async def list_table_tags(
         return f"Query timeout while getting tags from table '{table_name}'"
     except Exception as e:
         return f"Error occurred while retrieving tags from table '{table_name}': {str(e)}"
-
 
 @mcp.tool()
 async def execute_sql_query(
