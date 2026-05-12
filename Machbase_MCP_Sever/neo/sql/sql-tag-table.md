@@ -412,41 +412,55 @@ The `name` column (or the column designated as `PRIMARY KEY` in the Tag Table de
 
 Consider a manufacturing scenario tracking various sensor readings associated with specific production lots.
 
+Tag table definition:
+
 ```sql
--- Tag table definition
 CREATE TAG TABLE tag (
-    name                   VARCHAR(100) PRIMARY KEY, -- Unique identifier, potentially combination of factory/equip/tag_id
+    name                   VARCHAR(100) PRIMARY KEY,
     time                   DATETIME BASETIME,
     value                  DOUBLE SUMMARIZED,
-    lot_no                 VARCHAR(32)             -- Additional data column specific to each reading
+    lot_no                 VARCHAR(32)
 )
 METADATA (
-    factory_id             VARCHAR(16),             -- Metadata: Factory identifier
-    equipment_id           VARCHAR(16),             -- Metadata: Equipment identifier
-    tag_id                 VARCHAR(32)              -- Metadata: Base sensor identifier
+    factory_id             VARCHAR(16),
+    equipment_id           VARCHAR(16),
+    tag_id                 VARCHAR(32)
 );
+```
 
--- Optional: Create an index on the additional data column for faster lookups by lot_no
+Optional: Create an index on the additional data column for faster lookups by lot_no:
+
+```sql
 CREATE INDEX idx_tag_lot_no ON tag (lot_no) INDEX_TYPE TAG;
 ```
 
 **Example Queries:**
 
+Retrieve all tag data for a specific factory:
+
 ```sql
--- Retrieve all tag data for a specific factory
 SELECT * FROM tag WHERE factory_id = 'fac01';
+```
 
--- Retrieve data for a specific equipment within a specific factory
+Retrieve data for a specific equipment within a specific factory:
+
+```sql
 SELECT * FROM tag WHERE factory_id = 'fac01' AND equipment_id = 'equip01';
+```
 
--- Retrieve specific columns for data associated with a particular production lot
-SELECT name, time, value FROM tag WHERE lot_no = 'lot2001'; -- Uses idx_tag_lot_no if beneficial
+Retrieve specific columns for data associated with a particular production lot (uses idx_tag_lot_no if beneficial):
 
--- Retrieve data for specific tags on specific equipment/factory within a time range
+```sql
+SELECT name, time, value FROM tag WHERE lot_no = 'lot2001';
+```
+
+Retrieve data for specific tags on specific equipment/factory within a time range:
+
+```sql
 SELECT * FROM tag
 WHERE factory_id = 'fac01'
   AND equipment_id = 'equip01'
-  AND tag_id IN ('tag01', 'tag02', 'tag03') -- Filter using metadata tag_id
+  AND tag_id IN ('tag01', 'tag02', 'tag03')
   AND time BETWEEN TO_DATE('2023-08-15 00:00:00') AND TO_DATE('2023-08-15 23:59:59');
 ```
 
@@ -454,19 +468,29 @@ WHERE factory_id = 'fac01'
 
 Standard SQL `SELECT` statements are used, leveraging the implicit indexing on `name` and `time`.
 
+Get total record count:
+
 ```sql
--- Get total record count
 SELECT count(*) FROM tag;
+```
 
--- Get overall time range of data
+Get overall time range of data:
+
+```sql
 SELECT min(time), max(time) FROM tag;
+```
 
--- Retrieve raw data for a specific tag within a time range (ordered chronologically)
+Retrieve raw data for a specific tag within a time range (ordered chronologically):
+
+```sql
 SELECT time, value FROM tag
 WHERE name = 'TAG_00001'
   AND time BETWEEN TO_DATE('2023-01-01') AND TO_DATE('2023-01-31');
+```
 
--- Retrieve raw data for multiple specific tags, ordered reverse chronologically
+Retrieve raw data for multiple specific tags, ordered reverse chronologically:
+
+```sql
 SELECT /*+ SCAN_BACKWARD(tag) */ time, value FROM tag
 WHERE name IN ('TAG1', 'TAG2')
   AND time BETWEEN TO_DATE('2023-01-01') AND TO_DATE('2023-01-31');
@@ -567,17 +591,27 @@ Data deletion in Tag Tables is primarily time-based or tag-based. Point updates 
 
 **Deletion Syntax Examples:**
 
+Delete all data BEFORE a specific timestamp across all tags:
+
 ```sql
--- Delete all data BEFORE a specific timestamp across all tags
 DELETE FROM table_name BEFORE TO_DATE('2023-01-15 00:00:00');
+```
 
--- Delete ALL data from the table (use with extreme caution)
+Delete ALL data from the table (use with extreme caution):
+
+```sql
 DELETE FROM table_name;
+```
 
--- Delete all data for a SPECIFIC tag
+Delete all data for a SPECIFIC tag:
+
+```sql
 DELETE FROM table_name WHERE name = 'TAG01';
+```
 
--- Delete data for a SPECIFIC tag BEFORE a specific timestamp
+Delete data for a SPECIFIC tag BEFORE a specific timestamp:
+
+```sql
 DELETE FROM table_name WHERE name = 'TAG01' AND time < TO_DATE('2023-02-01 00:00:00');
 ```
 
@@ -618,15 +652,27 @@ CREATE TAG TABLE mytag (
     value DOUBLE SUMMARIZED,
     lot_no VARCHAR(32)
 );
+```
 
--- Create external indexes on 'value' and 'lot_no' columns
+Create external indexes on 'value' and 'lot_no' columns:
+
+```sql
 CREATE INDEX idx_mytag_value ON mytag(value) INDEX_TYPE TAG;
+```
+
+```sql
 CREATE INDEX idx_mytag_lotno ON mytag(lot_no) INDEX_TYPE TAG;
+```
 
--- This query can now potentially use the external index idx_mytag_value
+This query can now potentially use the external index idx_mytag_value:
+
+```sql
 SELECT * FROM mytag WHERE name = 'TAG-2' AND value > 33;
+```
 
--- This query can potentially use the external index idx_mytag_lotno
+This query can potentially use the external index idx_mytag_lotno:
+
+```sql
 SELECT * FROM mytag WHERE lot_no = 'LOTXYZ' AND time > TO_DATE('2024-01-01');
 ```
 

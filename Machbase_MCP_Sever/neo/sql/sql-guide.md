@@ -40,7 +40,13 @@ Insert more records by executing insert statement repeatedly.
 
 ```sql
 INSERT INTO example VALUES('my-car', now, 1.2345*1.1);
+```
+
+```sql
 INSERT INTO example VALUES('my-car', now, 1.2345*1.2);
+```
+
+```sql
 INSERT INTO example VALUES('my-car', now, 1.2345*1.3);
 ```
 
@@ -228,22 +234,29 @@ TAG_PARTITION_COUNT = 4;
 **Purpose**: Applying advanced features individually
 **Keywords**: Individual option application
 
+Table with Rollup Extension feature:
+
 ```sql
--- Table with Rollup Extension feature
 CREATE TAG TABLE rollup_extended_sensor (
     device_name VARCHAR(100) PRIMARY KEY,
     recorded_time DATETIME BASETIME,
     sensor_value DOUBLE SUMMARIZED
 ) WITH ROLLUP EXTENSION;
+```
 
--- Table with statistics feature  
+Table with statistics feature:
+
+```sql
 CREATE TAG TABLE stat_enabled_sensor (
     device_name VARCHAR(100) PRIMARY KEY,
     recorded_time DATETIME BASETIME,
     sensor_value DOUBLE SUMMARIZED
 ) TAG_STAT_ENABLE = 1;
+```
 
--- Table with partition count limit
+Table with partition count limit:
+
+```sql
 CREATE TAG TABLE partition_limited_sensor (
     device_name VARCHAR(100) PRIMARY KEY,
     recorded_time DATETIME BASETIME,
@@ -295,10 +308,17 @@ INSERT INTO sensor_data VALUES ('HIGH_FREQ', '2024-03-10 10:05:15.123', 45.67);
 **Purpose**: Insert multiple records individually (batch INSERT not supported)
 **Keywords**: Sequential insertion
 
+Individual INSERTs (batch INSERT syntax not supported):
+
 ```sql
--- Individual INSERTs (batch INSERT syntax not supported)
 INSERT INTO iot_sensors VALUES ('SENSOR_01', '2024-03-10 10:00:00', 10.0);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('SENSOR_01', '2024-03-10 10:00:01', 10.1);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('SENSOR_01', '2024-03-10 10:00:02', 10.2);
 ```
 
@@ -306,10 +326,17 @@ INSERT INTO iot_sensors VALUES ('SENSOR_01', '2024-03-10 10:00:02', 10.2);
 **Purpose**: Individual insertion of data from multiple sensors
 **Keywords**: Multi-tag sequential insertion
 
+Individual insertion for multiple tags:
+
 ```sql
--- Individual insertion for multiple tags
 INSERT INTO sensor_data VALUES ('CPU_TEMP', '2024-03-10 15:30:00', 68.5);
+```
+
+```sql
 INSERT INTO sensor_data VALUES ('CPU_USAGE', '2024-03-10 15:30:00', 85.2);
+```
+
+```sql
 INSERT INTO sensor_data VALUES ('MEMORY_USAGE', '2024-03-10 15:30:00', 76.4);
 ```
 
@@ -724,13 +751,15 @@ DROP TABLE test_table CASCADE;
 **Keywords**: Check existence before drop
 
 ```sql
--- Check table existence first
-SELECT COUNT(*) as table_exists 
-FROM M$SYS_TABLES 
+SELECT COUNT(*) as table_exists
+FROM M$SYS_TABLES
 WHERE name = 'TEMPORARY_DATA';
+```
 
--- Drop only if exists (manual verification required)
--- DROP TABLE temporary_data;
+Drop only if exists (manual verification required):
+
+```sql
+DROP TABLE temporary_data;
 ```
 
 #### 5.10 Table Existence Check

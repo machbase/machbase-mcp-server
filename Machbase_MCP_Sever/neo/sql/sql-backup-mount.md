@@ -25,9 +25,15 @@ Creates a complete copy of either the entire database instance or specified tabl
 
 **Syntax:**
 
+Database backup:
+
 ```sql
 BACKUP DATABASE INTO DISK = 'path/to/backup_directory_name';
+```
 
+Table backup:
+
+```sql
 BACKUP TABLE table_name INTO DISK = 'path/to/backup_directory_name';
 ```
 
@@ -45,9 +51,15 @@ Captures only the data that has changed since a previous backup (typically a ful
 
 **Syntax:**
 
+Database incremental backup:
+
 ```sql
 BACKUP DATABASE AFTER 'path/to/previous_backup' INTO DISK = 'path/to/incremental_backup_dir';
+```
 
+Table incremental backup:
+
+```sql
 BACKUP TABLE table_name AFTER 'path/to/previous_backup' INTO DISK = 'path/to/incremental_backup_dir';
 ```
 
@@ -65,12 +77,18 @@ Allows backing up data within a specific time window, particularly useful for ar
 
 **Syntax:**
 
+Database time-range backup:
+
 ```sql
 BACKUP DATABASE
     FROM time_expression_start
     TO time_expression_end
     INTO DISK = 'path/to/backup_directory_name';
+```
 
+Table time-range backup:
+
+```sql
 BACKUP TABLE table_name
     FROM time_expression_start
     TO time_expression_end
@@ -184,119 +202,209 @@ This section provides practical scenarios demonstrating the Backup and Mount wor
 **Setup:** Assume two TAG tables, `EQPT_A` and `EQPT_B`, exist and are populated with time-series data.
 
 ```sql
--- Initial Schema (Example)
 CREATE TAG TABLE IF NOT EXISTS EQPT_A (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) tag_partition_count=1;
-CREATE TAG TABLE IF NOT EXISTS EQPT_B (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) tag_partition_count=1;
+```
 
--- Assume data is loaded into EQPT_A and EQPT_B covering dates from 2024-01-01 to 2024-06-30
--- Example verification of live data range
+```sql
+CREATE TAG TABLE IF NOT EXISTS EQPT_B (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) tag_partition_count=1;
+```
+
+Assume data is loaded into EQPT_A and EQPT_B covering dates from 2024-01-01 to 2024-06-30. Verify live data range:
+
+```sql
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM EQPT_A;
+```
+
+```sql
 SELECT COUNT(*) FROM EQPT_A;
 ```
 
 ### Example 1: Full Database Backup and Mount
 
+**Step 1.** Perform a full database backup:
+
 ```sql
--- 1. Perform a full database backup into a specified directory
--- Ensure the target directory path exists or Machbase has permissions to create it.
-BACKUP DATABASE INTO DISK = '/backup/full_db_20240630'; -- Use an appropriate path
+BACKUP DATABASE INTO DISK = '/backup/full_db_20240630';
+```
 
--- 2. Mount the backup with an alias 'mount_fulldb'
+**Step 2.** Mount the backup with an alias 'mount_fulldb':
+
+```sql
 MOUNT DATABASE '/backup/full_db_20240630' TO mount_fulldb;
+```
 
--- 3. Query data from the mounted backup
--- Check time range in mounted EQPT_A
+**Step 3.** Query data from the mounted backup. Check time range:
+
+```sql
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_fulldb.sys.EQPT_A;
--- Check row count in mounted EQPT_A
-SELECT COUNT(*) FROM mount_fulldb.sys.EQPT_A;
--- Query specific data from mounted EQPT_B
-SELECT name, TO_CHAR(time), value FROM mount_fulldb.sys.EQPT_B LIMIT 5;
+```
 
--- 4. Unmount the backup when access is no longer needed
+Check row count:
+
+```sql
+SELECT COUNT(*) FROM mount_fulldb.sys.EQPT_A;
+```
+
+Query specific data from mounted EQPT_B:
+
+```sql
+SELECT name, TO_CHAR(time), value FROM mount_fulldb.sys.EQPT_B LIMIT 5;
+```
+
+**Step 4.** Unmount the backup when access is no longer needed:
+
+```sql
 UNMOUNT DATABASE mount_fulldb;
 ```
 
 ### Example 2: Time-Range Database Backup and Mount
 
+**Step 1.** Backup data only from Jan 1st, 2024 to Mar 31st, 2024:
+
 ```sql
--- 1. Backup data only from Jan 1st, 2024 to Mar 31st, 2024
 BACKUP DATABASE
     FROM TO_DATE('2024-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
     TO TO_DATE('2024-03-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
-    INTO DISK = '/backup/db_2024Q1'; -- Use an appropriate path
+    INTO DISK = '/backup/db_2024Q1';
+```
 
--- 2. (Optional) Simulate data aging by deleting older data from the live tables
+**Step 2.** (Optional) Simulate data aging by deleting older data from the live tables:
+
+```sql
 DELETE FROM EQPT_A BEFORE TO_DATE('2024-03-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS');
+```
+
+```sql
 DELETE FROM EQPT_B BEFORE TO_DATE('2024-03-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS');
--- Verify live data count has decreased
+```
+
+Verify live data count has decreased:
+
+```sql
 SELECT COUNT(*) FROM EQPT_A;
+```
 
--- 3. Mount the time-range backup
+**Step 3.** Mount the time-range backup:
+
+```sql
 MOUNT DATABASE '/backup/db_2024Q1' TO mount_q1;
+```
 
--- 4. Query the mounted backup - it should contain the original data for Q1
-SELECT COUNT(*) FROM mount_q1.sys.EQPT_A; -- Should match original Q1 count
-SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_q1.sys.EQPT_A; -- Should show Q1 range
+**Step 4.** Query the mounted backup (should contain the original data for Q1):
 
--- Compare counts between live (post-delete) and mounted (pre-delete)
+```sql
+SELECT COUNT(*) FROM mount_q1.sys.EQPT_A;
+```
+
+```sql
+SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_q1.sys.EQPT_A;
+```
+
+Compare counts between live (post-delete) and mounted (pre-delete):
+
+```sql
 SELECT COUNT(*) AS live_count FROM EQPT_A;
-SELECT COUNT(*) AS mounted_q1_count FROM mount_q1.sys.EQPT_A;
+```
 
--- 5. Unmount the backup
+```sql
+SELECT COUNT(*) AS mounted_q1_count FROM mount_q1.sys.EQPT_A;
+```
+
+**Step 5.** Unmount the backup:
+
+```sql
 UNMOUNT DATABASE mount_q1;
 ```
 
 ### Example 3: Table-Specific, Time-Range Backup and Mount
 
+**Step 1.** Backup only table EQPT_A for the period April 1st to May 15th, 2024:
+
 ```sql
--- 1. Backup only table EQPT_A for the period April 1st to May 15th, 2024
 BACKUP TABLE EQPT_A
     FROM TO_DATE('2024-04-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
     TO TO_DATE('2024-05-15 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
-    INTO DISK = '/backup/eqpta_20240401_20240515'; -- Use an appropriate path
+    INTO DISK = '/backup/eqpta_20240401_20240515';
+```
 
--- 2. Mount the table-specific backup
+**Step 2.** Mount the table-specific backup:
+
+```sql
 MOUNT DATABASE '/backup/eqpta_20240401_20240515' TO mount_eqpta_partial;
+```
 
--- 3. Query the mounted backup
--- Verify time range and count match the specified backup window
+**Step 3.** Query the mounted backup. Verify time range:
+
+```sql
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_eqpta_partial.sys.EQPT_A;
+```
+
+Check count:
+
+```sql
 SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_A;
--- Query raw data sample
+```
+
+Query raw data sample:
+
+```sql
 SELECT name, TO_CHAR(time), value FROM mount_eqpta_partial.sys.EQPT_A LIMIT 5;
+```
 
--- Attempting to query EQPT_B from this mount will fail (it wasn't included)
--- SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_B; -- Expected error: table not found
+> Note: Attempting to query EQPT_B from this mount will fail (it wasn't included in the backup).
 
--- 4. Unmount the backup
+**Step 4.** Unmount the backup:
+
+```sql
 UNMOUNT DATABASE mount_eqpta_partial;
 ```
 
 ### Example 4: Mounting Multiple Backups Concurrently
 
+Assuming backups from previous examples exist: '/backup/db_2024Q1' (Full DB, Q1), '/backup/full_db_20240630' (Full DB, up to Jun 30), '/backup/eqpta_20240401_20240515' (EQPT_A only, Apr 1 - May 15).
+
+**Step 1.** Mount all three backups with unique aliases:
+
 ```sql
--- Assuming backups from previous examples exist:
--- '/backup/db_2024Q1' (Full DB, Q1)
--- '/backup/full_db_20240630' (Full DB, up to Jun 30)
--- '/backup/eqpta_20240401_20240515' (EQPT_A only, Apr 1 - May 15)
-
--- 1. Mount all three backups with unique aliases
 MOUNT DATABASE '/backup/db_2024Q1' TO mount_q1;
+```
+
+```sql
 MOUNT DATABASE '/backup/full_db_20240630' TO mount_jun30;
+```
+
+```sql
 MOUNT DATABASE '/backup/eqpta_20240401_20240515' TO mount_eqpta_partial;
+```
 
--- 2. Query data across different mounts
--- Count from EQPT_A in Q1 backup
+**Step 2.** Query data across different mounts. Count from EQPT_A in Q1 backup:
+
+```sql
 SELECT COUNT(*) FROM mount_q1.sys.EQPT_A;
--- Count from EQPT_B in the full backup
-SELECT COUNT(*) FROM mount_jun30.sys.EQPT_B;
--- Count from EQPT_A in the partial table backup
-SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_A;
--- Attempt to count EQPT_B from the partial backup (will fail)
--- SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_B;
+```
 
--- 3. Unmount all backups when finished
+Count from EQPT_B in the full backup:
+
+```sql
+SELECT COUNT(*) FROM mount_jun30.sys.EQPT_B;
+```
+
+Count from EQPT_A in the partial table backup:
+
+```sql
+SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_A;
+```
+
+**Step 3.** Unmount all backups when finished:
+
+```sql
 UNMOUNT DATABASE mount_q1;
+```
+
+```sql
 UNMOUNT DATABASE mount_jun30;
+```
+
+```sql
 UNMOUNT DATABASE mount_eqpta_partial;
 ```

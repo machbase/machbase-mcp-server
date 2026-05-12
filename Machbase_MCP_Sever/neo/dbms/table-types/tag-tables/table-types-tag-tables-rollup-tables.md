@@ -122,15 +122,20 @@ When multiple rollups share the same interval, value column, and JSON path, the 
 ### How to create a filtered rollup
 ```sql
 CREATE ROLLUP <rollup_name>
-  ON <table_name>(<value_col>)
+  ( ON <table_name>(<value_col>)
+  | FROM <src_rollup_table_name> )
   INTERVAL <n> <SEC|MIN|HOUR>
-  [WITH <props>]
-  [WHERE <predicate>];
+  WHERE <predicate>;
 ```
 - The predicate is applied to source rows **before** aggregation; predicate columns are not stored in the rollup table.
 - Allowed: regular scalar expressions (AND/OR/NOT, comparison, BETWEEN, IN, LIKE, CASE, non-aggregate functions) that reference existing columns, including non‑summarized columns such as `value2` or `status`.
 - Not allowed: subqueries, aggregate functions, unknown columns, or the tag-name (PK) column of a tag table (it is internally numeric, so string comparison is meaningless).
 - Validation happens during `CREATE ROLLUP`; invalid predicates fail fast with an error.
+
+### WHERE in conditional rollup vs custom rollup
+- Conditional rollup uses an external `WHERE` with the `ON/FROM` syntax.
+- Custom Rollup (`INTO ... AS (SELECT ...)`) supports `WHERE` only inside the `SELECT`.
+- Therefore, `CREATE ROLLUP ... INTO (...) AS (...) INTERVAL ... WHERE ...` is not valid.
 
 ### Automatic selection order (no hint)
 1. If a `ROLLUP_TABLE(<rollup_table_name>)` hint exists, it always wins.
@@ -185,16 +190,29 @@ ORDER BY rt;
 
 ## Start/Stop Rollup Table
 
-When rollup is created, rollup thread is automatically started, and the user can start/stop rollup thread arbitrarily.
+When a rollup is created its worker thread starts automatically. You can toggle it later with either the stored procedures or the SQL syntax.
 
 ```sql
--- Start specific rollup
-EXEC ROLLUP_START(rollup_name)
- 
--- Stop specific rollup
-EXEC ROLLUP_STOP(rollup_name)
+-- Start/stop a rollup
+ALTER ROLLUP <rollup_name> START;
+ALTER ROLLUP <rollup_name> STOP;
+
+-- Equivalent procedures
+EXEC ROLLUP_START(<rollup_name>);
+EXEC ROLLUP_STOP(<rollup_name>);
 ```
 
+### Wakeup interval and scheduling
+- Each rollup wakes up on its own schedule. By default the wakeup interval equals the rollup interval, but you can tighten it to run more frequently (while still aligned to the rollup boundary).
+- Syntax to change the wakeup interval:
+```sql
+ALTER ROLLUP <rollup_name> SET WAKEUP INTERVAL <N> (SEC|MIN|HOUR);
+```
+ - `N` must be > 0.
+ - `N` converted to seconds must be **no larger** than the rollup interval.
+ - The rollup interval must be an exact multiple of the wakeup interval; otherwise an error is raised.
+ - When changed, the thread wakes immediately and reschedules the next wakeup.
+- Observability: `V$ROLLUP` now exposes `WAKEUP_INTERVAL`, `LAST_WAKEUP_TIME`, `NEXT_WAKEUP_TIME`, and `RUN_STATE` (INIT/SLEEPING/RUNNING). `show rollupgap` also shows the last/next wakeup and run state.
 
 ## Collect Rollup Instantly
 
@@ -204,8 +222,13 @@ rollup basically aggregate data in set time unit.
 User can aggregate data in force.
 
 ```sql
--- Execute specific rollup flush immediately
-EXEC ROLLUP_FORCE(rollup_name)
+-- Non-blocking: just wake the thread now, then return
+ALTER ROLLUP <rollup_name> WAKEUP;
+
+-- Blocking: run rollup immediately and wait for completion
+ALTER ROLLUP <rollup_name> FORCE;
+-- Equivalent procedure
+EXEC ROLLUP_FORCE(<rollup_name>);
 ```
 
 

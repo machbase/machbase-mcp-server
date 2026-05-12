@@ -82,17 +82,27 @@ WITH ROLLUP [ ( SEC | MIN | HOUR ) ] [ EXTENSION ];
 
 **Examples:**
 
+Create SEC, MIN, HOUR Rollups:
+
 ```sql
--- Create SEC, MIN, HOUR Rollups
 CREATE TAG TABLE sensor_data (...) WITH ROLLUP;
+```
 
--- Create MIN, HOUR Rollups
+Create MIN, HOUR Rollups:
+
+```sql
 CREATE TAG TABLE hourly_stats (...) WITH ROLLUP (MIN);
+```
 
--- Create HOUR Rollup only
+Create HOUR Rollup only:
+
+```sql
 CREATE TAG TABLE daily_summary (...) WITH ROLLUP (HOUR);
+```
 
--- Create SEC, MIN, HOUR Rollups with FIRST/LAST support
+Create SEC, MIN, HOUR Rollups with FIRST/LAST support:
+
+```sql
 CREATE TAG TABLE detailed_sensor_data (...) WITH ROLLUP EXTENSION;
 ```
 
@@ -123,14 +133,21 @@ INTERVAL interval_value ( SEC | MIN | HOUR )
 
 **Examples:**
 
+Create a 30-second Rollup based on the 'tag_data' table's 'value' column:
+
 ```sql
--- Create a 30-second Rollup based on the 'tag_data' table's 'value' column
 CREATE ROLLUP _tag_data_rollup_30sec ON tag_data(value) INTERVAL 30 SEC;
+```
 
--- Create a 10-minute Rollup based on the previously created 30-second Rollup
+Create a 10-minute Rollup based on the previously created 30-second Rollup:
+
+```sql
 CREATE ROLLUP _tag_data_rollup_10min ON _tag_data_rollup_30sec INTERVAL 10 MIN;
+```
 
--- Create a 15-minute Rollup with FIRST/LAST support
+Create a 15-minute Rollup with FIRST/LAST support:
+
+```sql
 CREATE ROLLUP _tag_data_rollup_15min_ext ON tag_data(value) INTERVAL 15 MIN EXTENSION;
 ```
 
@@ -140,11 +157,12 @@ When a TAG table has Rollup tables (created via `WITH ROLLUP` or `CREATE ROLLUP`
 
 ### Performance Comparison
 
-```sql
--- Assuming a TAG table with millions of rows and WITH ROLLUP enabled
+Assuming a TAG table with millions of rows and WITH ROLLUP enabled:
 
--- SLOW: Regular aggregation scans all raw data
-SELECT 
+SLOW — Regular aggregation scans all raw data (scans millions of raw records):
+
+```sql
+SELECT
     DATE_TRUNC('hour', time) as hour_time,
     AVG(value) as avg_value
 FROM sensor_data
@@ -152,9 +170,11 @@ WHERE name = 'SENSOR_A'
   AND time BETWEEN TO_DATE('2024-01-01') AND TO_DATE('2024-12-31')
 GROUP BY DATE_TRUNC('hour', time)
 ORDER BY hour_time;
--- Performance: Scans millions of raw records
+```
 
--- FAST: ROLLUP() function uses pre-aggregated data
+FAST — ROLLUP() function uses pre-aggregated data (100x+ faster):
+
+```sql
 SELECT
     ROLLUP('hour', 1, time) AS hour_time,
     AVG(value) AS avg_value
@@ -163,7 +183,6 @@ WHERE name = 'SENSOR_A'
   AND time BETWEEN TO_DATE('2024-01-01') AND TO_DATE('2024-12-31')
 GROUP BY hour_time
 ORDER BY hour_time;
--- Performance: Reads from pre-aggregated Rollup table (100x+ faster)
 ```
 
 ### Key Rules
@@ -210,8 +229,9 @@ ORDER BY
 
 **Query Examples:**
 
+Hourly MIN and MAX values for TAG_00001 within a specific month:
+
 ```sql
--- Hourly MIN and MAX values for TAG_00001 within a specific month
 SELECT
     ROLLUP('hour', 1, time) as mtime,
     MIN(value),
@@ -221,8 +241,11 @@ WHERE name = 'TAG_00001'
   AND time BETWEEN TO_DATE('2023-01-01 00:00:00') AND TO_DATE('2023-01-31 23:59:59')
 GROUP BY mtime
 ORDER BY mtime;
+```
 
--- 15-minute average values, assuming a MIN or SEC level Rollup exists
+15-minute average values, assuming a MIN or SEC level Rollup exists:
+
+```sql
 SELECT
     ROLLUP('min', 15, time) AS rollup_interval,
     AVG(value)
@@ -230,8 +253,11 @@ FROM TAG
 WHERE name = 'SENSOR_A'
 GROUP BY rollup_interval
 ORDER BY rollup_interval;
+```
 
--- Daily FIRST and LAST values using Extension Rollup, aligning bins to Jan 1st, 2024
+Daily FIRST and LAST values using Extension Rollup, aligning bins to Jan 1st, 2024:
+
+```sql
 SELECT
     ROLLUP('day', 1, time, '2024-01-01') as day_interval,
     FIRST(time, value),
@@ -240,8 +266,11 @@ FROM TAG_WITH_EXTENSION
 WHERE name = 'SENSOR_B'
 GROUP BY day_interval
 ORDER BY day_interval;
+```
 
--- Weekly average, aligned to Mondays (assuming '2024-01-01' was a Monday)
+Weekly average, aligned to Mondays (assuming '2024-01-01' was a Monday):
+
+```sql
 SELECT
     ROLLUP('week', 1, time, '2024-01-01') AS week_start,
     AVG(value)
@@ -259,14 +288,21 @@ The aggregation process performed by Rollup threads can be manually controlled.
 
 **Commands:**
 
+Start the aggregation thread for a specific Rollup:
+
 ```sql
--- Start the aggregation thread for a specific Rollup
 EXEC ROLLUP_START('rollup_name');
+```
 
--- Stop the aggregation thread for a specific Rollup
+Stop the aggregation thread for a specific Rollup:
+
+```sql
 EXEC ROLLUP_STOP('rollup_name');
+```
 
--- Force immediate aggregation processing for a specific Rollup, bypassing the normal interval wait time
+Force immediate aggregation processing for a specific Rollup, bypassing the normal interval wait time:
+
+```sql
 EXEC ROLLUP_FORCE('rollup_name');
 ```
 
@@ -274,8 +310,16 @@ EXEC ROLLUP_FORCE('rollup_name');
 
 ```sql
 EXEC ROLLUP_START('_tag_data_rollup_30sec');
+```
+
+```sql
 EXEC ROLLUP_STOP('_tag_data_rollup_10min');
-EXEC ROLLUP_FORCE('_tag_rollup_hour'); -- Process pending data for the hourly rollup now
+```
+
+Process pending data for the hourly rollup now:
+
+```sql
+EXEC ROLLUP_FORCE('_tag_rollup_hour');
 ```
 
 ### Rollup Data Deletion
@@ -284,27 +328,41 @@ Deleting data from the source TAG table does **not** automatically remove the co
 
 **Syntax:**
 
+Delete all Rollup data for the specified table:
+
 ```sql
--- Delete all Rollup data for the specified table
 DELETE FROM table_name ROLLUP;
+```
 
--- Delete Rollup data before a specific timestamp for the specified table
+Delete Rollup data before a specific timestamp for the specified table:
+
+```sql
 DELETE FROM table_name ROLLUP BEFORE TO_DATE('YYYY-MM-DD HH24:MI:SS');
+```
 
--- Delete all Rollup data for a specific tag within the table
+Delete all Rollup data for a specific tag within the table:
+
+```sql
 DELETE FROM table_name ROLLUP WHERE name = 'specific_tag_id';
+```
 
--- Delete Rollup data for a specific tag before a specific timestamp
+Delete Rollup data for a specific tag before a specific timestamp:
+
+```sql
 DELETE FROM table_name ROLLUP WHERE name = 'specific_tag_id' AND time <= TO_DATE('YYYY-MM-DD HH24:MI:SS');
 ``` 
 
 **Examples:**
 
-```sql
--- Remove all Rollup data associated with the 'TAG' table older than Jan 15, 2024
-DELETE FROM TAG ROLLUP BEFORE TO_DATE('2024-01-15 00:00:00');
+Remove all Rollup data associated with the 'TAG' table older than Jan 15, 2024:
 
--- Remove all Rollup data for 'TAG01' from the 'TAG' table
+```sql
+DELETE FROM TAG ROLLUP BEFORE TO_DATE('2024-01-15 00:00:00');
+```
+
+Remove all Rollup data for 'TAG01' from the 'TAG' table:
+
+```sql
 DELETE FROM TAG ROLLUP WHERE name = 'TAG01';
 ```
 
@@ -314,11 +372,15 @@ Custom Rollup tables can be dropped individually. Default Rollup tables are typi
 
 **Syntax:**
 
-```sql
--- Drop a specific Custom Rollup table
-DROP ROLLUP rollup_name;
+Drop a specific Custom Rollup table:
 
--- Drop a TAG table and all its dependent Rollup tables (Default and Custom)
+```sql
+DROP ROLLUP rollup_name;
+```
+
+Drop a TAG table and all its dependent Rollup tables (Default and Custom):
+
+```sql
 DROP TABLE tag_table_name CASCADE;
 ```
 
@@ -326,12 +388,19 @@ DROP TABLE tag_table_name CASCADE;
 
 **Example:**
 
-```sql
--- Assuming _rollup_min depends on _rollup_sec
-DROP ROLLUP _rollup_min;
-DROP ROLLUP _rollup_sec;
+Assuming _rollup_min depends on _rollup_sec, drop in reverse order:
 
--- Drop the 'sensor_data' TAG table and all associated Rollups
+```sql
+DROP ROLLUP _rollup_min;
+```
+
+```sql
+DROP ROLLUP _rollup_sec;
+```
+
+Drop the 'sensor_data' TAG table and all associated Rollups:
+
+```sql
 DROP TABLE sensor_data CASCADE;
 ```
 
@@ -379,30 +448,49 @@ This section provides practical examples illustrating the creation, management, 
 
 This example demonstrates creating a TAG table with default Rollup tables (SEC, MIN, HOUR) and querying hourly aggregates.
 
+**Step 1.** Create a TAG table with default Rollups enabled (creates _iot_sensors_ROLLUP_SEC, _iot_sensors_ROLLUP_MIN, _iot_sensors_ROLLUP_HOUR):
+
 ```sql
--- 1. Create a TAG table with default Rollups enabled
 CREATE TAG TABLE iot_sensors (
     sensor_id VARCHAR(50) PRIMARY KEY,
     event_time DATETIME BASETIME,
-    temperature DOUBLE SUMMARIZED -- SUMMARIZED required for Rollup on this column
-)
-WITH ROLLUP; -- Creates _iot_sensors_ROLLUP_SEC, _iot_sensors_ROLLUP_MIN, _iot_sensors_ROLLUP_HOUR
+    temperature DOUBLE SUMMARIZED
+) WITH ROLLUP;
+```
 
--- 2. Insert some sample data
+**Step 2.** Insert sample data:
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-10 10:05:15', 20.1);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-10 10:15:30', 20.5);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-10 10:55:00', 21.0);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-10 11:05:00', 21.5);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-10 11:35:45', 21.8);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_B', '2024-03-10 10:10:00', 15.0);
+```
+
+```sql
 INSERT INTO iot_sensors VALUES ('TEMP_B', '2024-03-10 11:10:00', 16.0);
+```
 
--- Wait briefly for Rollup process or force it (optional)
--- EXEC ROLLUP_FORCE('_iot_sensors_ROLLUP_SEC');
--- EXEC ROLLUP_FORCE('_iot_sensors_ROLLUP_MIN');
--- EXEC ROLLUP_FORCE('_iot_sensors_ROLLUP_HOUR');
+**Step 3.** Query the average hourly temperature for sensor TEMP_A:
 
--- 3. Query the average hourly temperature for sensor TEMP_A
+```sql
 SELECT
     ROLLUP('hour', 1, event_time) AS hour_interval,
     AVG(temperature) AS avg_temp
@@ -415,31 +503,34 @@ GROUP BY
     hour_interval
 ORDER BY
     hour_interval;
+```
 
-/* Expected Approximate Output:
+Expected approximate output:
+
+```text
 hour_interval                   avg_temp
 ---------------------------------------------------------------
 2024-03-10 10:00:00 000:000:000 20.533...  -- Avg of 20.1, 20.5, 21.0
 2024-03-10 11:00:00 000:000:000 21.65      -- Avg of 21.5, 21.8
-*/
 ```
 
 ### Example 2: Custom Rollup Creation and Query
 
 This example creates a custom Rollup table aggregating data every 15 minutes.
 
-```sql
--- Prerequisite: Assume iot_sensors table exists from Example 1
+Prerequisite: Assume iot_sensors table exists from Example 1.
 
--- 1. Create a custom 15-minute Rollup table based on the 'temperature' column
+**Step 1.** Create a custom 15-minute Rollup table based on the 'temperature' column:
+
+```sql
 CREATE ROLLUP _iot_sensors_rollup_15min
 ON iot_sensors (temperature)
 INTERVAL 15 MIN;
+```
 
--- Wait or force Rollup processing (optional)
--- EXEC ROLLUP_FORCE('_iot_sensors_rollup_15min');
+**Step 2.** Query MIN and MAX temperature aggregated over 15-minute intervals for TEMP_A:
 
--- 2. Query MIN and MAX temperature aggregated over 15-minute intervals for TEMP_A
+```sql
 SELECT
     ROLLUP('min', 15, event_time) AS interval_15min,
     MIN(temperature) AS min_temp,
@@ -453,8 +544,11 @@ GROUP BY
     interval_15min
 ORDER BY
     interval_15min;
+```
 
-/* Expected Approximate Output:
+Expected approximate output:
+
+```text
 interval_15min                  min_temp    max_temp
 ---------------------------------------------------------------
 2024-03-10 10:00:00 000:000:000 20.1        20.1        -- 10:00 to 10:14:59
@@ -462,35 +556,55 @@ interval_15min                  min_temp    max_temp
 2024-03-10 10:45:00 000:000:000 21.0        21.0        -- 10:45 to 10:59:59 (data at 10:55)
 2024-03-10 11:00:00 000:000:000 21.5        21.5        -- 11:00 to 11:14:59
 2024-03-10 11:30:00 000:000:000 21.8        21.8        -- 11:30 to 11:44:59
-*/
 ```
 
 ### Example 3: Extended Rollup Query (FIRST/LAST)
 
 This example demonstrates querying the first and last values within an interval using an Extended Rollup.
 
+**Step 1.** Create a TAG table with default Rollups and EXTENSION (enable FIRST() and LAST()):
+
 ```sql
--- 1. Create a TAG table with default Rollups and EXTENSION
-DROP TABLE IF EXISTS iot_sensors_ext CASCADE; -- Clean up if exists
+DROP TABLE IF EXISTS iot_sensors_ext CASCADE;
+```
+
+```sql
 CREATE TAG TABLE iot_sensors_ext (
     sensor_id VARCHAR(50) PRIMARY KEY,
     event_time DATETIME BASETIME,
     pressure DOUBLE SUMMARIZED
-)
-WITH ROLLUP EXTENSION; -- Enable FIRST() and LAST()
+) WITH ROLLUP EXTENSION;
+```
 
--- 2. Insert sample data
+**Step 2.** Insert sample data:
+
+```sql
 INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 09:01:00', 1000.1);
-INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 09:05:00', 1000.5); -- First in 09:00 interval
-INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 09:55:00', 1001.0); -- Last in 09:00 interval
-INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:02:00', 1001.2); -- First in 10:00 interval
+```
+
+```sql
+INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 09:05:00', 1000.5);
+```
+
+```sql
+INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 09:55:00', 1001.0);
+```
+
+```sql
+INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:02:00', 1001.2);
+```
+
+```sql
 INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:08:00', 1001.5);
-INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:40:00', 1001.8); -- Last in 10:00 interval
+```
 
--- Wait or force Rollup processing (optional)
--- EXEC ROLLUP_FORCE('_iot_sensors_ext_ROLLUP_SEC'); ... etc.
+```sql
+INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:40:00', 1001.8);
+```
 
--- 3. Query the first and last pressure readings per hour for PRES_1
+**Step 3.** Query the first and last pressure readings per hour for PRES_1:
+
+```sql
 SELECT
     ROLLUP('hour', 1, event_time) AS hour_interval,
     FIRST(event_time, pressure) AS first_pressure,
@@ -503,23 +617,26 @@ GROUP BY
     hour_interval
 ORDER BY
     hour_interval;
+```
 
-/* Expected Approximate Output:
+Expected approximate output:
+
+```text
 hour_interval                   first_pressure last_pressure
 ----------------------------------------------------------------------
 2024-03-10 09:00:00 000:000:000 1000.5         1001.0
 2024-03-10 10:00:00 000:000:000 1001.2         1001.8
-*/
 ```
 
 ### Example 4: Querying Different Granularities (Daily/Weekly)
 
 This example uses the `iot_sensors` table (assuming it has data spanning multiple days/weeks) to query daily and weekly averages.
 
-```sql
--- Assume 'iot_sensors' table has data for TEMP_A from 2024-03-01 to 2024-03-15
+Assume 'iot_sensors' table has data for TEMP_A from 2024-03-01 to 2024-03-15.
 
--- 1. Query Daily Average Temperature for TEMP_A
+**Query 1.** Daily Average Temperature for TEMP_A:
+
+```sql
 SELECT
     ROLLUP('day', 1, event_time) AS day_interval,
     AVG(temperature) AS avg_daily_temp
@@ -532,10 +649,13 @@ GROUP BY
     day_interval
 ORDER BY
     day_interval;
+```
 
--- 2. Query Weekly Average Temperature for TEMP_A, aligning weeks starting on Monday ('2024-03-04')
+**Query 2.** Weekly Average Temperature for TEMP_A, aligning weeks starting on Monday ('2024-03-04'):
+
+```sql
 SELECT
-    ROLLUP('week', 1, event_time, '2024-03-04') AS week_start_monday, -- Specify origin for week alignment
+    ROLLUP('week', 1, event_time, '2024-03-04') AS week_start_monday,
     AVG(temperature) AS avg_weekly_temp
 FROM
     iot_sensors
@@ -553,22 +673,37 @@ ORDER BY
 
 This example demonstrates how to aggregate data on a monthly basis using the Rollup feature. This typically relies on the underlying HOUR-level Rollup table for efficient computation.
 
-```sql
--- Assume the 'iot_sensors' table (from Example 1) has data spanning several months,
--- for example, from January 2024 to April 2024 for sensor 'TEMP_A'.
--- Ensure data exists for multiple months to see aggregation.
--- Example Data (add more if needed):
-INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-01-15 12:00:00', 18.0);
-INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-01-25 14:00:00', 18.5);
-INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-02-10 08:00:00', 19.0);
-INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-02-20 09:00:00', 19.2);
-INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-05 10:00:00', 19.5); -- Use data from previous examples too
-INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-20 11:00:00', 20.0);
+Assume the 'iot_sensors' table (from Example 1) has data spanning several months (January 2024 to April 2024 for sensor 'TEMP_A'). Insert additional example data:
 
--- 1. Query the Average Monthly Temperature for TEMP_A
--- The origin defaults to '1970-01-01', which works for standard calendar months.
+```sql
+INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-01-15 12:00:00', 18.0);
+```
+
+```sql
+INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-01-25 14:00:00', 18.5);
+```
+
+```sql
+INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-02-10 08:00:00', 19.0);
+```
+
+```sql
+INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-02-20 09:00:00', 19.2);
+```
+
+```sql
+INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-05 10:00:00', 19.5);
+```
+
+```sql
+INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-20 11:00:00', 20.0);
+```
+
+**Query 1.** Average Monthly Temperature for TEMP_A (the origin defaults to '1970-01-01', which works for standard calendar months):
+
+```sql
 SELECT
-    ROLLUP('month', 1, event_time) AS month_interval, -- Aggregate data for each calendar month
+    ROLLUP('month', 1, event_time) AS month_interval,
     AVG(temperature) AS avg_monthly_temp,
     COUNT(temperature) AS data_points_per_month
 FROM
@@ -580,19 +715,23 @@ GROUP BY
     month_interval
 ORDER BY
     month_interval;
+```
 
-/* Expected Approximate Output (values depend heavily on exact data):
+Expected approximate output:
+
+```text
 month_interval                  avg_monthly_temp data_points_per_month
 --------------------------------------------------------------------------
 2024-01-01 00:00:00 000:000:000 18.25            2
 2024-02-01 00:00:00 000:000:000 19.1             2
-2024-03-01 00:00:00 000:000:000 20.55            8 -- (Including data from Example 1)
-*/
+2024-03-01 00:00:00 000:000:000 20.55            8
+```
 
--- 2. Query Quarterly (3-Month) SUM and COUNT for TEMP_A
--- Using period=3 with 'month' unit
+**Query 2.** Quarterly (3-Month) SUM and COUNT for TEMP_A (using period=3 with 'month' unit):
+
+```sql
 SELECT
-    ROLLUP('month', 3, event_time) AS quarter_interval, -- Aggregate data over 3-month periods
+    ROLLUP('month', 3, event_time) AS quarter_interval,
     SUM(temperature) AS sum_quarterly_temp,
     COUNT(temperature) AS data_points_per_quarter
 FROM
@@ -604,17 +743,21 @@ GROUP BY
     quarter_interval
 ORDER BY
     quarter_interval;
+```
 
-/* Expected Approximate Output:
+Expected approximate output:
+
+```text
 quarter_interval                sum_quarterly_temp data_points_per_quarter
 ----------------------------------------------------------------------------
-2024-01-01 00:00:00 000:000:000 241.1              12 -- Sum/Count for Jan, Feb, Mar combined
-*/
+2024-01-01 00:00:00 000:000:000 241.1              12
+```
 
--- 3. Explicitly setting Origin (Optional, useful if non-standard month alignment needed)
--- Note: If setting origin for 'month', it MUST be the first day of some month.
+**Query 3.** Explicitly setting Origin (if setting origin for 'month', it MUST be the first day of some month):
+
+```sql
 SELECT
-    ROLLUP('month', 1, event_time, '2024-01-01') AS month_interval, -- Origin explicitly set
+    ROLLUP('month', 1, event_time, '2024-01-01') AS month_interval,
     MIN(temperature) AS min_monthly_temp,
     MAX(temperature) AS max_monthly_temp
 FROM
@@ -626,30 +769,42 @@ GROUP BY
     month_interval
 ORDER BY
     month_interval;
+```
 
-/* Expected Approximate Output:
+Expected approximate output:
+
+```text
 month_interval                  min_monthly_temp max_monthly_temp
 --------------------------------------------------------------------
 2024-01-01 00:00:00 000:000:000 18.0             18.5
 2024-02-01 00:00:00 000:000:000 19.0             19.2
-2024-03-01 00:00:00 000:000:000 19.5             21.8 -- (Including data from Example 1)
-*/
+2024-03-01 00:00:00 000:000:000 19.5             21.8
 ```
 
 ### Example 6: Rollup Management Commands
 
 This example shows how to check the status, force processing, delete old Rollup data, and drop tables with Rollups.
 
+**Step 1.** Check the current Rollup gap status for all Rollups:
+
 ```sql
--- 1. Check the current Rollup gap status for all Rollups
 SHOW ROLLUPGAP;
+```
 
--- 2. Force immediate processing for a specific custom Rollup
--- EXEC ROLLUP_FORCE('_iot_sensors_rollup_15min');
+**Step 2.** Force immediate processing for a specific custom Rollup:
 
--- 3. Delete Rollup data older than March 1st, 2024 from the iot_sensors table's Rollups
+```sql
+EXEC ROLLUP_FORCE('_iot_sensors_rollup_15min');
+```
+
+**Step 3.** Delete Rollup data older than March 1st, 2024 from the iot_sensors table's Rollups:
+
+```sql
 DELETE FROM iot_sensors ROLLUP BEFORE TO_DATE('2024-03-01 00:00:00');
+```
 
--- 4. Drop the iot_sensors_ext table and all its associated Rollup tables
+**Step 4.** Drop the iot_sensors_ext table and all its associated Rollup tables:
+
+```sql
 DROP TABLE iot_sensors_ext CASCADE;
 ```

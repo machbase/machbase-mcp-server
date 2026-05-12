@@ -10,6 +10,8 @@ The features of machloader are as follows.
 * machloader supports APPEND mode by default.
 * machloader does not use the `_ARRIVAL_TIME` column by default. You must use the "-a" option to import/export the corresponding column data.
 
+For supported date/time formatting tokens, see [TO_CHAR (DATETIME)](dbms/sql-reference/functions.md).
+
 The options for machloader can be seen with the following command:
 
 ```bash

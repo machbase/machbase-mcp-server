@@ -6,6 +6,8 @@ The options have been simplified for simpler use of the CSV file using the machl
 
 In addition to the options described below, all options available in machloader are available.
 
+For supported date/time formatting tokens, see [TO_CHAR (DATETIME)](dbms/sql-reference/functions.md).
+
 ## csvimport 
 
 CSV files can be easily entered into the server using csvimport.

@@ -54,35 +54,51 @@ The primary benefit of the `v$tag_table_name_stat` view is the ability to retrie
 
 **Basic Query Patterns:**
 
-```sql
--- Retrieve min/max time boundaries for a specific tag
-SELECT min_time, max_time
-FROM v$your_tag_table_stat -- Replace 'your_tag_table' with the actual table name
-WHERE name = 'specific_tag_id';
+Retrieve min/max time boundaries for a specific tag (replace 'your_tag_table' with the actual table name):
 
--- Retrieve min/max time boundaries for multiple tags
+```sql
+SELECT min_time, max_time
+FROM v$your_tag_table_stat
+WHERE name = 'specific_tag_id';
+```
+
+Retrieve min/max time boundaries for multiple tags:
+
+```sql
 SELECT name, min_time, max_time
 FROM v$your_tag_table_stat
 WHERE name IN ('tag_id_1', 'tag_id_2', 'tag_id_3');
+```
 
--- Retrieve row count and min/max values for a specific tag (requires SUMMARIZED)
+Retrieve row count and min/max values for a specific tag (requires SUMMARIZED):
+
+```sql
 SELECT row_count, min_value, max_value
 FROM v$your_tag_table_stat
 WHERE name = 'specific_tag_id';
+```
 
--- Retrieve all statistics for all tags
+Retrieve all statistics for all tags:
+
+```sql
 SELECT *
 FROM v$your_tag_table_stat;
+```
 
--- Retrieve the actual data record corresponding to the most recent entry for a tag
+Retrieve the actual data record corresponding to the most recent entry for a tag:
+
+```sql
 SELECT *
 FROM your_tag_table
 WHERE name = 'specific_tag_id'
   AND time = (SELECT recent_row_time
               FROM v$your_tag_table_stat
               WHERE name = 'specific_tag_id');
+```
 
--- Retrieve the actual data record corresponding to the minimum value occurrence for a tag
+Retrieve the actual data record corresponding to the minimum value occurrence for a tag:
+
+```sql
 SELECT *
 FROM your_tag_table
 WHERE name = 'specific_tag_id'
@@ -109,18 +125,18 @@ These examples assume a TAG table named `tag` is created and populated, mirrorin
 
 **1. Schema Definition (Ensuring Statistics Enabled):**
 
-```sql
--- Drop existing table if necessary
--- DROP TABLE tag;
+Drop existing table if necessary: `DROP TABLE tag;`
 
--- Create the TAG table, enabling statistics and marking 'value' for summary
+Create the TAG table, enabling statistics and marking 'value' for summary:
+
+```sql
 CREATE TAG TABLE tag (
     name VARCHAR(80) PRIMARY KEY,
     time DATETIME BASETIME,
-    value DOUBLE SUMMARIZED -- Ensure SUMMARIZED is present for value stats
+    value DOUBLE SUMMARIZED
 )
-tag_partition_count=1, -- Example property
-TAG_STAT_ENABLE=1;    -- Explicitly set (though default=1)
+tag_partition_count=1,
+TAG_STAT_ENABLE=1;
 ```
 
 **2. Data Loading (Example using `machbase-neo` import):**
@@ -143,13 +159,17 @@ DESC v$tag_stat;
 
 **2. Checking Row Counts per Tag:**
 
+Efficiently get row counts using the statistics view:
+
 ```sql
--- Efficiently get row counts using the statistics view
 SELECT name, row_count
 FROM v$tag_stat
 ORDER BY name;
+```
 
--- Compare with direct count on the base table (will be slower for large tables)
+Compare with direct count on the base table (will be slower for large tables):
+
+```sql
 SELECT name, COUNT(*) AS direct_count
 FROM tag
 GROUP BY name
@@ -167,20 +187,27 @@ WHERE name IN ('use', 'gen', 'temperature');
 
 **4. Querying Data at Specific Statistical Points:**
 
+Get the full data record for the most recently added 'use' tag data:
+
 ```sql
--- Get the full data record for the most recently added 'use' tag data
 SELECT *
 FROM tag
 WHERE name = 'use'
   AND time = (SELECT recent_row_time FROM v$tag_stat WHERE name = 'use');
+```
 
--- Get the full data record when the minimum 'temperature' was recorded
+Get the full data record when the minimum 'temperature' was recorded:
+
+```sql
 SELECT *
 FROM tag
 WHERE name = 'temperature'
   AND time = (SELECT min_value_time FROM v$tag_stat WHERE name = 'temperature');
+```
 
--- Get the recorded value at the maximum time for the 'gen' tag
+Get the recorded value at the maximum time for the 'gen' tag:
+
+```sql
 SELECT value
 FROM tag
 WHERE name = 'gen'
@@ -193,59 +220,133 @@ These examples demonstrate how configuration choices affect statistics collectio
 
 **Scenario Setup:** Create three tables with different configurations but load them with the *same* sample data.
 
+**Table 1: Full Statistics Enabled (Standard Case)**
+
 ```sql
--- Table 1: Full Statistics Enabled (Standard Case)
 DROP TABLE IF EXISTS stat1;
-CREATE TAG TABLE stat1 (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) TAG_STAT_ENABLE=1;
-
--- Table 2: SUMMARIZED Keyword Omitted
-DROP TABLE IF EXISTS stat2;
-CREATE TAG TABLE stat2 (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE) TAG_STAT_ENABLE=1; -- No SUMMARIZED
-
--- Table 3: Statistics Disabled via Property
-DROP TABLE IF EXISTS stat3;
-CREATE TAG TABLE stat3 (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) TAG_STAT_ENABLE=0; -- Stats explicitly disabled
-
--- Insert Identical Sample Data into all three tables
-INSERT INTO stat1 VALUES('tag-0', TO_DATE('2022-08-11'), 10);
-INSERT INTO stat1 VALUES('tag-0', TO_DATE('2022-08-13'), 20);
-INSERT INTO stat1 VALUES('tag-0', TO_DATE('2022-08-14'), 5);
-INSERT INTO stat1 VALUES('tag-1', TO_DATE('2023-08-12'), 200);
-INSERT INTO stat1 VALUES('tag-1', TO_DATE('2023-08-13'), 50);
-INSERT INTO stat1 VALUES('tag-1', TO_DATE('2023-08-15'), 120);
-
-INSERT INTO stat2 VALUES('tag-0', TO_DATE('2022-08-11'), 10);
-INSERT INTO stat2 VALUES('tag-0', TO_DATE('2022-08-13'), 20);
-INSERT INTO stat2 VALUES('tag-0', TO_DATE('2022-08-14'), 5);
-INSERT INTO stat2 VALUES('tag-1', TO_DATE('2023-08-12'), 200);
-INSERT INTO stat2 VALUES('tag-1', TO_DATE('2023-08-13'), 50);
-INSERT INTO stat2 VALUES('tag-1', TO_DATE('2023-08-15'), 120);
-
-INSERT INTO stat3 VALUES('tag-0', TO_DATE('2022-08-11'), 10);
-INSERT INTO stat3 VALUES('tag-0', TO_DATE('2022-08-13'), 20);
-INSERT INTO stat3 VALUES('tag-0', TO_DATE('2022-08-14'), 5);
-INSERT INTO stat3 VALUES('tag-1', TO_DATE('2023-08-12'), 200);
-INSERT INTO stat3 VALUES('tag-1', TO_DATE('2023-08-13'), 50);
-INSERT INTO stat3 VALUES('tag-1', TO_DATE('2023-08-15'), 120);
-
 ```
+
+```sql
+CREATE TAG TABLE stat1 (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) TAG_STAT_ENABLE=1;
+```
+
+**Table 2: SUMMARIZED Keyword Omitted**
+
+```sql
+DROP TABLE IF EXISTS stat2;
+```
+
+```sql
+CREATE TAG TABLE stat2 (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE) TAG_STAT_ENABLE=1;
+```
+
+**Table 3: Statistics Disabled via Property**
+
+```sql
+DROP TABLE IF EXISTS stat3;
+```
+
+```sql
+CREATE TAG TABLE stat3 (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) TAG_STAT_ENABLE=0;
+```
+
+Insert identical sample data into stat1:
+
+```sql
+INSERT INTO stat1 VALUES('tag-0', TO_DATE('2022-08-11'), 10);
+```
+
+```sql
+INSERT INTO stat1 VALUES('tag-0', TO_DATE('2022-08-13'), 20);
+```
+
+```sql
+INSERT INTO stat1 VALUES('tag-0', TO_DATE('2022-08-14'), 5);
+```
+
+```sql
+INSERT INTO stat1 VALUES('tag-1', TO_DATE('2023-08-12'), 200);
+```
+
+```sql
+INSERT INTO stat1 VALUES('tag-1', TO_DATE('2023-08-13'), 50);
+```
+
+```sql
+INSERT INTO stat1 VALUES('tag-1', TO_DATE('2023-08-15'), 120);
+```
+
+Insert identical sample data into stat2:
+
+```sql
+INSERT INTO stat2 VALUES('tag-0', TO_DATE('2022-08-11'), 10);
+```
+
+```sql
+INSERT INTO stat2 VALUES('tag-0', TO_DATE('2022-08-13'), 20);
+```
+
+```sql
+INSERT INTO stat2 VALUES('tag-0', TO_DATE('2022-08-14'), 5);
+```
+
+```sql
+INSERT INTO stat2 VALUES('tag-1', TO_DATE('2023-08-12'), 200);
+```
+
+```sql
+INSERT INTO stat2 VALUES('tag-1', TO_DATE('2023-08-13'), 50);
+```
+
+```sql
+INSERT INTO stat2 VALUES('tag-1', TO_DATE('2023-08-15'), 120);
+```
+
+Insert identical sample data into stat3:
+
+```sql
+INSERT INTO stat3 VALUES('tag-0', TO_DATE('2022-08-11'), 10);
+```
+
+```sql
+INSERT INTO stat3 VALUES('tag-0', TO_DATE('2022-08-13'), 20);
+```
+
+```sql
+INSERT INTO stat3 VALUES('tag-0', TO_DATE('2022-08-14'), 5);
+```
+
+```sql
+INSERT INTO stat3 VALUES('tag-1', TO_DATE('2023-08-12'), 200);
+```
+
+```sql
+INSERT INTO stat3 VALUES('tag-1', TO_DATE('2023-08-13'), 50);
+```
+
+```sql
+INSERT INTO stat3 VALUES('tag-1', TO_DATE('2023-08-15'), 120);
+```
+
 
 **Observing the Results:**
 
+Query Statistics for Table 1 (Full Stats — all columns populated, including MIN/MAX_VALUE and their times):
+
 ```sql
--- Query Statistics for Table 1 (Full Stats)
 SELECT * FROM v$stat1_stat;
--- Expected: All columns populated, including MIN/MAX_VALUE and their times.
+```
 
--- Query Statistics for Table 2 (No SUMMARIZED)
+Query Statistics for Table 2 (No SUMMARIZED — MIN_VALUE, MIN_VALUE_TIME, MAX_VALUE, MAX_VALUE_TIME columns will be NULL; ROW_COUNT, MIN_TIME, MAX_TIME, RECENT_ROW_TIME will be populated):
+
+```sql
 SELECT * FROM v$stat2_stat;
--- Expected: MIN_VALUE, MIN_VALUE_TIME, MAX_VALUE, MAX_VALUE_TIME columns will be NULL.
---          ROW_COUNT, MIN_TIME, MAX_TIME, RECENT_ROW_TIME will be populated.
+```
 
--- Query Statistics for Table 3 (TAG_STAT_ENABLE=0)
+Query Statistics for Table 3 (TAG_STAT_ENABLE=0 — no rows returned; statistics collection is entirely disabled):
+
+```sql
 SELECT * FROM v$stat3_stat;
--- Expected: No rows returned, or an error if the view itself wasn't created.
---          Statistics collection is entirely disabled for this table.
 ```
 
 These examples clearly show the necessity of correct table definition (specifically the `SUMMARIZED` keyword) and the `TAG_STAT_ENABLED` property to leverage the full capabilities of the per-tag statistics feature.

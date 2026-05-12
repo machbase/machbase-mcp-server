@@ -42,13 +42,17 @@ CREATE RETENTION policy_name
 
 **Examples:**
 
+Policy to retain data for 1 day, checking every 1 hour:
+
 ```sql
--- Policy to retain data for 1 day, checking every 1 hour
 CREATE RETENTION policy_1d_1h
     DURATION 1 DAY
     INTERVAL 1 HOUR;
+```
 
--- Policy to retain data for 1 month (approximated), checking every 3 days
+Policy to retain data for 1 month (approximated), checking every 3 days:
+
+```sql
 CREATE RETENTION policy_1m_3d
     DURATION 1 MONTH
     INTERVAL 3 DAY;
@@ -70,10 +74,12 @@ ALTER TABLE table_name ADD RETENTION policy_name;
 **Example:**
 
 ```sql
--- Assume a TAG table 'sensor_data' and policy 'policy_1d_1h' exist
 CREATE TAG TABLE sensor_data ( name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED );
+```
 
--- Apply the policy_1d_1h to the sensor_data table
+Apply the policy_1d_1h to the sensor_data table:
+
+```sql
 ALTER TABLE sensor_data ADD RETENTION policy_1d_1h;
 ```
 
@@ -125,17 +131,23 @@ DROP RETENTION policy_name;
 
 **Dependency Example:**
 
+Assume 'policy_1d_1h' is applied to 'sensor_data'. Attempting to drop the policy while it's in use will fail:
+
 ```sql
--- Assume 'policy_1d_1h' is applied to 'sensor_data'
-
--- Attempting to drop the policy while it's in use will fail
 DROP RETENTION policy_1d_1h;
--- Expected Error: [ERR-02702: Policy (POLICY_1D_1H) is in use.]
+```
 
--- First, detach the policy from the table
+> Expected Error: `[ERR-02702: Policy (POLICY_1D_1H) is in use.]`
+
+First, detach the policy from the table:
+
+```sql
 ALTER TABLE sensor_data DROP RETENTION;
+```
 
--- Now, dropping the policy object will succeed
+Now, dropping the policy object will succeed:
+
+```sql
 DROP RETENTION policy_1d_1h;
 ```
 
@@ -146,10 +158,12 @@ This section provides a step-by-step example of using the Retention Policy featu
 **1. Schema Setup:**
 
 ```sql
--- Ensure a clean state (drop table and potentially dependent rollup tables)
 DROP TABLE IF EXISTS ret_tag CASCADE;
+```
 
--- Create a sample TAG table (with Rollup for context, though not required for Retention)
+Create a sample TAG table (with Rollup for context, though not required for Retention):
+
+```sql
 CREATE TAG TABLE ret_tag (
     name VARCHAR(20) PRIMARY KEY,
     time DATETIME BASETIME,
@@ -159,23 +173,30 @@ CREATE TAG TABLE ret_tag (
 
 **2. Create Retention Policy:**
 
-```sql
--- Define a policy to keep data for 1 day, checking hourly
-CREATE RETENTION policy_1d_1h DURATION 1 DAY INTERVAL 1 HOUR;
+Define a policy to keep data for 1 day, checking hourly:
 
--- Verify policy creation
+```sql
+CREATE RETENTION policy_1d_1h DURATION 1 DAY INTERVAL 1 HOUR;
+```
+
+Verify policy creation:
+
+```sql
 SELECT * FROM M$RETENTION WHERE POLICY_NAME = 'POLICY_1D_1H';
 ```
 
 **3. Apply Policy to Table:**
 
-```sql
--- Apply the created policy to the 'ret_tag' table
-ALTER TABLE ret_tag ADD RETENTION policy_1d_1h;
+Apply the created policy to the 'ret_tag' table:
 
--- Verify policy application
+```sql
+ALTER TABLE ret_tag ADD RETENTION policy_1d_1h;
+```
+
+Verify policy application (expected: a row showing RET_TAG, POLICY_1D_1H, state WAITING, and NULL last_deleted_time initially):
+
+```sql
 SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
--- Expected: A row showing RET_TAG, POLICY_1D_1H, state (likely WAITING), and NULL last_deleted_time initially.
 ```
 
 **4. Load Data (Including Old Data):**
@@ -193,10 +214,10 @@ APPEND(table("ret_tag")) -- Append to the target table
 
 **5. Verify Initial Data Load:**
 
+Check the total number of records inserted (expected: 150000 or close to it):
+
 ```sql
--- Check the total number of records inserted
 SELECT COUNT(*) FROM ret_tag;
--- Expected: 150000 (or close to it, depending on exact FAKE generation)
 ```
 
 **6. Wait for Retention Execution:**
@@ -205,29 +226,40 @@ Wait for a duration longer than the policy's `INTERVAL` (1 hour in this case). T
 
 **7. Verify Data Deletion:**
 
-```sql
--- Check the retention job status again; LAST_DELETED_TIME might be updated
-SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
+Check the retention job status again (LAST_DELETED_TIME might be updated):
 
--- Check the record count again. It should be lower than the initial count,
--- as records older than 1 day (relative to when the job ran) should have been deleted.
+```sql
+SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
+```
+
+Check the record count again (expected: a number less than 150000, as records older than 1 day have been deleted):
+
+```sql
 SELECT COUNT(*) FROM ret_tag;
--- Expected: A number less than 150000.
 ```
 
 **8. Detach and Drop Policy:**
 
+Stop automatic deletion for 'ret_tag':
+
 ```sql
--- Stop automatic deletion for 'ret_tag'
 ALTER TABLE ret_tag DROP RETENTION;
+```
 
--- Verify detachment (the row for ret_tag should disappear)
+Verify detachment (the row for ret_tag should disappear):
+
+```sql
 SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
+```
 
--- Remove the policy definition itself
+Remove the policy definition itself:
+
+```sql
 DROP RETENTION policy_1d_1h;
+```
 
--- Verify removal
+Verify removal (expected: no rows returned):
+
+```sql
 SELECT * FROM M$RETENTION WHERE POLICY_NAME = 'POLICY_1D_1H';
--- Expected: No rows returned.
 ```

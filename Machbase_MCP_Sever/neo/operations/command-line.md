@@ -68,17 +68,17 @@ As example, if the number of CPU cores is 8 and the factor is 2.0, the open limi
 | `--log-compress`        | `false`     | gzip compress the backup files              |
 | `--log-time-utc`        | `false`     | use UTC time for logging                    |
 
-**Listener flags**
+**Listener flags** (neo_since ver="8.0.36")
 
 | flag             | default   | desc                            |
 |:-----------------|:----------|-------------------------------- |
 | `--shell-port`   | `5652`    | ssh listen port                 |
 | `--mqtt-port`    | `5653`    | mqtt listen port                |
-| `--mqtt-sock`    | `/tmp/machbase-neo-mqtt.sock`| mqtt unix socket |
+| `--mqtt-sock`    | `/tmp/machbase-neo-mqtt-5653.sock`| mqtt unix socket |
 | `--http-port`    | `5654`    | http listen port                |
-| `--http-sock`    | `/tmp/machbase-neo.sock` | http unix socket |
+| `--http-sock`    | `/tmp/machbase-neo-http-5654.sock` | http unix socket |
 | `--grpc-port`    | `5655`    | grpc listen port                |
-| `--grpc-sock`    | `mach-grpc.sock` | grpc unix domain socket  |
+| `--grpc-sock`    | `/tmp/machbase-neo-grpc-5655.sock` | grpc unix domain socket  |
 | `--grpc-insecure`| `false`   | set `true` to use plain tcp socket, disable TLS |
 | `--mach-port`    | `5656`    | machbase native listen port     |
 

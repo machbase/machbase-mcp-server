@@ -83,73 +83,113 @@ This section provides practical examples of creating a TAG table with duplicate 
 **1. Schema Definition:**
 
 ```sql
--- Drop the table if it exists from previous runs
 DROP TABLE IF EXISTS dup_tag;
+```
 
--- Create a TAG table named 'dup_tag'
--- Configure it to check for duplicates within a 1440 minutes (1-day) window
+Create a TAG table named 'dup_tag', configured to check for duplicates within a 1440 minutes (1-day) window:
+
+```sql
 CREATE TAG TABLE dup_tag (
     name VARCHAR(20) PRIMARY KEY,
     time DATETIME BASETIME,
-    value DOUBLE SUMMARIZED -- Value column (summarized is optional for dedupe itself)
-)
-TAG_DUPLICATE_CHECK_DURATION=1440; -- Enable deduplication with a 1440 minutes (1-day) lookback
+    value DOUBLE SUMMARIZED
+) TAG_DUPLICATE_CHECK_DURATION=1440;
 ```
 
 **2. Data Insertion:**
 
 The following INSERT statements demonstrate how duplicates are handled. Assume these are executed sequentially and the system time progresses such that the 1-day window is relevant for timestamps on `2024-01-02` relative to each other, `2024-01-04` relative to each other, etc.
 
+Insert initial records for tag1:
+
 ```sql
--- Insert initial records
-INSERT INTO dup_tag VALUES('tag1', '2024-01-01 09:00:00 000:000:001', 0); -- Kept (First instance)
-INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:001', 0); -- Kept (Different day/time from first)
-INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:002', 0); -- Kept (First instance for this specific time)
-
--- Attempt to insert a duplicate (same name, same time as previous row)
--- This row has a different 'value' (1 vs 0), but will still be treated as a duplicate
--- because the (name, time) pair matches an existing record within the duration.
-INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:002', 1); -- Discarded (Duplicate based on name & time)
-
--- Insert record for a subsequent day
-INSERT INTO dup_tag VALUES('tag1', '2024-01-03 09:00:00 000:000:003', 0); -- Kept (New timestamp)
-
--- Insert records for a different tag ('tag2'), demonstrating multiple duplicates at the same timestamp
-INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 0); -- Kept (First instance for tag2 at this time)
-INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 1); -- Discarded (Duplicate based on name & time)
-INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 2); -- Discarded (Duplicate based on name & time)
-
--- Insert records for 'tag2' at different timestamps
-INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:002', 1); -- Kept (First instance for this specific time)
-INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:003', 2); -- Kept (First instance for this specific time)
-
+INSERT INTO dup_tag VALUES('tag1', '2024-01-01 09:00:00 000:000:001', 0);
 ```
+
+```sql
+INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:001', 0);
+```
+
+```sql
+INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:002', 0);
+```
+
+Attempt to insert a duplicate (same name, same time as previous row). This row has a different 'value' (1 vs 0), but will still be treated as a duplicate because the (name, time) pair matches an existing record within the duration:
+
+```sql
+INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:002', 1);
+```
+
+> Discarded (duplicate based on name & time).
+
+Insert record for a subsequent day:
+
+```sql
+INSERT INTO dup_tag VALUES('tag1', '2024-01-03 09:00:00 000:000:003', 0);
+```
+
+Insert records for a different tag ('tag2'), demonstrating multiple duplicates at the same timestamp:
+
+```sql
+INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 0);
+```
+
+```sql
+INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 1);
+```
+
+> Discarded (duplicate based on name & time).
+
+```sql
+INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 2);
+```
+
+> Discarded (duplicate based on name & time).
+
+Insert records for 'tag2' at different timestamps:
+
+```sql
+INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:002', 1);
+```
+
+```sql
+INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:003', 2);
+```
+
 
 **3. Data Verification:**
 
 Querying the table will show only the records that were successfully inserted (i.e., the "first-write" for each unique `name` and `time` combination within the effective window).
 
-```sql
--- Query data for 'tag1'
-SELECT * FROM dup_tag WHERE name = 'tag1';
+Query data for 'tag1':
 
-/* Expected Output for tag1:
+```sql
+SELECT * FROM dup_tag WHERE name = 'tag1';
+```
+
+Expected output (the row with value 1 at 000:000:002 was discarded):
+
+```text
 ROWNUM | NAME | TIME                              | VALUE
 ------ | ---- | --------------------------------- | -----
 1      | tag1 | 2024-01-01 09:00:00 000:000:001 | 0.0
 2      | tag1 | 2024-01-02 09:00:00 000:000:001 | 0.0
-3      | tag1 | 2024-01-02 09:00:00 000:000:002 | 0.0  -- Note: The row with value 1 was discarded
+3      | tag1 | 2024-01-02 09:00:00 000:000:002 | 0.0
 4      | tag1 | 2024-01-03 09:00:00 000:000:003 | 0.0
-*/
+```
 
--- Query data for 'tag2'
+Query data for 'tag2':
+
+```sql
 SELECT * FROM dup_tag WHERE name = 'tag2';
+```
 
-/* Expected Output for tag2:
+Expected output (rows with values 1 and 2 at 000:000:001 were discarded):
+
+```text
 ROWNUM | NAME | TIME                              | VALUE
 ------ | ---- | --------------------------------- | -----
-1      | tag2 | 2024-01-04 09:00:00 000:000:001 | 0.0  -- Note: Rows with values 1 and 2 at this time were discarded
+1      | tag2 | 2024-01-04 09:00:00 000:000:001 | 0.0
 2      | tag2 | 2024-01-04 09:00:00 000:000:002 | 1.0
 3      | tag2 | 2024-01-04 09:00:00 000:000:003 | 2.0
-*/
 ```

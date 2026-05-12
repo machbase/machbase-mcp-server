@@ -24,6 +24,9 @@ Virtual Tables are read-only and can not be added / deleted / updated by the use
 - [Result Cache](#result-cache)
   - [V$RS\_CACHE\_LIST](#vrs_cache_list)
   - [V$RS\_CACHE\_STAT](#vrs_cache_stat)
+- [PVO Statement Cache](#pvo-statement-cache)
+  - [V$PVO\_CACHE\_STAT](#vpvo_cache_stat)
+  - [V$PVO\_CACHE\_LIST](#vpvo_cache_list)
 - [Storage](#storage)  
   - [V$STORAGE](#vstorage)
   - [V$STORAGE\_MOUNT\_DATABASES](#vstorage_mount_databases)
@@ -281,6 +284,51 @@ Display statistical information of result cache in one session.
 |CACHE_REPLACED|Cache replacement count|
 |CACHE_MEMORY_USAGE|Size of cache memory used|
 
+
+## PVO Statement Cache
+Shows global PVO statement cache status (Standard edition only).
+
+### V$PVO_CACHE_STAT
+---
+
+Displays overall statistics of the PVO statement cache.
+
+|Column Name|Description|
+|--|--|
+|CACHE_ENTRY_COUNT|Number of SQL entries stored in cache|
+|CACHE_HANDLE_COUNT|Total cached plans (handles) across SQLs|
+|CACHE_MEMORY_USAGE|Current cache memory usage|
+|CACHE_MAX_MEMORY_SIZE|Configured cache memory limit|
+|CACHE_MAX_PLANS_PER_SQL|Maximum plans allowed per SQL|
+|CACHE_MAX_SQL_ENTRIES|Maximum SQL entries allowed (0 = unlimited)|
+|CACHE_SHARD_COUNT|Number of cache shards|
+|CACHE_HIT|Cache hit count|
+|CACHE_MISS|Cache miss count|
+|SINGLEFLIGHT_WAIT|Wait count for concurrent same-SQL build|
+|BUILD_COUNT|Plan build attempts|
+|BUILD_FAIL|Plan build failures|
+|INVALIDATE_COUNT|Invalidated plans|
+|EVICT_COUNT|Evictions due to limits|
+|FLUSH_COUNT|Explicit or internal flush count|
+
+### V$PVO_CACHE_LIST
+---
+
+Displays per-SQL details stored in the PVO statement cache.
+
+|Column Name|Description|
+|--|--|
+|TOUCH_TIME|Last touch time|
+|USER_ID|Owner user identifier|
+|QUERY|Original SQL text|
+|DEFAULT_DATE_FORMAT|Session date format at build time|
+|TIMEZONE_OFFSET|Session timezone offset|
+|SHOW_HIDDEN_COLS|Whether hidden columns are shown|
+|QUERY_PARALLEL_FACTOR|Parallel execution factor|
+|HANDLE_COUNT|Number of cached plans|
+|BUSY_COUNT|Number of handles currently in use|
+|HIT_COUNT|Cache hit count|
+|BUILD_IN_PROGRESS|Whether a build is in progress|
 
 ## Storage
 

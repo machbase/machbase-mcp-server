@@ -9,6 +9,8 @@
     * [INSTALL LICENSE](#install-license)
     * [INSTALL LICENSE (PATH)](#install-license-path)
     * [SET](#set)
+    * [SET PVO CACHE](#set-pvo-cache)
+    * [FLUSH PVO_CACHE](#flush-pvo_cache)
 * [ALTER SESSION](#alter-session)
     * [SET SQL_LOGGING](#set-sql_logging)
     * [SET DEFAULT_DATE_FORMAT](#set-default_date_format)
@@ -190,6 +192,24 @@ ALTER SYSTEM SET DEFAULT_DATE_FORMAT = DEFAULT_DATE_FORMAT | 1;
 ALTER SYSTEM SET TRACE_LOG_LEVEL=277;
 ```
 
+### SET PVO CACHE
+
+Adjusts global PVO statement cache properties at runtime (Standard edition only). `PVO_CACHE_ENABLE`, `PVO_CACHE_MAX_MEMORY_SIZE`, `PVO_CACHE_MAX_PLANS_PER_SQL`, and `PVO_CACHE_MAX_SQL_ENTRIES` apply immediately. `PVO_CACHE_SHARD_COUNT` is initialized at startup, so changing it requires a server restart. Memory and entry limits are distributed across shards.
+
+```sql
+ALTER SYSTEM SET PVO_CACHE_ENABLE = 1;
+ALTER SYSTEM SET PVO_CACHE_MAX_MEMORY_SIZE = 268435456;
+ALTER SYSTEM SET PVO_CACHE_MAX_PLANS_PER_SQL = 512;
+ALTER SYSTEM SET PVO_CACHE_MAX_SQL_ENTRIES = 0;
+```
+
+### FLUSH PVO_CACHE
+
+Flushes only the PVO statement cache. It operates independently from `FLUSH RESULT_CACHE`, and successful DDL execution internally flushes the PVO cache as well.
+
+```sql
+ALTER SYSTEM FLUSH PVO_CACHE;
+```
 
 ## ALTER SESSION
 

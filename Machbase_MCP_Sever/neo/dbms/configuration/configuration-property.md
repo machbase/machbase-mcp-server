@@ -49,6 +49,7 @@ These values are set when the Machbase server starts and are used continuously d
 - [INDEX_LEVEL_PARTITION_AGER_THREAD_COUNT](#index_level_partition_ager_thread_count)
 - [INDEX_LEVEL_PARTITION_BUILD_MEMORY_HIGH_LIMIT_PCT](#index_level_partition_build_memory_high_limit_pct)
 - [INDEX_LEVEL_PARTITION_BUILD_THREAD_COUNT](#index_level_partition_build_thread_count)
+- [LIN_HASH_BIT_SIZE](#lin_hash_bit_size)
 - [LOOKUP_APPEND_UPDATE_ON_DUPKEY](#lookup_append_update_on_dupkey)
 - [MAX_QPX_MEM](#max_qpx_mem)
 - [MAX_SESSION_COUNT](#max_session_count)
@@ -59,6 +60,11 @@ These values are set when the Machbase server starts and are used continuously d
 - [PID_PATH](#pid_path)
 - [PORT_NO](#port_no)
 - [PROCESS_MAX_SIZE](#process_max_size)
+- [PVO_CACHE_ENABLE](#pvo_cache_enable)
+- [PVO_CACHE_SHARD_COUNT](#pvo_cache_shard_count)
+- [PVO_CACHE_MAX_MEMORY_SIZE](#pvo_cache_max_memory_size)
+- [PVO_CACHE_MAX_PLANS_PER_SQL](#pvo_cache_max_plans_per_sql)
+- [PVO_CACHE_MAX_SQL_ENTRIES](#pvo_cache_max_sql_entries)
 - [QUERY_PARALLEL_FACTOR](#query_parallel_factor)
 - [ROLLUP_FETCH_COUNT_LIMIT](#rollup_fetch_count_limit)
 - [RS_CACHE_APPROXIMATE_RESULT_ENABLE](#rs_cache_approximate_result_enable)
@@ -1169,6 +1175,36 @@ Determines the number of threads performing the merge operation for the creation
   </tbody>
 </table>
 
+## LIN_HASH_BIT_SIZE
+Controls the initial bucket bit width used by the internal linear hash. Type: UINT32. Adjusting this value can change the internal scan order of hash-based operations, so the output order of queries without an explicit `ORDER BY` may differ from previous releases.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>31</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>7</td>
+    </tr>
+  </tbody>
+</table>
+
+```sql
+SELECT name, value, type, min_value, max_value
+  FROM v$property
+ WHERE name = 'LIN_HASH_BIT_SIZE';
+```
+
 
 ## LOOKUP_APPEND_UPDATE_ON_DUPKEY
 When appending to the lookup table, it specifies how to handle duplicate primary keys.
@@ -1371,6 +1407,126 @@ In this case, the performance is greatly degraded, so the cause of overuse of th
     <tr>
       <td>Default</td>
       <td>8 * 1024 * 1024 * 1024</td>
+    </tr>
+  </tbody>
+</table>
+
+## PVO_CACHE_ENABLE
+Turns the global PVO statement cache on or off. Available only in the Standard edition.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>0 (Disabled)</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>1 (Enabled)</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+
+## PVO_CACHE_SHARD_COUNT
+Sets the number of shards for the PVO statement cache. Applied only at initialization; changing it requires a server restart (runtime change is not supported).
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>256</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>16</td>
+    </tr>
+  </tbody>
+</table>
+
+## PVO_CACHE_MAX_MEMORY_SIZE
+Sets the total memory budget (bytes) for the PVO statement cache. The value is distributed across shards. Runtime change is allowed.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>32768</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>2^64 - 1</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>268435456</td>
+    </tr>
+  </tbody>
+</table>
+
+## PVO_CACHE_MAX_PLANS_PER_SQL
+Sets the maximum number of cached plans (handles) per SQL statement. Runtime change is allowed.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>512</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>512</td>
+    </tr>
+  </tbody>
+</table>
+
+## PVO_CACHE_MAX_SQL_ENTRIES
+Limits the number of SQL entries stored in the PVO statement cache; 0 means unlimited. The budget is distributed across shards. Runtime change is allowed.
+
+<table>
+  <thead>
+    <th> </th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Minimum</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Maximum</td>
+      <td>2^64 - 1</td>
+    </tr>
+    <tr>
+      <td>Default</td>
+      <td>0</td>
     </tr>
   </tbody>
 </table>

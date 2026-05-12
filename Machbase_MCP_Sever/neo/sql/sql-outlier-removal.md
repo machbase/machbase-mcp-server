@@ -89,19 +89,27 @@ LSL/USL columns can be added to the metadata definition of an existing TAG table
 
 **Syntax:**
 
-```sql
--- Adding an LSL column
-ALTER TABLE _table_name_meta ADD COLUMN ( lsl_column_name numeric_datatype LOWER LIMIT );
+Adding an LSL column:
 
--- Adding a USL column
+```sql
+ALTER TABLE _table_name_meta ADD COLUMN ( lsl_column_name numeric_datatype LOWER LIMIT );
+```
+
+Adding a USL column:
+
+```sql
 ALTER TABLE _table_name_meta ADD COLUMN ( usl_column_name numeric_datatype UPPER LIMIT );
 ```
 
 **Example:**
 
+Assume 'sensor_readings' table exists without LSL/USL initially:
+
 ```sql
--- Assume 'sensor_readings' table exists without LSL/USL initially
 ALTER TABLE _sensor_readings_meta ADD COLUMN ( min_acceptable DOUBLE LOWER LIMIT );
+```
+
+```sql
 ALTER TABLE _sensor_readings_meta ADD COLUMN ( max_acceptable DOUBLE UPPER LIMIT );
 ```
 
@@ -111,12 +119,16 @@ When added via `ALTER TABLE`, these columns will initially have `NULL` values fo
 
 Once the LSL/USL columns are defined, the actual limit values for each Tag ID are set by inserting or updating rows in the dependent Tag Metadata table (`_TableName_meta`).
 
+Set limits when inserting a new tag's metadata:
+
 ```sql
--- Set limits when inserting a new tag's metadata
 INSERT INTO sensor_readings metadata (tag_id, min_acceptable, max_acceptable, location)
 VALUES ('TEMP_SENSOR_01', 10.0, 90.0, 'Boiler Room');
+```
 
--- Update limits for an existing tag
+Update limits for an existing tag:
+
+```sql
 UPDATE sensor_readings metadata
 SET min_acceptable = 15.0, max_acceptable = 85.0
 WHERE tag_id = 'TEMP_SENSOR_01';
@@ -140,117 +152,165 @@ This section provides practical examples of configuring and utilizing the Automa
 **1. Schema Definition with LSL/USL:**
 
 ```sql
--- Drop if exists from previous runs
 DROP TABLE IF EXISTS out_tag CASCADE;
+```
 
--- Create TAG table with metadata for LSL and USL
+Create TAG table with metadata for LSL and USL:
+
+```sql
 CREATE TAG TABLE out_tag (
     tag_id VARCHAR(50) PRIMARY KEY,
     time DATETIME BASETIME,
-    value DOUBLE SUMMARIZED -- Value column where filtering applies
+    value DOUBLE SUMMARIZED
 )
 METADATA (
-    lsl DOUBLE LOWER LIMIT, -- Lower Specification Limit column
-    usl DOUBLE UPPER LIMIT  -- Upper Specification Limit column
+    lsl DOUBLE LOWER LIMIT,
+    usl DOUBLE UPPER LIMIT
 ) TAG_PARTITION_COUNT=1;
 ```
 
 **2. Defining Limits in Metadata:**
 
-```sql
--- Set the operational range for TAG_01: 100.0 <= value <= 200.0
-INSERT INTO out_tag metadata (tag_id, lsl, usl) VALUES ('TAG_01', 100.0, 200.0);
+Set the operational range for TAG_01 (100.0 <= value <= 200.0):
 
--- Verify metadata entry
+```sql
+INSERT INTO out_tag metadata (tag_id, lsl, usl) VALUES ('TAG_01', 100.0, 200.0);
+```
+
+Verify metadata entry:
+
+```sql
 SELECT * FROM _out_tag_meta WHERE tag_id = 'TAG_01';
-/* Expected Output:
+```
+
+Expected output:
+
+```text
 _ID | TAG_ID | LSL   | USL
 --- | ------ | ----- | -----
 1   | TAG_01 | 100.0 | 200.0
-*/
 ```
 
 **3. Inserting Data and Observing Filtering:**
 
+Value below LSL (Rejected):
+
 ```sql
--- Attempt to insert data points for TAG_01
-
--- Value below LSL (Rejected)
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 95.2);
--- Expected Error: [ERR-02342: SUMMARIZED value is less than LOWER LIMIT.]
+```
 
--- Value equal to LSL (Accepted)
+> Expected Error: `[ERR-02342: SUMMARIZED value is less than LOWER LIMIT.]`
+
+Value equal to LSL (Accepted):
+
+```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 100.0);
--- Expected Output: 1 row(s) inserted.
+```
 
--- Value within range (Accepted)
+Value within range (Accepted):
+
+```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 150.5);
--- Expected Output: 1 row(s) inserted.
+```
 
--- Value equal to USL (Accepted)
+Value equal to USL (Accepted):
+
+```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 200.0);
--- Expected Output: 1 row(s) inserted.
+```
 
--- Value above USL (Rejected)
+Value above USL (Rejected):
+
+```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 205.5);
--- Expected Error: [ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]
+```
 
--- Verify accepted data
+> Expected Error: `[ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]`
+
+Verify accepted data:
+
+```sql
 SELECT * FROM out_tag WHERE tag_id = 'TAG_01';
-/* Expected Output: (Timestamps will vary)
+```
+
+Expected output (timestamps will vary):
+
+```text
 TAG_ID | TIME                              | VALUE | LSL   | USL
 ------ | --------------------------------- | ----- | ----- | -----
 TAG_01 | 2024-XX-XX XX:XX:XX XXX:XXX:XXX | 100.0 | 100.0 | 200.0
 TAG_01 | 2024-XX-XX XX:XX:XX XXX:XXX:XXX | 150.5 | 100.0 | 200.0
 TAG_01 | 2024-XX-XX XX:XX:XX XXX:XXX:XXX | 200.0 | 100.0 | 200.0
-*/
 ```
 
 **4. Updating Limits in Metadata:**
 
-```sql
--- Change the limits for TAG_01 to 10.0 <= value <= 100.0
-UPDATE out_tag metadata SET lsl = 10.0, usl = 100.0 WHERE tag_id = 'TAG_01';
+Change the limits for TAG_01 to 10.0 <= value <= 100.0:
 
--- Verify the change in metadata
+```sql
+UPDATE out_tag metadata SET lsl = 10.0, usl = 100.0 WHERE tag_id = 'TAG_01';
+```
+
+Verify the change in metadata:
+
+```sql
 SELECT * FROM _out_tag_meta WHERE tag_id = 'TAG_01';
-/* Expected Output:
+```
+
+Expected output:
+
+```text
 _ID | TAG_ID | LSL  | USL
 --- | ------ | ---- | -----
 1   | TAG_01 | 10.0 | 100.0
-*/
-
--- Attempt new insertions based on updated limits
-
--- Value 150.5 (Accepted previously) is now above the new USL (Rejected)
-INSERT INTO out_tag VALUES ('TAG_01', NOW, 150.5);
--- Expected Error: [ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]
-
--- Value 95.2 (Rejected previously) is now within the new range (Accepted)
-INSERT INTO out_tag VALUES ('TAG_01', NOW, 95.2);
--- Expected Output: 1 row(s) inserted.
-
--- Note: The previously inserted values (100.0, 150.5, 200.0) remain in the 'out_tag' table.
--- The update to metadata limits does not affect existing data.
 ```
+
+Value 150.5 (accepted previously) is now above the new USL (Rejected):
+
+```sql
+INSERT INTO out_tag VALUES ('TAG_01', NOW, 150.5);
+```
+
+> Expected Error: `[ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]`
+
+Value 95.2 (rejected previously) is now within the new range (Accepted):
+
+```sql
+INSERT INTO out_tag VALUES ('TAG_01', NOW, 95.2);
+```
+
+> Note: The previously inserted values (100.0, 150.5, 200.0) remain in the 'out_tag' table. The update to metadata limits does not affect existing data.
 
 **5. Disabling Filtering using NULL:**
 
-```sql
--- Disable outlier filtering for TAG_01 by setting limits to NULL
-UPDATE out_tag metadata SET lsl = NULL, usl = NULL WHERE tag_id = 'TAG_01';
+Disable outlier filtering for TAG_01 by setting limits to NULL:
 
--- Verify metadata
+```sql
+UPDATE out_tag metadata SET lsl = NULL, usl = NULL WHERE tag_id = 'TAG_01';
+```
+
+Verify metadata:
+
+```sql
 SELECT * FROM _out_tag_meta WHERE tag_id = 'TAG_01';
-/* Expected Output:
+```
+
+Expected output:
+
+```text
 _ID | TAG_ID | LSL  | USL
 --- | ------ | ---- | ----
 1   | TAG_01 | NULL | NULL
-*/
+```
 
--- Insert values previously rejected (These should now succeed)
-INSERT INTO out_tag VALUES ('TAG_01', NOW, 9.0);   -- Below previous LSL
--- Expected Output: 1 row(s) inserted.
-INSERT INTO out_tag VALUES ('TAG_01', NOW, 250.0); -- Above previous USL
--- Expected Output: 1 row(s) inserted.
+Insert values previously rejected (these should now succeed). Below previous LSL:
+
+```sql
+INSERT INTO out_tag VALUES ('TAG_01', NOW, 9.0);
+```
+
+Above previous USL:
+
+```sql
+INSERT INTO out_tag VALUES ('TAG_01', NOW, 250.0);
 ```
