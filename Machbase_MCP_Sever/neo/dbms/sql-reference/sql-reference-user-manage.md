@@ -4,6 +4,9 @@
 * [CREATE USER](#create-user)
 * [DROP USER](#drop-user)
 * [ALTER USER](#alter-user)
+* [Password Policy](#password-policy)
+* [AUTH KEY Authentication](#auth-key-authentication)
+* [Uppercase User Name Storage](#uppercase-user-name-storage)
 * [CONNECT](#connect)
 * [GRANT/REVOKE](#grantrevoke)
 * [Managing User Example](#managing-user-example)
@@ -14,6 +17,8 @@
 
 ```sql
 create_user_stmt ::= 'CREATE USER' user_name 'IDENTIFIED BY' password
+                     [ 'WITH AUTH KEY' '(' key_options ')' ]
+                     [ 'PASSWORD POLICY' { 'NONE' | 'LOW' | 'HIGH' } ]
 ```
 
 The syntax for creating a user is:
@@ -22,6 +27,8 @@ The syntax for creating a user is:
 -- Example
 CREATE USER new_user IDENTIFIED BY password
 ```
+
+The optional `PASSWORD POLICY` clause enforces a password strength level (see [Password Policy](#password-policy)), and the optional `WITH AUTH KEY` clause registers a public key for challenge authentication (see [AUTH KEY Authentication](#auth-key-authentication)). User names are stored in uppercase (see [Uppercase User Name Storage](#uppercase-user-name-storage)).
 
 ## DROP USER
 
@@ -52,6 +59,169 @@ The user can change the password through the following syntax.
 -- Example
 ALTER USER user1 IDENTIFIED BY password
 ```
+
+## Password Policy
+
+> **Note**: The following behavior is supported from Machbase 8.5 or later.
+
+Password policy validates password strength for `CREATE USER` and `ALTER USER ... IDENTIFIED BY ...`. If no policy is specified, `NONE` is used for backward compatibility.
+
+Policy levels:
+
+- `NONE`
+  - No password strength restriction is applied.
+  - Password expiration time (`VALID_BEFORE`) is `NULL`.
+- `LOW`
+  - The password must be at least 10 characters long.
+  - The password must include uppercase letters, lowercase letters, and special characters.
+  - Five or more contiguous digits, increasing or decreasing digit sequences, and keyboard sequences are not allowed.
+  - Password expiration time (`VALID_BEFORE`) is `NULL`.
+- `HIGH`
+  - All `LOW` rules are applied.
+  - The current password and the most recent 24 historical passwords cannot be reused.
+  - The expiration time (`VALID_BEFORE`) is automatically set to 90 days after the password is set.
+
+```sql
+CREATE USER user1 IDENTIFIED BY "Aa!StrongPwd1";
+CREATE USER user2 IDENTIFIED BY "Bb@StrongPwd2" PASSWORD POLICY LOW;
+CREATE USER user3 IDENTIFIED BY "Cc#StrongPwd3" PASSWORD POLICY HIGH;
+
+ALTER USER user2 IDENTIFIED BY "Dd$NewPwd44";
+ALTER USER user2 IDENTIFIED BY "Ee%NewPwd55" PASSWORD POLICY LOW;
+ALTER USER user3 IDENTIFIED BY "Ff#NewPwd66" PASSWORD POLICY NONE;
+```
+
+Notes:
+
+- `ALTER USER ... IDENTIFIED BY ...` validates the new password with the policy currently stored for that user.
+- `ALTER USER ... IDENTIFIED BY ... PASSWORD POLICY ...` validates the new password with the new policy.
+- When a policy is set to `HIGH`, or when the password of a `HIGH` policy user is changed, `VALID_BEFORE` is updated to 90 days from the current time.
+- When a policy is set to `LOW` or `NONE`, `VALID_BEFORE` is updated to `NULL`.
+- An expired account cannot log in, so the user cannot change the password with that account. Reset the password from an administrator account.
+
+You can check the policy and expiration time in `M$SYS_USERS`.
+
+```sql
+SELECT USER_ID, NAME, PWD_POLICY_LEVEL, VALID_BEFORE
+FROM M$SYS_USERS;
+```
+
+`PWD_POLICY_LEVEL` means `0 = NONE`, `1 = LOW`, and `2 = HIGH`. `VALID_BEFORE` is displayed in `YYYY-MM-DD` format when it has a value.
+
+## AUTH KEY Authentication
+
+> **Note**: The following behavior is supported from Machbase 8.5 or later.
+
+Machbase can register an AUTH KEY for public-key challenge authentication together with password authentication. AUTH KEY authentication uses a client-side private key file and a public key registered to the Machbase user. In normal operation, generate the key pair with `openssl`, keep the private key on the client host, and register only the public key in Machbase.
+
+A user may own both a password and one or more AUTH KEY entries. The actual authentication method is chosen by the client's `AUTH_MODE`, and there is no automatic fallback from one method to the other on failure.
+
+### Create a User with AUTH KEY
+
+```sql
+CREATE USER app_user IDENTIFIED BY 'App#1234'
+WITH AUTH KEY (
+    key='-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEshxcrSmtosaqWjhRkOoAw4v3QWqL\ns3OFN2jbJrustEc12uAn/IdtTG94KK69bY7DWl80pzQ48dNL+ENXe8PT3g==\n-----END PUBLIC KEY-----\n',
+    valid_before='2047-12-31',
+    comment='initial key'
+);
+```
+
+- `key` must contain a PEM public key.
+- In SQL text, PEM line breaks can be written as `\n`.
+- `valid_before` uses the `YYYY-MM-DD` format and does not accept a datetime value with a time portion such as `YYYY-MM-DD HH24:MI:SS`.
+- `comment` is required by the current AUTH KEY syntax.
+- The first key created by `CREATE USER ... WITH AUTH KEY` is registered as active (`ACTIVATED=1`).
+
+### Manage AUTH KEY
+
+Add an AUTH KEY. An added key is created as active immediately (`ACTIVATED=1`). During key rollover, a user can have multiple active AUTH KEY entries.
+
+```sql
+ALTER USER app_user ADD AUTH KEY (
+    key='-----BEGIN RSA PUBLIC KEY-----\n...\n-----END RSA PUBLIC KEY-----\n',
+    valid_before='2048-01-31',
+    comment='rollover candidate'
+);
+```
+
+Activate or deactivate an AUTH KEY by its ID. A deactivated key cannot be used for challenge authentication.
+
+```sql
+ALTER USER app_user DEACTIVATE AUTH KEY ID 3;
+ALTER USER app_user ACTIVATE AUTH KEY ID 3;
+```
+
+Change the expiration of an AUTH KEY. The input format is `YYYY-MM-DD`; a key past `VALID_BEFORE` cannot be used for authentication.
+
+```sql
+ALTER USER app_user ALTER AUTH KEY ID 3 VALID_BEFORE='2048-06-30';
+```
+
+Drop an AUTH KEY. A dropped key cannot be used for authentication immediately. When a user is dropped, the user's AUTH KEY metadata is also removed.
+
+```sql
+ALTER USER app_user DROP AUTH KEY ID 3;
+```
+
+### Generate AUTH KEY Files
+
+ECDSA P-256 key example:
+
+```bash
+openssl ecparam -name prime256v1 -genkey -noout -out app_user_ecdsa.key
+openssl ec -in app_user_ecdsa.key -pubout -out app_user_ecdsa.pub
+chmod 600 app_user_ecdsa.key
+```
+
+ECDSA P-384 and P-521 key examples:
+
+```bash
+openssl ecparam -name secp384r1 -genkey -noout -out app_user_ecdsa_p384.key
+openssl ec -in app_user_ecdsa_p384.key -pubout -out app_user_ecdsa_p384.pub
+
+openssl ecparam -name secp521r1 -genkey -noout -out app_user_ecdsa_p521.key
+openssl ec -in app_user_ecdsa_p521.key -pubout -out app_user_ecdsa_p521.pub
+```
+
+RSA 2048-bit key example (pass `3072` or `4096` as the last argument for a larger key):
+
+```bash
+openssl genrsa -out app_user_rsa.key 2048
+openssl rsa -in app_user_rsa.key -pubout -out app_user_rsa.pub
+chmod 600 app_user_rsa.key
+```
+
+To embed the public key in SQL, convert the PEM file into a single SQL string with escaped line breaks, then use the output as the `key` value:
+
+```bash
+awk '{printf "%s\\n", $0}' app_user_ecdsa.pub
+```
+
+### Supported Algorithms and Key Sizes
+
+| Public key algorithm | Supported key parameters | Supported signature scheme | Hash |
+| --- | --- | --- | --- |
+| ECDSA | P-256, P-384, P-521 | `ECDSA` | SHA-256 |
+| RSA | 2048, 3072, 4096 bits | `RSA_PKCS1_V15` | SHA-256 |
+| RSA | 2048, 3072, 4096 bits | `RSA_PSS` | SHA-256 |
+
+If `AUTH_SIG_SCHEME` is omitted, Machbase uses the default scheme for the key algorithm: `ECDSA` for an ECDSA key and `RSA_PKCS1_V15` for an RSA key. To use RSA-PSS, specify `AUTH_SIG_SCHEME=RSA_PSS` in the client connection options. Authentication fails if the registered public key type does not match the requested signature scheme.
+
+### Query AUTH KEY Metadata
+
+Registered AUTH KEY metadata can be queried from `V$USER_AUTH_KEYS`. Major columns: `KEY_ID` (identifier), `USER_NAME` (owner), `KEY_ALGO` (`RSA` or `ECDSA`), `KEY_PARAM` (RSA bit length such as `2048`, or EC curve name such as `P-256`), `ACTIVATED`, `VALID_AFTER` / `VALID_BEFORE`, `COMMENT`, and `PUBKEY` (PEM public key body).
+
+```sql
+SELECT key_id, user_name, key_algo, key_param, activated, valid_before, comment
+  FROM V$USER_AUTH_KEYS
+ WHERE user_name='APP_USER'
+ ORDER BY key_id;
+```
+
+## Uppercase User Name Storage
+
+User names are converted to uppercase when they are created. For example, `CREATE USER app_user ...` is stored and displayed as `APP_USER` in metadata tables and `V$` views. Later connection and privilege statements refer to the same user name.
 
 ## CONNECT
 

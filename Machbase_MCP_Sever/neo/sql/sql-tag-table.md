@@ -690,7 +690,7 @@ Machbase Neo provides multiple pathways for ingesting data into Tag Tables, cate
 
 ```
 +-------------------+      +-------------------+      +-------------------+
-|    ODBC/JDBC/     |      |    MQTT/gRPC/     |      |    Machbase       |
+|    ODBC/JDBC/     |      |       MQTT/       |      |    Machbase       |
 |   .NET Clients    | ---> |   HTTP Clients    | ---> |     Native        | ---> Machbase Neo
 +-------------------+      +-------------------+      |  CLI/SDK (C/Py)   |      (Tag Table)
                                                      +-------------------+

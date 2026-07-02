@@ -239,4 +239,66 @@ Execute `subscriber list` to confirm.
 
 Then run the same NATS client application as above example code.
 
-The source code of the above example can be found in [Github](https://github.com/machbase/neo-server/tree/main/examples/go/nats_pub).
+#### NATS Publisher (Go)
+
+Below is a complete Go program that publishes messages to a NATS subject. It supports both request-response and fire-and-forget patterns.
+
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/nats-io/nats.go"
+)
+
+func main() {
+	optServer := flag.String("server", "nats://127.0.0.1:4222", "nats server address")
+	optSubject := flag.String("subject", "hello", "subject to subscribe")
+	optRequest := flag.Bool("request", false, "request-response model")
+	flag.Parse()
+
+	opts := nats.GetDefaultOptions()
+	opts.Servers = []string{*optServer}
+	conn, err := opts.Connect()
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	tick := time.Now()
+	lines := []string{}
+	linesPerMsg := 1
+	msgCount := 1000000
+	serial := 0
+
+	for n := 0; n < msgCount; n++ {
+		for i := 0; i < linesPerMsg; i++ {
+			line := fmt.Sprintf("hello-nats,%d,1.2345", tick.Add(time.Duration(serial)*time.Microsecond).UnixNano())
+			lines = append(lines, line)
+			serial++
+		}
+		reqData := []byte(strings.Join(lines, "\n"))
+		lines = lines[0:0]
+
+		if *optRequest {
+			// A) request-respond model
+			if rsp, err := conn.Request(*optSubject, reqData, 100*time.Millisecond); err != nil {
+				panic(err)
+			} else {
+				fmt.Println("RESP:", string(rsp.Data))
+			}
+		} else {
+			// B) fire-and-forget model
+			if err := conn.Publish(*optSubject, reqData); err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	fmt.Println("msg sent: ", conn.OutMsgs)
+}
+```

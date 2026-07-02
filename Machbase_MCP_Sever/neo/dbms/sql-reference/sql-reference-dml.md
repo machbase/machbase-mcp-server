@@ -124,22 +124,22 @@ The syntax of DURATION, OLDEST, and EXCEPT cannot be used for TAG and Rollup tab
 ```sql
 -- Delete all.
 DELETE FROM devices;
- 
+
 -- Delete oldest last N rows.
 DELETE FROM devices OLDEST N ROWS;
- 
+
 -- Delete all except recent N rows.
 DELETE FROM devices EXCEPT N ROWS;
- 
+
 -- Delete all except N matches from now on.
 DELETE FROM devices EXCEPT N DAY;
- 
+
 -- Delete all data from before June 1, 2014.
 DELETE FROM devices BEFORE TO_DATE('2014-06-01', 'YYYY-MM-DD');
- 
+
 -- Delete tag data from before June 1, 2014.
 DELETE FROM tag BEFORE TO_DATE('2014-06-01', 'YYYY-MM-DD');
- 
+
 -- Delete tag rollup data from before June 1, 2014.
 DELETE FROM tag ROLLUP BEFORE TO_DATE('2014-06-01', 'YYYY-MM-DD');
 ```
@@ -180,18 +180,50 @@ A Tag or Rollup table supports the following two types of DELETE statements.
 ```sql
 -- Delete by tag name
 DELETE FROM tag WHERE tag_name = 'my_tag_2021'
- 
+
 -- Delete by tag name and tag time
 DELETE FROM tag WHERE tag_name = 'my_tag_2021' AND tag_time < TO_DATE('2021-07-01', 'YYYY-MM-DD');
 
 -- Delete rollup by tag name
 DELETE FROM tag ROLLUP WHERE tag_name = 'my_tag_2021'
- 
+
 -- Delete rollup by tag name and tag time
 DELETE FROM tag ROLLUP WHERE tag_name = 'my_tag_2021' AND tag_time < TO_DATE('2021-07-01', 'YYYY-MM-DD');
 ```
 
 * The time it takes for the deleted row to be physically deleted from the storage space after the deletion query is executed may vary depending on the situation of the DBMS.
+
+## DELETE METADATA
+
+Use `DELETE FROM <table> METADATA` to delete tag metadata rows from a TAGDATA table.
+
+To delete metadata for a specific tag, specify the tag name predicate in the `WHERE` clause. You can also match multiple tags with a metadata predicate.
+
+```sql
+-- Delete metadata for one tag
+DELETE FROM sensors METADATA WHERE name = 'TEMP_002';
+
+-- Delete metadata for multiple tags by predicate
+DELETE FROM sensors METADATA WHERE status = 'STOP';
+```
+
+If the `WHERE` clause is omitted, all metadata rows in the tag table are deleted.
+
+```sql
+DELETE FROM sensors METADATA;
+```
+
+Notes:
+
+* If any matched tag still has data rows, the whole statement fails; metadata for tags that are still in use cannot be deleted.
+* Even for a full metadata delete, if any target tag is still in use, the whole statement fails without partially deleting metadata rows.
+
+To delete metadata for a tag that is still in use, delete the data rows for that tag first, then run the metadata delete again.
+
+```sql
+DELETE FROM sensors WHERE name = 'TEMP_001';
+DELETE FROM sensors METADATA;
+```
 
 ## LOAD DATA INFILE
 
@@ -217,13 +249,13 @@ Each option is explained as follows
 ```sql
 -- Use default field delimiter(,)  field encloser (") to input data.
 LOAD DATA INFILE '/tmp/aaa.csv' INTO TABLE Sample_data ;
- 
+
 -- Create NEWTABLE with one column and enter one line as one column.
 LOAD DATA INFILE '/tmp/bbb.csv' INTO TABLE NEWTABLE AUTO BULKLOAD;
- 
+
 -- Create NEWTABLE using first line of csv as column information, and input it into table.
 LOAD DATA INFILE '/tmp/bbb.csv' INTO TABLE NEWTABLE AUTO HEADUSE;
-  
+
 -- First line is ignored and field delimiter is ; and enclosing character is specified by '.
 LOAD DATA INFILE '/tmp/ccc.csv' INTO TABLE Sample_data FIELDS TERMINATED BY ';' ENCLOSED '\''  IGNORE 1 LINES ON ERROR IGNORE;
 ```

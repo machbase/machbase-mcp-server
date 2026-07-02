@@ -1,3 +1,12 @@
+---
+compute: vibration
+guide: |
+  RMS/Peak/Crest Factor 수치를 반드시 참조해 설비 상태를 ISO 10816 기준으로 해석하라. 상태 수준에 맞는 톤을 스스로 판단(양호=예방관리 유지, 위험=즉시 조치).
+  - Crest Factor로 충격성 진동 판단(3 이하 정상, 3~6 주의, 6 이상 충격성)
+  - FFT 주파수 대역의 특이 피크 → 베어링/기어/불균형 등 고장 모드 추정
+  - 롤업 추이로 시간에 따른 악화/안정 판단
+  - recommendations는 설비 관리자의 점검/교체/모니터링 조치로 작성
+---
 # 진동 데이터 HTML 분석 리포트 템플릿
 
 진동 데이터(가속도, 속도, 변위 등)에 적합한 HTML 분석 리포트 템플릿입니다.
@@ -18,9 +27,23 @@
 | {ANALYSIS} | 심층 분석 | LLM 생성 |
 | {RECOMMENDATIONS} | 종합 소견 및 권고 | LLM 생성 |
 
+## ROLLUP 시간 단위 자동 선택 기준
+
+데이터 시간 범위에 따라 자동으로 적절한 ROLLUP 단위가 선택됩니다.
+
+| 데이터 시간 범위 | ROLLUP 단위 | 라벨 |
+|-----------------|------------|------|
+| 1시간 미만 | sec | 초별 |
+| 1시간 ~ 48시간 | min | 분별 |
+| 48시간 ~ 30일 | hour | 시간별 |
+| 30일 ~ 1년 | day | 일별 |
+| 1년 이상 | month | 월별 |
+
+시간 범위를 알 수 없는 경우 기본값은 `min`(분별)입니다.
+
 ---
 
-### R-2. 진동 데이터 종합 분석 리포트
+### R-2-vibration. 진동 데이터 종합 분석 리포트
 용도: 진동 데이터(가속도, 속도, 변위 등)의 원시 파형, RMS/Peak-to-Peak/Crest Factor 추이, FFT 주파수 스펙트럼, ISO 10816 심각도를 차트와 함께 보여주는 심층 분석 보고서입니다.
 
 ```html
@@ -63,9 +86,6 @@
   .tag-select { padding: 8px 14px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 14px; font-weight: 600; color: #2d3748; background: #fff; cursor: pointer; margin-left: 16px; min-width: 160px; }
   .tag-select:focus { outline: none; border-color: #667eea; }
 
-  .gauge-row { display: flex; gap: 24px; align-items: stretch; }
-  .gauge-wrap { flex: 0 0 280px; text-align: center; }
-  .stats-card { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .stat-item { background: #f7fafc; border-radius: 8px; padding: 12px 16px; }
   .stat-item .stat-label { font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-item .stat-value { font-size: 20px; font-weight: 800; color: #2d3748; font-variant-numeric: tabular-nums; }
@@ -93,8 +113,6 @@
   .analysis-content li::marker { color: #2b6cb0; font-weight: 700; }
 
   .report-footer { text-align: center; padding: 24px; color: #a0aec0; font-size: 12px; border-top: 1px solid #e2e8f0; margin-top: 12px; }
-  .gauge-note { font-size: 11px; color: #a0aec0; margin-top: 4px; }
-
   @media print { body { background: #fff; } .page { padding: 0; } .section { box-shadow: none; border: 1px solid #e2e8f0; } }
   @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .gauge-row { flex-direction: column; } .gauge-wrap { flex: none; } .page { padding: 16px; } }
 </style>
@@ -135,16 +153,9 @@
     <div class="chart-full chart-wrap"><canvas id="waveChart" height="300"></canvas><div class="crosshair" id="waveCross"><div class="crosshair-v"></div></div><div class="tooltip" id="waveTip"></div></div>
   </div>
 
-  <!-- Vibration Severity + Stats -->
+  <!-- Vibration Severity -->
   <div class="section">
-    <div class="section-title"><div class="icon icon-red">&#9888;</div> 진동 심각도 평가</div>
-    <div class="gauge-row">
-      <div style="flex:1;min-width:0;">
-        <div id="barGauge"></div>
-        <div class="gauge-note">ISO 10816 참고 기준 (단위 확인 필요)</div>
-      </div>
-      <div class="stats-card" id="statsCard"></div>
-    </div>
+    <div id="severitySection"></div>
   </div>
 
   <!-- RMS Trend -->
@@ -324,62 +335,79 @@
     addTip(canvasId,tipId,pts);
   }
 
-  // --- Severity Bar Gauge (horizontal, HTML-based) ---
-  function drawGauge(rmsVal){
-    var el=document.getElementById('barGauge');if(!el)return;
+  // --- Severity Section (gauge + indicators combined) ---
+  function drawSeverity(stats, table, tag){
+    var el=document.getElementById('severitySection');if(!el)return;
+    var sev=stats.severity||{};
+    var grade=sev.grade||0;
     var zones=[
-      {max:1.12,color:'#48bb78',bg:'#c6f6d5',label:'Good',emoji:'&#9989;'},
-      {max:2.8,color:'#ecc94b',bg:'#fefcbf',label:'Satisfactory',emoji:'&#9888;&#65039;'},
-      {max:7.1,color:'#ed8936',bg:'#feebc8',label:'Unsatisfactory',emoji:'&#128308;'},
-      {max:18,color:'#e53e3e',bg:'#fed7d7',label:'Unacceptable',emoji:'&#128680;'}
+      {label:'Good',color:'#38a169',thresh:'< 1.12'},
+      {label:'Warning',color:'#d69e2e',thresh:'1.12 - 2.8'},
+      {label:'Danger',color:'#dd6b20',thresh:'2.8 - 7.1'},
+      {label:'Critical',color:'#e53e3e',thresh:'> 7.1'}
     ];
-    // Determine which zone the value falls into
-    var activeZone=zones.length-1;
-    for(var i=0;i<zones.length;i++){if(rmsVal<=zones[i].max){activeZone=i;break;}}
-    var z=zones[activeZone];
-    // Marker position (percentage within the full bar, equal-width zones)
-    var lo=activeZone===0?0:zones[activeZone-1].max;
-    var hi=z.max;
-    var frac=(rmsVal-lo)/(hi-lo);
-    var pct=(activeZone+frac)/zones.length*100;
-    if(pct>100)pct=100;
+    var z=zones[grade]||zones[0];
+    var ind=sev.indicators||{};
+    var thresholds={avg_rms:2.8,peak_rms:2.8,crest:3.0,trend:2.0};
+    var unitLabels={avg_rms:' <span style="font-size:13px;font-weight:500;color:#a0aec0;">mm/s</span>',peak_rms:' <span style="font-size:13px;font-weight:500;color:#a0aec0;">mm/s</span>',crest:'',trend:''};
+    var prefixes={avg_rms:'',peak_rms:'',crest:'',trend:'&times;'};
+    var threshLabels={avg_rms:'기준 < 2.8',peak_rms:'기준 < 2.8',crest:'기준 < 3.0',trend:'기준 < &times;2.0'};
+    var recoText={0:'정상 운전 유지',1:'모니터링 강화 권고',2:'점검 권고: 24시간 내',3:'즉시 정지 권고'};
 
-    var html='<div style="text-align:center;margin-bottom:16px;">';
-    html+='<span style="font-size:36px;font-weight:800;color:'+z.color+';">'+fmt(rmsVal)+'</span>';
-    html+='<span style="font-size:14px;color:#718096;margin-left:8px;">RMS</span>';
-    html+='<div style="font-size:15px;font-weight:700;color:'+z.color+';margin-top:4px;">'+z.emoji+' '+z.label+'</div>';
-    html+='</div>';
+    var h='';
+    // Header
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">';
+    h+='<div style="font-size:16px;font-weight:600;color:#2d3748;display:flex;align-items:center;gap:8px;">';
+    h+='<span style="color:'+z.color+';font-size:18px;">&#9888;</span> 진동 심각도 평가</div>';
+    h+='<div style="font-size:13px;color:#a0aec0;">설비 '+table+' &middot; '+tag+'</div>';
+    h+='</div>';
+
+    // Grade box
+    h+='<div style="border:1px solid #edf2f7;border-radius:12px;padding:20px 24px 14px;margin-bottom:14px;">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;">';
+    h+='<div>';
+    h+='<div style="font-size:11px;color:#a0aec0;margin-bottom:2px;font-weight:500;">종합 위험도</div>';
+    h+='<span style="font-size:40px;font-weight:800;color:'+z.color+';line-height:1;letter-spacing:-1px;">'+z.label+'</span>';
+    h+='</div>';
+    h+='<div style="font-size:12px;color:#718096;font-weight:500;">'+recoText[grade]+'</div>';
+    h+='</div>';
     // Bar
-    html+='<div style="position:relative;height:32px;border-radius:16px;overflow:hidden;display:flex;">';
-    zones.forEach(function(zn){
-      html+='<div style="flex:1;background:'+zn.bg+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:'+zn.color+';">'+zn.label+'</div>';
-    });
-    html+='</div>';
-    // Marker triangle
-    html+='<div style="position:relative;height:16px;">';
-    html+='<div style="position:absolute;left:'+pct.toFixed(1)+'%;transform:translateX(-50%);font-size:18px;line-height:1;color:'+z.color+';">&#9650;</div>';
-    html+='</div>';
-    // Threshold labels
-    html+='<div style="display:flex;font-size:10px;color:#a0aec0;margin-top:2px;">';
-    html+='<div style="flex:1;text-align:left;">0</div>';
+    h+='<div style="position:relative;height:30px;border-radius:6px;overflow:hidden;display:flex;border:1px solid #edf2f7;">';
     zones.forEach(function(zn,i){
-      html+='<div style="flex:1;text-align:'+(i===zones.length-1?'right':'center')+';">'+zn.max+'</div>';
+      var active=i===grade;
+      var borderR=i<zones.length-1?'border-right:1px solid #edf2f7;':'';
+      h+='<div style="flex:1;background:'+(active?zn.color:'#fafbfc')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:'+(active?'#fff':'#cbd5e0')+';'+borderR+'">'+zn.label+'</div>';
     });
-    html+='</div>';
-    el.innerHTML=html;
-  }
+    h+='</div>';
+    h+='<div style="display:flex;margin-top:3px;">';
+    zones.forEach(function(zn){ h+='<div style="flex:1;text-align:center;font-size:10px;color:#c4cdd5;font-weight:400;">'+zn.thresh+'</div>'; });
+    h+='</div>';
+    h+='</div>';
 
-  function updateStatsCard(stats){
-    var card=document.getElementById('statsCard');if(!card)return;
-    var items=[
-      {l:'RMS',v:fmt(stats.rms||0)},
-      {l:'Peak-to-Peak',v:fmt(stats.p2p||0)},
-      {l:'Crest Factor',v:fmt(stats.crest||0)},
-      {l:'AVG',v:fmt(stats.avg||0)},
-      {l:'MIN',v:fmt(stats.min||0)},
-      {l:'MAX',v:fmt(stats.max||0)}
+    // 4 indicator cards
+    var indItems=[
+      {key:'avg_rms',l:'평균 RMS'},
+      {key:'peak_rms',l:'피크 RMS'},
+      {key:'crest',l:'Crest Factor'},
+      {key:'trend',l:'변화율'}
     ];
-    card.innerHTML=items.map(function(it){return '<div class="stat-item"><div class="stat-label">'+it.l+'</div><div class="stat-value">'+it.v+'</div></div>';}).join('');
+    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">';
+    indItems.forEach(function(it){
+      var d=ind[it.key]||{};var g=d.grade||0;var c=zones[g]||zones[0];
+      var val=d.value;var th=thresholds[it.key];
+      var diff=val!=null?Math.abs(val-th).toFixed(2):'';
+      var over=val>th;var arrowColor=over?'#e53e3e':'#38a169';var arrow=over?'&#9650;':'&#9660;';
+      h+='<div style="padding:14px 14px;border:1px solid #edf2f7;border-radius:10px;border-left:3px solid '+c.color+';">';
+      h+='<div style="margin-bottom:8px;font-size:12px;font-weight:500;color:#4a5568;">'+it.l;
+      h+='<span style="display:inline-block;padding:1px 7px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.5px;color:#fff;background:'+c.color+';margin-left:6px;vertical-align:middle;">'+c.label.toUpperCase()+'</span></div>';
+      h+='<div style="font-size:28px;font-weight:700;color:#1a202c;letter-spacing:-0.5px;margin-bottom:8px;">'+prefixes[it.key]+(val!=null?fmt(val):'-')+unitLabels[it.key]+'</div>';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;">';
+      h+='<span style="color:#c4cdd5;font-weight:400;">'+threshLabels[it.key]+'</span>';
+      if(val!=null) h+='<span style="color:'+arrowColor+';font-weight:600;">'+arrow+' '+diff+'</span>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+    el.innerHTML=h;
   }
 
   // --- Switch tag (all charts with zoom) ---
@@ -451,10 +479,9 @@
       var fc=document.getElementById('fftChart');if(fc){var fctx=fc.getContext('2d');fctx.clearRect(0,0,fc.width,fc.height);fctx.fillStyle='#8e99a4';fctx.font='14px Segoe UI';fctx.textAlign='center';fctx.fillText('FFT 데이터 없음',fc.width/2,fc.height/2);}
     }
 
-    // --- Gauge + Stats ---
+    // --- Severity Section ---
     var stats=d.stats||{};
-    drawGauge(stats.rms||0);
-    updateStatsCard(stats);
+    drawSeverity(stats, '{TABLE}', tag);
   };
 
   // Initial render

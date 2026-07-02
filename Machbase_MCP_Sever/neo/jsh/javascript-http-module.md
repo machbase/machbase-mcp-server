@@ -429,6 +429,41 @@ svr.get("/docs/hello.html", ctx => {
 svr.serve();
 ```
 
+### ws() (since v8.5.2)
+
+The `ws()` method attaches a WebSocket endpoint to the HTTP server. It provides an alternative to using `WebSocketServer` from the `ws` module when you want WebSocket handling integrated directly into the HTTP server.
+
+**Syntax**
+
+```js
+ws(path, options)
+```
+
+**Parameters**
+
+- `path` `String` The URL path to accept WebSocket connections on.
+- `options` `Object`:
+  - `verifyClient` `({origin, req}) => Boolean` Synchronously decides whether to accept the handshake. Return `false` to reject.
+  - `handleProtocols` `(protocols, req) => String|false` Selects one value from requested subprotocols.
+
+**Usage example**
+
+```js
+const http = require("@jsh/http");
+
+const svr = new http.Server({ network: 'tcp', address: '127.0.0.1:8080' });
+svr.ws('/ws', {
+    verifyClient: ({ req }) => req.query('token') === 'secret',
+    handleProtocols: (protocols) => {
+        if (protocols.indexOf('my-protocol') >= 0) return 'my-protocol';
+        return false;
+    },
+});
+svr.serve();
+```
+
+> **Note:** `verifyClient()` and `handleProtocols()` are synchronous. Promise-based or await-style flows are not supported. For full WebSocket server capabilities, see the `ws` module documentation.
+
 ### serve()
 
 The serve() function is a method of the HTTP server that starts the server and blocks the control flow until the stop() function is called.

@@ -686,7 +686,9 @@ integer, then returns `raw * scale + offset`.
 -- frame = 0xF2 34 56 78 12 34 56 78
 SELECT EXTRACT_SCALED_DOUBLE(frame, 0, 8, 0, 1, 0)  AS u8,
        EXTRACT_SCALED_DOUBLE(frame, 0, 8, 1, 1, 0)  AS s8;
+```
 
+```sql
 -- 20-bit current sensor: 0.01A/LSB, offset -100A
 SELECT EXTRACT_SCALED_DOUBLE(frame, 0, 20, 0, 0.01, -100.0) AS current_a FROM t;
 ```
@@ -2730,7 +2732,7 @@ LAG(column_name, N) OVER ([PARTITION BY column_name] [ORDER BY column_name])
 ```
 Mach> CREATE TABLE lag_table (name varchar(10), dt datetime, value INTEGER);
 Created successfully.
- 
+
 Mach> INSERT INTO lag_table VALUES('name1', TO_DATE('2024-01-01'), 1);
 1 row(s) inserted.
 
@@ -2739,14 +2741,16 @@ Mach> INSERT INTO lag_table VALUES('name1', TO_DATE('2024-01-02'), 2);
 
 Mach> INSERT INTO lag_table VALUES('name1', TO_DATE('2024-01-03'), 3);
 1 row(s) inserted.
+```
 
+```
 -- Divide the set by name, sort by dt, and retrieve the first previous value.
 Mach> SELECT name, dt, value, LAG(value, 1) OVER(PARTITION BY name ORDER BY dt) FROM lag_table;
-name        dt                              value       LAG(value, 1) 
+name        dt                              value       LAG(value, 1)
 ---------------------------------------------------------------------------
-name1       2024-01-01 00:00:00 000:000:000 1           NULL          
-name1       2024-01-02 00:00:00 000:000:000 2           1             
-name1       2024-01-03 00:00:00 000:000:000 3           2             
+name1       2024-01-01 00:00:00 000:000:000 1           NULL
+name1       2024-01-02 00:00:00 000:000:000 2           1
+name1       2024-01-03 00:00:00 000:000:000 3           2
 [3] row(s) selected.
 ```
 
@@ -2764,7 +2768,7 @@ LEAD(column_name, N) OVER ([PARTITION BY column_name] [ORDER BY column_name])
 ```
 Mach> CREATE TABLE lead_table (name varchar(10), dt datetime, value INTEGER);
 Created successfully.
- 
+
 Mach> INSERT INTO lead_table VALUES('name1', TO_DATE('2024-01-01'), 1);
 1 row(s) inserted.
 
@@ -2773,13 +2777,15 @@ Mach> INSERT INTO lead_table VALUES('name1', TO_DATE('2024-01-02'), 2);
 
 Mach> INSERT INTO lead_table VALUES('name1', TO_DATE('2024-01-03'), 3);
 1 row(s) inserted.
+```
 
+```
 -- Divide the set by name, sort by dt, and retrieve the first and subsequent values.
 Mach> SELECT name, dt, value, LEAD(value, 1) OVER(PARTITION BY name ORDER BY dt) FROM lead_table;
-name        dt                              value       LEAD(value, 1) 
+name        dt                              value       LEAD(value, 1)
 ----------------------------------------------------------------------------
-name1       2024-01-01 00:00:00 000:000:000 1           2              
-name1       2024-01-02 00:00:00 000:000:000 2           3              
-name1       2024-01-03 00:00:00 000:000:000 3           NULL           
+name1       2024-01-01 00:00:00 000:000:000 1           2
+name1       2024-01-02 00:00:00 000:000:000 2           3
+name1       2024-01-03 00:00:00 000:000:000 3           NULL
 [3] row(s) selected.
 ```

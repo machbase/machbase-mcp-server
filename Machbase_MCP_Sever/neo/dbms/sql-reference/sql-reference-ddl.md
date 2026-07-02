@@ -178,22 +178,27 @@ Please note the following when using this MINMAX Cache.
 Below is an example of table creation using actual MINMAX.
 
 ```sql
-
 -- MINMAX_CACHE_SIZE = 0 for VARCHAR is allowed semantically.
 CREATE TABLE ctest (id INTEGER, name VARCHAR(100) PROPERTY(MINMAX_CACHE_SIZE = 0));
 Created successfully.
 Mach>
- 
+```
+
+```sql
 -- Cache applied to id column.
 CREATE TABLE ctest2 (id INTEGER PROPERTY(MINMAX_CACHE_SIZE = 10240), name VARCHAR(100) PROPERTY(MINMAX_CACHE_SIZE = 0));
 Created successfully.
 Mach>
- 
+```
+
+```sql
 -- Applied to id1, id2, and id3.
 CREATE TABLE ctest3 (id1 INTEGER PROPERTY(MINMAX_CACHE_SIZE = 10240), name VARCHAR(100) PROPERTY(MINMAX_CACHE_SIZE = 0), id2 LONG PROPERTY(MINMAX_CACHE_SIZE = 1024), id3 IPV4 PROPERTY(MINMAX_CACHE_SIZE = 1024), id4 SHORT);
 Created successfully.
 Mach>
- 
+```
+
+```sql
 -- MINMAX_CACHE_SIZE is specified in column units or set to 0.
 CREATE TABLE ctest4 (id1 INTEGER PROPERTY(MINMAX_CACHE_SIZE=10240), name VARCHAR(100) PROPERTY(MINMAX_CACHE_SIZE=0), id2 LONG PROPERTY(MINMAX_CACHE_SIZE=10240), id3 IPV4 PROPERTY(MINMAX_CACHE_SIZE=0), id4 SHORT);
 Created successfully.
@@ -240,16 +245,24 @@ Internally, it stores the largest value of a column set to Sequence, so when you
 ```sql
 -- Insert the following Sequence value using nextval Function in the Sequence column.
 INSERT INTO table_name (v1, v2) values (nextval(v1), 'aaaa');
-   
+```
+
+```sql
 -- Insert a value directly into the Sequence column
 INSERT INTO table_name (v1, v2) values (100, 'aaaa');
-   
+```
+
+```sql
 -- Insert a the computational value in the Sequence column.
 INSERT INTO table_name (v1, v2) values (100 + 1, 'aaaa');
-   
+```
+
+```sql
 -- Success Select of Lookup Tables with Sequence Columns
 SELECT v1, v2 FROM table_name;
-  
+```
+
+```sql
 -- Invalid Select for Sequence column (nextval column can only be used in insert query)
 SELECT nextval(v1), v2 FROM table_name;
 ```
@@ -391,9 +404,11 @@ The properties that can be applied in the LSM Index are as follows.
 Indicates the number of rows stored in the Partition of Index.
 
 ```sql
--- Example
 -- Index applied to c1 column.
 CREATE INDEX index1 on table1 ( c1 )
+```
+
+```sql
 -- Keyword index applied to var_column of varchar type, and page_size unit is 100000.
 CREATE INDEX index2 on table1 (var_column) INDEX_TYPE KEYWORD PAGE_SIZE=100000;
 ```
@@ -437,7 +452,9 @@ This syntax is the ability to add a specific column to the table in real time. Y
 ```sql
 -- Example-1
 alter table atest2 add column (id4 float);
- 
+```
+
+```sql
 -- Example-2
 alter table atest2 add column (id6 double  default 5);
 alter table atest2 add column (id7 ipv4  default '192.168.0.1');
@@ -540,16 +557,24 @@ ALTER TABLE table_name MODIFY COLUMN (column_name VARCHAR(new_size));
 ```sql
 -- Example: Assume TABLE is created like this.
 -- create table atest5 (id integer, name varchar(5), id3 double, id4 float);
- 
+```
+
+```sql
 -- Error occurred: Can not change to another type,
 alter table atest5 modify column (id varchar(10));
- 
+```
+
+```sql
 -- Error occurred: VARCHAR length can not be made smaller.
 alter table atest5 modify column (name varchar(3));
- 
+```
+
+```sql
 -- Error occurred: Maximum size of VARCHAR can not exceed 32767.
 alter table atest5 modify column (name varchar(32768));
- 
+```
+
+```sql
 -- Success
 alter table atest5 modify column (name varchar(128));
 ```
@@ -565,11 +590,15 @@ ALTER TABLE table_name MODIFY COLUMN column_name SET MINMAX_CACHE_SIZE=value;
 ```sql
 -- Example: Assume TABLE is created like this.
 create table atest9 (id integer, name varchar(100));
- 
+```
+
+```sql
 -- Error: Does not apply to VARCHAR.
 alter table atest9 modify column name set minmax_cache_size=0;
 [ERR-02139 : MINMAX CACHE is not allowed for VARCHAR column(NAME).]
- 
+```
+
+```sql
 -- Change success
 alter table atest9 modify column id set minmax_cache_size=10240;
 ```
@@ -768,13 +797,19 @@ Examples
 -- Start/stop a rollup thread
 ALTER ROLLUP _rollup_tag_value_sec START;
 ALTER ROLLUP _rollup_tag_value_sec STOP;
+```
 
+```sql
 -- Wake the thread now (non-blocking)
 ALTER ROLLUP _rollup_tag_value_sec WAKEUP;
+```
 
+```sql
 -- Run immediately and wait for completion
 ALTER ROLLUP _rollup_tag_value_sec FORCE;
+```
 
+```sql
 -- Tighten the wakeup interval (must divide the rollup interval)
 ALTER ROLLUP _rollup_tag_value_sec SET WAKEUP INTERVAL 5 SEC;
 ```
@@ -808,3 +843,16 @@ drop_retention_stmt ::= 'DROP RETENTION' policy_name
 Mach> DROP RETENTION policy_1d_1h;
 Executed successfully
 ```
+
+## CREATE VIEW / DROP VIEW
+
+A VIEW stores a `SELECT` definition as a named logical object for reuse. It does not store data separately.
+
+```sql
+CREATE VIEW view_name AS SELECT ... FROM ...;
+CREATE OR REPLACE VIEW view_name AS SELECT ... FROM ...;
+DROP VIEW view_name;
+DROP VIEW IF EXISTS view_name;
+```
+
+For comprehensive VIEW documentation including supported shapes, metadata queries, performance notes, and examples, see the dedicated VIEW reference (`sql-reference-view.md`).

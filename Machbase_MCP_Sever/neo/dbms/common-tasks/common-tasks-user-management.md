@@ -182,6 +182,12 @@ CREATE USER weak_user IDENTIFIED BY 'password';  -- Don't do this!
 - Include numbers
 - Include special characters
 
+**Enforced password policy (Machbase 8.5+)**: Machbase can enforce password strength with a `PASSWORD POLICY` clause on `CREATE USER` / `ALTER USER`. `LOW` requires at least 10 characters with upper/lowercase and special characters, and `HIGH` additionally blocks reuse of the last 24 passwords and expires the password after 90 days (`VALID_BEFORE`). If omitted, `NONE` is used for backward compatibility. See [Password Policy](../sql-reference/sql-reference-user-manage.md#password-policy).
+
+```sql
+CREATE USER secure_user IDENTIFIED BY 'Tr0ng!P@ssw0rd#2025' PASSWORD POLICY HIGH;
+```
+
 ### 2. Principle of Least Privilege
 
 ```sql

@@ -491,6 +491,19 @@ for(i = 0; i < 3; i++) {
 // terminated
 ```
 
+### Execution guarantees
+
+Hooks execute when the JSH runtime enters a shutdown path that it manages, including normal script completion and explicit `process.exit()` calls.
+
+Hooks are **not guaranteed** to execute in these scenarios:
+- Forceful termination (SIGKILL, `kill -9`)
+- Fatal OS or Go runtime errors
+- Unhandled signal default actions
+
+When multiple hooks are registered, they execute in **reverse order**. Exceptions in one hook do not prevent remaining hooks from executing.
+
+> **Note:** `addShutdownHook()` provides no guarantees across all termination scenarios. For critical operations like file flushing or transaction cleanup, prefer explicit cleanup in `process.on(signal, handler)` before the normal shutdown flow activates.
+
 ## removeCleanup()
 
 Remove a previously registered cleanup callback using the provided token.

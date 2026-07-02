@@ -7,6 +7,7 @@ The database query topic for MQTT is `db/query`. Send a query request to this to
 | param       | default | description                   |
 |:----------- |---------|:----------------------------- |
 | **q**       | _n/a_   | SQL query string              |
+| p           |         | JSON array of parameters for `?` bind placeholders in the SQL query. Example: `"p": [2]`. Use `?` in the SQL as placeholder: `SELECT * FROM EXAMPLE WHERE name = ? LIMIT ?` |
 | reply       | db/reply| The topic where to receive the result of query |
 | format      | json    | Result data format: json, csv, box |
 | timeformat  | ns      | Time format: s, ms, us, ns    |
@@ -40,6 +41,8 @@ A basic query example shows the client subscribe to `db/reply/#` and publish a q
 
 ### JSH app
 
+> Since machbase-neo v8.5.0, JSH apps use standard Node.js-style `process` and `mqtt` modules (event-driven `.on()` handlers) instead of the older `@jsh/process` / `@jsh/mqtt` callback API.
+
 In this example, you will learn how to subscribe to a reply topic,
 send an SQL query request, and receive the result over MQTT.
 
@@ -61,38 +64,63 @@ send an SQL query request, and receive the result over MQTT.
 Below is the complete code example:
 
 ```js
-const process = require("@jsh/process");
-const mqtt = require("@jsh/mqtt");
+const process = require("process");
+const mqtt = require("mqtt");
 
 const topicReply = "db/reply/my_query";
 const topicQuery = "db/query";
-try {
-    var conf = { serverUrls: ["tcp://127.0.0.1:5653"] };
-    var client = new mqtt.Client(conf);
-    client.onConnect = () => {
-        client.subscribe({subscriptions:[{topic:topicReply, qos: 1}]})
-    }
-    var received = false
-    client.onMessage = (msg) => {
-        console.log('---- reply ----')
-        console.log(msg.payload.string());
-        received = true
-    }
+const queryRequest = {
+    q: `select name,time,value from example limit 5`,
+    format: 'csv',
+    reply: topicReply,
+};
 
-    client.connect( {timeout: 1000} );
-    client.publish({topic:topicQuery, qos: 1}, JSON.stringify({
-        q: `select name,time,value from example limit 5`,
-        format: 'csv',
-        reply: topicReply,
-    }))
-    do {
-        process.sleep(100);
-    } while(!received)
-    client.unsubscribe({topics:[topicReply]})
-    client.disconnect({timeout:1000});
-} catch (e) {
-    console.error("Error:", e.message);
-}
+var client = new mqtt.Client({
+    servers: ["tcp://127.0.0.1:5653"],
+    keepAlive: 10,
+});
+client.on('open', () => {
+    console.println('---- subscribe:', topicReply);
+    client.subscribe(topicReply, {qos:0})
+});
+client.on('error', (err) => {
+    console.println('MQTT ERROR:', err.message);
+});
+client.on('close', () => {
+    console.println('---- disconnected');
+});
+client.on('subscribed', (topic, reason) => {
+    console.println('---- publish:', topicQuery);
+    client.publish(topicQuery, JSON.stringify(queryRequest));
+});
+client.on('message', (msg) => {
+    console.println('---- reply')
+    console.println(msg.payload);
+    client.unsubscribe(msg.topic);
+});
+client.on('unsubscribed', (topic, reason) => {
+    console.println('---- unsubscribed:', topic, 'reason:', reason);
+    setTimeout(()=>{
+        client.close();
+    }, 500)
+});
+```
+
+The Execution and result:
+
+```sh
+/work > ./mqtt_query.js
+---- subscribe: db/reply/my_query ----
+---- publish: db/query ----
+---- reply ----
+name,time,value
+my-car,1782260468085501458,1.2345
+my-car,1782260474814668541,1.35795
+my-car,1782260474827077041,1.4814
+my-car,1782260474839257291,1.60485
+
+---- unsubscribed: db/reply/my_query reason: 0 ----
+---- disconnected ----
 ```
 
 ### Node.js Client

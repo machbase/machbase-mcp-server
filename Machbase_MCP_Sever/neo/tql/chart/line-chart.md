@@ -244,8 +244,6 @@ SCRIPT({
     for( r of rows) {
         data.push([r.time, r.value]);
     }
-    rows.close();
-    conn.close();
     $.yield({
         xAxis: { type: "time" },
         yAxis: {},

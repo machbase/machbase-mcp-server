@@ -77,9 +77,6 @@ As example, if the number of CPU cores is 8 and the factor is 2.0, the open limi
 | `--mqtt-sock`    | `/tmp/machbase-neo-mqtt-5653.sock`| mqtt unix socket |
 | `--http-port`    | `5654`    | http listen port                |
 | `--http-sock`    | `/tmp/machbase-neo-http-5654.sock` | http unix socket |
-| `--grpc-port`    | `5655`    | grpc listen port                |
-| `--grpc-sock`    | `/tmp/machbase-neo-grpc-5655.sock` | grpc unix domain socket  |
-| `--grpc-insecure`| `false`   | set `true` to use plain tcp socket, disable TLS |
 | `--mach-port`    | `5656`    | machbase native listen port     |
 
 > **📌 IMPORTANT**  
@@ -106,7 +103,7 @@ Start machbase-neo shell. It will start interactive mode shell if there are no o
 
 | flag (long)       | default                | desc                                                             |
 |:------------------|:-----------------------|:-----------------------------------------------------------------|
-| `-s`, `--server`  | `tcp://127.0.0.1:5655` | machbase-neo's gRPC address. e.g. `-s unix://./mach-grpc.sock` e.g. `--server tcp://127.0.0.1:5655` |
+| `-s`, `--server`  | `127.0.0.1:5654`       | machbase-neo's HTTP address. e.g. `--server 127.0.0.1:5654` |
 | `--user`          | `sys`                  | user name. env: `NEOSHELL_USER`         |
 | `--password`      | `manager`              | password. env: `NEOSHELL_PASSWORD`      |
 
@@ -305,8 +302,6 @@ machbase-neo» show ports;
 ┌─────────┬────────────────────────────────────────┐
 │ SERVICE │ PORT                                   │
 ├─────────┼────────────────────────────────────────┤
-│ grpc    │ tcp://127.0.0.1:5655                   │
-│ grpc    │ unix:///database/mach-grpc.sock        │
 │ http    │ tcp://127.0.0.1:5654                   │
 │ mach    │ tcp://127.0.0.1:5656                   │
 │ mqtt    │ tcp://127.0.0.1:5653                   │
@@ -480,6 +475,5 @@ define DEF {
     SHELL_PORT        = flag("--shell-port", "5652")
     MQTT_PORT         = flag("--mqtt-port", "5653")
     HTTP_PORT         = flag("--http-port", "5654")
-    GRPC_PORT         = flag("--grpc-port", "5655")
 ......
 ```

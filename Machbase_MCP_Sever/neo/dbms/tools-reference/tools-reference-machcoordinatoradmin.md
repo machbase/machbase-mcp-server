@@ -54,9 +54,19 @@ mach@localhost:~$ machcoordinatoradmin -h
 |--group=groupname | Group name of the node to install| --add-node |
 |--replication=host:port | host: port to exchange replication| --add-node |
 |--no-replicate |Does not use Replication on the node to install |--add-node|
+|--dbs-path=path | Database file path for broker/warehouse nodes | --add-node|
 |--primary=host:port | Specifies the node name of the Primary Coordinator when installing the Secondary Coordinator |-u, --startup|
 |--host=host | Specifies specific host to output Host resource information| --get-host-resource|
 |--metric=`[cpu|memory|disk|network]` | Specifies specific metric to output Host resource information| --get-host-resource|
+
+### --dbs-path notes
+
+`--dbs-path` specifies a custom database file path for a broker or warehouse node, and can be used only when adding the node with `--add-node`. It cannot be used for lookup, coordinator, or deployer nodes, and it cannot be combined with other commands such as `--attach-node` or `--upgrade-node`.
+
+- The value must start with `/` or `?`. Newlines, tabs, and trailing blanks are not allowed.
+- Values that directly specify system paths such as `/`, `/etc`, `/usr`, `/home`, and `/bin` are rejected. A real data directory under a system path, such as `/home/machbase/warehouse_a1_dbs`, can be specified.
+- When an absolute path is specified, the directory must not exist when the node is added; the deployer creates it. If it already exists, adding the node fails with `DBS_PATH already exists`.
+- If `--dbs-path` is omitted, the broker/warehouse configuration records the default value `DBS_PATH = ?/dbs`.
 
 ## Check Running Status
 

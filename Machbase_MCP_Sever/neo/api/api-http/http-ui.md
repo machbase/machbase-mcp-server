@@ -243,9 +243,9 @@ Delete the shell of the given id
 
 ### Event channel
 
-**`ws:/web/api/console/:console_id/data`**
+**`ws:/web/api/console/:console_id/data?token={jwt_token}`**
 
-Web socket for the bi-directional messages
+Web socket for the bi-directional messages. This endpoint requires a JWT access token supplied as the `token` query parameter, because the WebSocket handshake cannot send the HTTP `Authorization` header.
 
 - message type
 

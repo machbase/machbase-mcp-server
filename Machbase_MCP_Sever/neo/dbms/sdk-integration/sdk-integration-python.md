@@ -428,6 +428,22 @@ if __name__ == '__main__':
     main()
 ```
 
+#### Trailing NULL padding (since 2.3)
+
+Since `machbaseAPI` 2.3, append rows may omit trailing columns; the omitted columns are stored as `NULL` through append null-bit metadata. This avoids having to pass placeholder values for columns that have no data.
+
+- Positional input cannot skip middle columns. Pass `None` explicitly when a middle column should be stored as `NULL`; only trailing columns may be omitted entirely.
+- For TAG tables, the values corresponding to `name`, `time`, and `value` are required. Additional columns and metadata columns after `value` can be omitted and are stored as `NULL`. A TAG append that omits `value` fails.
+
+```python
+# 3-column table (ts, value, note): the first row omits `note` (stored NULL),
+# the second row passes None at the `value` position (stored NULL).
+rows = [
+    ['2024-01-01 09:00:00', 21.5],          # note omitted -> NULL
+    ['2024-01-01 09:05:00', None, 'ok'],    # value is None -> NULL
+]
+```
+
 ### Convenience append helpers
 
 #### machbase.append()

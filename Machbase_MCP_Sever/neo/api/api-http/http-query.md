@@ -32,11 +32,13 @@ curl -o - http://127.0.0.1:5654/db/query \
 | param       | default | description                   |
 |:----------- |---------|:----------------------------- |
 | **q**       | _required_ | SQL query string              |
+| p           |            | JSON array of parameters for `?` bind placeholders in the SQL query. Example: `"p": ["name", 1234, 1.23, true]`. Use `?` in the SQL query as placeholder: `SELECT * FROM EXAMPLE WHERE name = ? LIMIT ?` |
 | format      | `json`    | Result data format: json, csv, box, ndjson |
 | timeformat  | `ns`      | Time format: s, ms, us, ns    |
 | tz          | `UTC`     | Time Zone: UTC, Local and location spec |
 | compress    | _no compression_   | compression method: gzip      |
 | rownum      | `false`   | including rownum: true, false |
+| binaryformat | `hex`    | (since v8.5.2) Controls how binary column data is encoded in the response. Supported values: `hex` (default), `base64`, `bytes`, `preview` |
 
 **Available parameters with `format=json`**
 

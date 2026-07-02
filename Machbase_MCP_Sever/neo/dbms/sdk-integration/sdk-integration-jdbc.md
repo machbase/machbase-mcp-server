@@ -4,6 +4,46 @@
 
 The set of database manipulation interfaces created in the Java programming language is called JDBC (Java DataBase Connectivity). A set of APIs that provide a consistent interface for a variety of relational databases, defining a set of object-oriented classes of classes that the programmer will use to build SQL requests. That is, if you use a JDBC driver, no matter which database you use, there is an advantage that you can apply it directly without modifying the code.
 
+## Authentication Modes
+
+> **Note**: AUTH KEY challenge authentication is supported from Machbase 8.5 or later.
+
+Machbase JDBC supports both the existing password authentication (`user` and `password` as before) and public-key-based challenge authentication. Challenge authentication uses the following connection properties:
+
+- `AUTH_MODE` — `PASSWORD` or `CHALLENGE`.
+- `AUTH_SIG_SCHEME` — `ECDSA`, `RSA_PKCS1_V15`, or `RSA_PSS`.
+- `AUTH_KEY_FILE` — local PEM private key file path.
+
+Notes:
+
+- `password` is not used for authentication when `AUTH_MODE=CHALLENGE`. `AUTH_KEY_FILE` is required.
+- If `AUTH_KEY_FILE` is provided and `AUTH_MODE` is omitted, the driver treats the connection as `CHALLENGE`.
+- If `AUTH_SIG_SCHEME` is omitted, the driver selects the default scheme from the key file: `ECDSA` for an EC key, `RSA_PKCS1_V15` for an RSA key.
+- Supported key parameters are ECDSA `P-256`, `P-384`, `P-521` and RSA `2048`, `3072`, `4096` bits. To use RSA-PSS authentication, specify `AUTH_SIG_SCHEME=RSA_PSS`.
+- An absolute path is recommended for the private key file; relative paths are resolved from the JVM working directory. On POSIX systems, restricting the private key file permission to `600` is recommended.
+- If challenge authentication fails, the driver does not automatically fall back to password authentication. Reconnect performs challenge authentication again without reusing a previous nonce or signature.
+
+```java
+String sURL = "jdbc:machbase://127.0.0.1:5656/machbasedb";
+
+Properties sProps = new Properties();
+sProps.put("user", "app_user");
+sProps.put("AUTH_MODE", "CHALLENGE");
+sProps.put("AUTH_SIG_SCHEME", "ECDSA");
+sProps.put("AUTH_KEY_FILE", "/opt/machbase/keys/app_user_ecdsa.pem");
+
+Class.forName("com.machbase.jdbc.MachDriver");
+Connection conn = DriverManager.getConnection(sURL, sProps);
+```
+
+The same properties can be passed in the URL query string, but using `Properties` is recommended because the key file path may be exposed more easily in logs or configuration dumps:
+
+```text
+jdbc:machbase://127.0.0.1:5656/machbasedb?AUTH_MODE=CHALLENGE&AUTH_SIG_SCHEME=ECDSA&AUTH_KEY_FILE=/opt/machbase/keys/app_user_ecdsa.pem
+```
+
+See [AUTH KEY Authentication](../sql-reference/sql-reference-user-manage.md#auth-key-authentication) for registering public keys and generating key files.
+
 ## Standard JDBC Functions
 
 [Standard Function Specs 4.0](http://www.oracle.com/technetwork/java/javase/jdbc/index.html#corespec40)

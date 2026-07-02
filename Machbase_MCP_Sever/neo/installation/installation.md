@@ -129,7 +129,6 @@ Machbase-neo exposes several ports in Docker:
 | 5652 | sshd |
 | 5653 | mqtt |
 | 5654 | http |
-| 5655 | grpc |
 | 5656 | database engine |
 
 #### Port Mapping (Forwarding)
@@ -187,7 +186,6 @@ services:
       - "5652:5652" # sshd
       - "5653:5653" # mqtt
       - "5654:5654" # http
-      - "5655:5655" # grpc
       - "5656:5656" # database engine
 ```
 

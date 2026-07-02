@@ -85,6 +85,16 @@ MAPVALUE(1, value(1)*1000000000 ) // convert epoch sec to nanosec
 APPEND( table("example") )
 ```
 
+## binaryformat (since v8.5.2)
+
+The `binaryformat()` option controls how binary column data is represented in text output. It applies to CSV(), JSON(), NDJSON(), and BOX() sinks.
+
+Supported values:
+- `hex` (default): Hexadecimal encoding
+- `base64`: Base64 encoding
+- `bytes`: Raw byte representation
+- `preview`: Preview/truncated display
+
 ## CSV()
 
 **Syntax**: `CSV( [tz(), timeformat(), precision(), rownum(), heading(), delimiter(), nullValue() ] )`
