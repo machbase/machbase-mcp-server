@@ -19,19 +19,19 @@ This api is convenient way to utilize existing client softwares that produce lin
 **HTTP:**
 ~~~
 ```http
-POST http://127.0.0.1:5654/metrics/write?db=tagdata
+POST http://127.0.0.1:5654/metrics/write?db=example&precision=ms
 
-my-car speed=87.6 167038034500000
+my-car speed=87.6 1782878977000
 ```
 ~~~
 
 **cURL:**
 ```sh
-curl -o - -X POST "http://127.0.0.1:5654/metrics/write?db=tagdata" \
-    --data-binary 'my-car speed=87.6 167038034500000'
+curl -o - -X POST "http://127.0.0.1:5654/metrics/write?db=example&precision=ms" \
+    --data-binary 'my-car speed=87.6 1782878977000'
 ```
 
-This example inserts data into table `tagdata` with `name`='my-car.speed', `value`=87.6 and `time`=167038034500000
+This example inserts data into table `example` with `name`='my-car.speed', `value`=87.6 and `time`=1782878977000 (milliseconds, from `precision=ms`)
 
 **telegraf.conf example**
 
@@ -40,7 +40,7 @@ the metrics that collected by telegraf are directly inserted into Machbase Neo.
 
 ```
 [[outputs.http]]
-url = "http://127.0.0.1:5654/metrics/write?db=tagdata"
+url = "http://127.0.0.1:5654/metrics/write?db=example"
 data_format = "influx"
 content_encoding = "gzip"
 ```

@@ -19,11 +19,11 @@ Save the code below as `input-csv.tql`. When you save a TQL script, the editor w
 ```js
 CSV(payload(), 
     field(0, stringType(), 'name'),
-    field(1, timeType('ns'), 'time'),
-    field(2, floatType(), 'value'),
+    field(1, datetimeType('ns'), 'time'),
+    field(2, doubleType(), 'value'),
     header(false)
 )
-INSERT("name", "time", "value", table("example"))
+SQL(`insert into example values(?,?,?)`, value(0), value(1), value(2))
 ```
 
 ### 2. HTTP POST
@@ -81,8 +81,8 @@ Save the code below as `append-csv.tql`. When you save a TQL script, the editor 
 ```js
 CSV(payload(), 
     field(0, stringType(), 'name'),
-    field(1, timeType('ns'), 'time'),
-    field(2, floatType(), 'value'),
+    field(1, datetimeType('ns'), 'time'),
+    field(2, doubleType(), 'value'),
     header(false)
 )
 APPEND(table('example'))
@@ -147,7 +147,7 @@ SCRIPT({
     obj = JSON.parse($.payload)
     obj.data.rows.forEach(r => $.yield(...r))
 })
-INSERT("name", "time", "value", table("example"))
+SQL(`insert into example values(?,?,?)`, value(0), value(1), value(2))
 ```
 
 ### 2. HTTP POST

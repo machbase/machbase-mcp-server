@@ -39,6 +39,22 @@ INSERT INTO t1 VALUES('k4', '2024-01-01', '0xF');         -- stores 0F 00 00 00
 INSERT INTO t1 VALUES('k5', '2024-01-01', '0xFFFFFFFFF'); -- error: length exceeded
 ```
 
+## Binary Literals
+
+In addition to hex strings, SQL accepts explicit binary literals: `X'...'` (hexadecimal), `B'...'` (binary bit), and `O'...'` (octal). The prefix can be uppercase or lowercase.
+
+| Format | Meaning | Unit |
+| --- | --- | --- |
+| `X'...'`, `x'...'` | Hexadecimal literal | 2 hex digits = 1 byte |
+| `B'...'`, `b'...'` | Binary bit literal | 8 bits = 1 byte |
+| `O'...'`, `o'...'` | Octal literal | 3 octal digits = 1 byte |
+
+- Hexadecimal `X'...'` can contain `0-9`, `A-F`, `a-f`; the number of digits must be even.
+- Bit `B'...'` can contain only `0` and `1`; the number of bits must be a multiple of 8.
+- Octal `O'...'` can contain only `0-7`; digits must be grouped in units of three.
+
+`X'0A'`, `B'00001010'`, and `O'012'` all represent the same one-byte value `0x0A`.
+
 ## Output and Tooling Notes
 
 - machsql displays uppercase hex without the `0x` prefix; output width follows

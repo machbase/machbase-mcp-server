@@ -52,6 +52,21 @@ Mach> CREATE ROLLUP _tag_rollup_sec ON tag(strvalue) INTERVAL 1 SEC;
 [ERR-02671: Invalid type for ROLLUP column (STRVALUE).]
 ```
 
+### ROLLUP on a JSON member
+
+When using a member of a JSON column as the rollup target value, you can use both the existing JSONPath arrow syntax and JSON dot shorthand.
+
+```sql
+-- JSON dot shorthand
+CREATE ROLLUP tag_json_metric_ru ON tag_json (value.metric) INTERVAL 1 SEC;
+
+-- Existing JSONPath arrow syntax
+CREATE ROLLUP tag_json_metric_arrow_ru ON tag_json (value->'$.metric') INTERVAL 1 SEC;
+
+-- Array index and double-quoted key
+CREATE ROLLUP tag_json_item_ru ON tag_json (value.items[0]."metric-id") INTERVAL 1 SEC;
+```
+
 ### Automatically create a ROLLUP table
 
 A roll-up table can be automatically generated using the keyword `with ROLLUP (time_unit)`

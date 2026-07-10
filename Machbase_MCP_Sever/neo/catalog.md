@@ -7,13 +7,13 @@
 | api/api-http/http-go.md | HTTP Go 클라이언트 | net/http,URL escape,JSON POST body |
 | api/api-http/http-guide.md | HTTP API 엔드포인트 | /db/query,/db/write,TQL endpoints,REST |
 | api/api-http/http-javascript.md | HTTP JavaScript 클라이언트 | fetch API,encodeURIComponent,text JSON response |
-| api/api-http/http-lineprotocol.md | InfluxDB Line Protocol 호환 | telegraf,measurement translation,field value mapping |
+| api/api-http/http-lineprotocol.md | InfluxDB Line Protocol 호환 | telegraf,measurement translation,field value mapping,라인프로토콜입력,ILP입력,인플럭스입력,telegraf연동,metricswrite |
 | api/api-http/http-python.md | HTTP Python 클라이언트 | requests,pandas dataframe,gzip compression |
 | api/api-http/http-query.md | HTTP Query API | format parameter,transpose,rowsFlatten,timeformat,binaryformat,bind parameter |
 | api/api-http/http-ui.md | HTTP 웹 UI API | JWT authentication,token refresh,WebSocket terminal |
 | api/api-http/http-upload-files.md | HTTP 파일 업로드 | multipart form data,X-Store-Dir,JSON metadata |
 | api/api-http/http-watch-data.md | HTTP SSE 실시간 감시 | Server-Sent Events,keep-alive,period parameter |
-| api/api-http/http-write.md | HTTP Write API | INSERT APPEND,timeformat zone,CSV JSON NDJSON |
+| api/api-http/http-write.md | HTTP Write API | INSERT APPEND,timeformat zone,CSV JSON NDJSON,데이터입력엔드포인트,쓰기엔드포인트,dbwrite경로,입력기본URL,HTTP입력주소,데이터쓰기API,JSON입력,JSON데이터입력,JSON형식쓰기,HTTPJSON입력,CSV입력,CSV헤더스킵,첫줄건너뛰기,헤더줄무시,headerskip,컬럼매핑,헤더컬럼매핑,CSV컬럼순서,일부컬럼입력,NDJSON입력,줄바꿈JSON,스트리밍JSON입력,append입력,대량입력,고속입력,빠른데이터입력,시간형식지정,타임존지정,문자열시간입력,gzip입력,압축입력,gzip압축전송,데이터형식구분,ContentType,입력포맷인식,콘텐츠타입 |
 | api/api-mqtt/mqtt-csharp.md | MQTT C# 클라이언트 | MQTTnet,QoS,TCP socket |
 | api/api-mqtt/mqtt-go.md | MQTT Go 클라이언트 | paho mqtt,protocol version,topic subscription |
 | api/api-mqtt/mqtt-guide.md | MQTT API 개요 | write flow,query flow,append mode,reply topic |
@@ -33,7 +33,7 @@
 | dbms/advanced-features/advanced-features-create-delete.md | 스트림 생성 및 삭제 | STREAM_CREATE,STREAM_DROP,INSERT-SELECT,aggregation |
 | dbms/advanced-features/advanced-features-database-mount.md | 데이터베이스 마운트 | MOUNT,UNMOUNT,read-only,mounted-database |
 | dbms/advanced-features/advanced-features-overview.md | 고급 기능 개요 | BACKUP,MOUNT,online-backup,cold-backup,data-retention |
-| dbms/advanced-features/advanced-features-retention.md | 데이터 보관 정책 | CREATE-RETENTION,retention-policy,DURATION,INTERVAL,auto-delete |
+| dbms/advanced-features/advanced-features-retention.md | 데이터 보관 정책 | CREATE-RETENTION,retention-policy,DURATION,INTERVAL,auto-delete,보관정책적용,RETENTION적용,ADDRETENTION,데이터자동삭제,데이터보관기간,보존정책 |
 | dbms/advanced-features/advanced-features-sample.md | 스트림 사용 샘플 | STREAM_START,STREAM_EXECUTE,V$STREAMS,real-time-insert |
 | dbms/advanced-features/advanced-features-startup-shutdown.md | 스트림 시작 및 중지 | STREAM_START,STREAM_STOP,STREAM_EXECUTE,BY-USER |
 | dbms/common-tasks/common-tasks-backup-recovery.md | 백업 및 복구 전략 | offline-backup,online-backup,CSV-export,disaster-recovery |
@@ -72,9 +72,9 @@
 | dbms/sdk-integration/sdk-integration-nodejs.md | Node.js 연동 | npm-package,node-driver,SQL-execution |
 | dbms/sdk-integration/sdk-integration-python.md | Python SDK | machbaseAPI,pip-install,execute-query |
 | dbms/sql-reference/sql-reference-datatypes.md | 데이터 타입 | short,integer,long,double,varchar,datetime,IPv4,IPv6 |
-| dbms/sql-reference/sql-reference-ddl.md | DDL 데이터 정의 | CREATE TABLE,CREATE TAG TABLE,IF NOT EXISTS,PRIMARY KEY,BASETIME,SUMMARIZED,METADATA COLUMN,METADATA ADD COLUMN,METADATA DROP COLUMN,WITH ROLLUP,VOLATILE,LOOKUP,SEQUENCE,TAG_PARTITION_COUNT,MINMAX_CACHE_SIZE,NOT NULL,CREATE INDEX,INDEX_TYPE,DROP INDEX,CREATE ROLLUP,DROP ROLLUP,ALTER ROLLUP,ALTER TABLE,ADD COLUMN,DROP COLUMN,RENAME COLUMN,MODIFY COLUMN,RENAME TO,ADD RETENTION,DROP RETENTION,CREATE RETENTION,TRUNCATE TABLE,DROP TABLE,CREATE TABLESPACE |
+| dbms/sql-reference/sql-reference-ddl.md | DDL 데이터 정의 | CREATE TABLE,CREATE TAG TABLE,IF NOT EXISTS,PRIMARY KEY,BASETIME,SUMMARIZED,METADATA COLUMN,METADATA ADD COLUMN,METADATA DROP COLUMN,WITH ROLLUP,VOLATILE,LOOKUP,SEQUENCE,TAG_PARTITION_COUNT,MINMAX_CACHE_SIZE,NOT NULL,CREATE INDEX,INDEX_TYPE,DROP INDEX,CREATE ROLLUP,DROP ROLLUP,ALTER ROLLUP,ALTER TABLE,ADD COLUMN,DROP COLUMN,RENAME COLUMN,MODIFY COLUMN,RENAME TO,ADD RETENTION,DROP RETENTION,CREATE RETENTION,TRUNCATE TABLE,DROP TABLE,CREATE TABLESPACE,IFNOTEXISTS,중복생성방지,존재하면생성안함,조건부테이블생성,컬럼추가,ADDCOLUMN,열추가,컬럼늘리기,기본값컬럼추가,테이블삭제,DROPTABLE,테이블제거,테이블드롭,테이블지우기,컬럼이름변경,RENAMECOLUMN,컬럼명바꾸기,열이름변경,데이터전체삭제,테이블비우기,전체데이터삭제,데이터모두삭제 |
 | dbms/sql-reference/sql-reference-view.md | SQL VIEW 참조 | CREATE VIEW,DROP VIEW,stored VIEW,SHOW VIEWS,M$SYS_VIEWS,EXPLAIN,BINARY decode,nested VIEW |
-| dbms/sql-reference/sql-reference-dml.md | DML 데이터 조작 | INSERT,INSERT VALUES,INSERT column list,INSERT METADATA,ON DUPLICATE KEY UPDATE,UPSERT,INSERT SELECT,UPDATE,UPDATE METADATA,DELETE,DELETE WHERE,DELETE BEFORE,DELETE OLDEST,DELETE EXCEPT,DELETE METADATA,tag_name delete,tag_time delete,LOAD DATA INFILE,CSV import,APPEND |
+| dbms/sql-reference/sql-reference-dml.md | DML 데이터 조작 | INSERT,INSERT VALUES,INSERT column list,INSERT METADATA,ON DUPLICATE KEY UPDATE,UPSERT,INSERT SELECT,UPDATE,UPDATE METADATA,DELETE,DELETE WHERE,DELETE BEFORE,DELETE OLDEST,DELETE EXCEPT,DELETE METADATA,tag_name delete,tag_time delete,LOAD DATA INFILE,CSV import,APPEND,컬럼지정입력,컬럼목록입력,특정컬럼입력,컬럼선택입력,조회결과입력,INSERTSELECT,테이블복사,셀렉트결과입력,다른테이블입력,결과삽입,이전데이터삭제,날짜이전삭제,특정시간이전삭제,DELETEBEFORE,과거데이터삭제,기준일이전삭제,데이터수정,UPDATE문,값수정,레코드수정,데이터변경,값업데이트 |
 | dbms/sql-reference/sql-reference-functions.md | SQL 함수 목록 | ABS,AVG,COUNT,SUM,DATE_TRUNC,EXTRACT,TO_CHAR,JSON |
 | dbms/sql-reference/sql-reference-select-hint.md | SELECT 힌트 | PARALLEL,FULL,NO_INDEX,ROLLUP_TABLE,SCAN_FORWARD |
 | dbms/sql-reference/sql-reference-select.md | SELECT 구문 | FROM,WHERE,GROUP-BY,ORDER-BY,JOIN,UNION,DURATION,PIVOT |
@@ -82,7 +82,7 @@
 | dbms/sql-reference/sql-reference-time-expressions.md | 상대시간 표현식 | INTERVAL,date-arithmetic,time-function,duration-clause |
 | dbms/sql-reference/sql-reference-user-manage.md | 사용자 관리 SQL | CREATE-USER,ALTER-USER,DROP-USER,GRANT,REVOKE |
 | dbms/table-types/log-tables/table-types-log-tables-creating-log-tables.md | 로그 테이블 생성 | CREATE-TABLE,_arrival_time,flexible-schema |
-| dbms/table-types/log-tables/table-types-log-tables-deleting-data.md | 로그 데이터 삭제 | DELETE-oldest,DELETE-except,time-based-deletion |
+| dbms/table-types/log-tables/table-types-log-tables-deleting-data.md | 로그 데이터 삭제 | DELETE-oldest,DELETE-except,time-based-deletion,오래된행삭제,오래된데이터삭제,로그삭제,DELETEOLDEST,최초행삭제,오래된로그삭제,최근행만남기기,최근만남기고삭제,DELETEEXCEPT,일정개수만남기기,최근데이터유지,오래된것삭제 |
 | dbms/table-types/log-tables/table-types-log-tables-insert.md | 로그 데이터 입력 방법 | INSERT,APPEND,IMPORT,LOAD,입력방식비교 |
 | dbms/table-types/log-tables/table-types-log-tables-insert-append-data.md | APPEND 고속입력 | append_API,batch-insert,high-volume |
 | dbms/table-types/log-tables/table-types-log-tables-insert-import-data.md | 로그 데이터 임포트 | machloader,CSV-import,data-validation |
@@ -102,17 +102,17 @@
 | dbms/table-types/lookup-tables/table-types-lookup-tables-querying-data.md | 룩업 데이터 조회 | SELECT,JOIN,reference-data-query |
 | dbms/table-types/table-types.md | 테이블 타입 참조 | tag-table,log-table,volatile-table,lookup-table,생성문법 |
 | dbms/table-types/tag-tables/table-types-tag-tables-binary-columns.md | 바이너리 컬럼 | BINARY-type,고정길이,16진수입력,센서프레임 |
-| dbms/table-types/tag-tables/table-types-tag-tables-creating-tag-tables.md | 태그 테이블 생성 | CREATE-TAG-TABLE,BASETIME,SUMMARIZED,필수컬�� |
+| dbms/table-types/tag-tables/table-types-tag-tables-creating-tag-tables.md | 태그 테이블 생성 | CREATE-TAG-TABLE,BASETIME,SUMMARIZED,필수컬��,태그테이블생성,태그테이블만들기,센서테이블생성,시계열테이블만들기,PRIMARYKEY,BASETIME지정,메타데이터컬럼,메타컬럼추가,METADATA절,태그속성컬럼,메타데이터있는태그테이블 |
 | dbms/table-types/tag-tables/table-types-tag-tables-deleting-data.md | 태그 데이터 삭제 | DELETE-oldest,before_time,특정태그삭제 |
 | dbms/table-types/tag-tables/table-types-tag-tables-duplication-removal.md | 중복 자동제거 | TAG_DUPLICATE_CHECK_DURATION,센서데이터정제 |
-| dbms/table-types/tag-tables/table-types-tag-tables-inserting-data.md | 태그 데이터 입력 | INSERT,METADATA,append,고속입력 |
+| dbms/table-types/tag-tables/table-types-tag-tables-inserting-data.md | 태그 데이터 입력 | INSERT,METADATA,append,고속입력,태그데이터입력,INSERT문,태그값입력,데이터삽입,센서데이터입력,단건입력 |
 | dbms/table-types/tag-tables/table-types-tag-tables-lsl-usl-limits.md | LSL/USL 데이터품질 | LSL,USL,specification_limit,범위제한 |
 | dbms/table-types/tag-tables/table-types-tag-tables-querying-data.md | 태그 데이터 조회 | 시계열쿼리,시간범위,tag_id검색,고속검색 |
 | dbms/table-types/tag-tables/table-types-tag-tables-rollup-conditional.md | 조건부 롤업 | conditional-rollup,outlier_filtering,predicate,노이즈제거 |
 | dbms/table-types/tag-tables/table-types-tag-tables-rollup-custom.md | 사용자 정의 롤업 (Custom Rollup) | custom_rollup,user_defined_aggregation,INTO_AS_SELECT,re_aggregation,OHLCV,hierarchical_pipeline,DATE_BIN,FIRST_LAST |
-| dbms/table-types/tag-tables/table-types-tag-tables-rollup-tables.md | 롤업 테이블 | rollup-statistics,MIN-MAX-AVG,hourly-rollup,CREATE_ROLLUP |
-| dbms/table-types/tag-tables/table-types-tag-tables-tag-indexes.md | 태그 인덱스 | TAG_INDEX,3-level-index,json_path,추가컬럼인덱싱 |
-| dbms/table-types/tag-tables/table-types-tag-tables-tag-metadata.md | 태그 메타데이터 | _META-table,metadata-management,센서레지스트리 |
+| dbms/table-types/tag-tables/table-types-tag-tables-rollup-tables.md | 롤업 테이블 | rollup-statistics,MIN-MAX-AVG,hourly-rollup,CREATE_ROLLUP,롤업테이블생성,롤업만들기,자동집계테이블,WITHROLLUP,시간집계 |
+| dbms/table-types/tag-tables/table-types-tag-tables-tag-indexes.md | 태그 인덱스 | TAG_INDEX,3-level-index,json_path,추가컬럼인덱싱,인덱스생성,value컬럼인덱스,추가컬럼인덱스,태그인덱스만들기,CREATEINDEX |
+| dbms/table-types/tag-tables/table-types-tag-tables-tag-metadata.md | 태그 메타데이터 | _META-table,metadata-management,센서레지스트리,태그메타입력,메타데이터입력,태그이름등록,태그등록,태그명등록,INSERT메타데이터,메타데이터수정,태그메타수정,태그이름변경,태그명변경,메타값변경,UPDATE메타데이터,메타데이터삭제,태그메타삭제,태그삭제,태그이름삭제,DELETE메타데이터,태그제거 |
 | dbms/table-types/tag-tables/table-types-tag-tables-rollup-rebuild.md | 롤업 리빌드 가이드 | ROLLUP_REBUILD,Python_rebuild,bucket,custom_rollup,UNION_ALL,dependency |
 | dbms/table-types/tag-tables/table-types-tag-tables-varchar-storage.md | VARCHAR 저장소 최적화 | VARCHAR_FIXED_LENGTH_MAX,고정영역,가변영역,저장효율 |
 | dbms/table-types/volatile-tables/table-types-volatile-tables-creating-volatile-tables.md | 휘발성 테이블 생성 | CREATE-VOLATILE,in-memory,PRIMARY-KEY |
@@ -135,7 +135,7 @@
 | dbms/tutorials/tutorials-iot-sensor-data.md | IoT 센서 데이터 튜토리얼 | 창고모니터링,온습도센서,롤업,데이터보유 |
 | dbms/tutorials/tutorials-realtime-analytics.md | 실시간 분석 튜토리얼 | factory_monitoring,Volatile_table,상태보드 |
 | dbms/tutorials/tutorials-reference-data.md | 참조 데이터 튜토리얼 | IoT_플랫폼,device_registry,Lookup_table,마스터데이터 |
-| installation/installation.md | Machbase Neo 설치 및 시작 | Docker,direct install,platform support,web UI,login |
+| installation/installation.md | Machbase Neo 설치 및 시작 | Docker,direct install,platform support,web UI,login,리눅스설치,ubuntu설치,라즈베리파이설치,압축해제설치,다운로드설치,neo설치,도커설치,docker설치,컨테이너실행,dockerpull,dockerrun,도커컴포즈,볼륨마운트,다이렉트설치,directinstall,installsh,스크립트설치,curl설치,원라인설치 |
 | jsh/javascript-analysis-module.md | JavaScript 통계분석 | sort,cdf,quantile,correlation,covariance,entropy,linearRegression,FFT,spline |
 | jsh/javascript-db-module.md | JavaScript DB 클라이언트 | db.Client,connection,query,appender,rows,result |
 | jsh/javascript-examples.md | JSH 실행 예제 | HTTP server,routing,daemonize,RESTful |
@@ -144,6 +144,7 @@
 | jsh/javascript-guide.md | JSH 인터프리터 기본 | daemon,service,JSH modules,background process,SCRIPT |
 | jsh/javascript-http-module.md | JSH HTTP 서버/클라이언트 | HTTP server,request,response,route,SSL,middleware,WebSocket,ws() |
 | jsh/javascript-mat-module.md | JavaScript 행렬 계산 | Dense matrix,QR factorization,transpose,inverse,linear algebra |
+| jsh/javascript-mathx-module.md | JavaScript mathx 모듈 | mathx,oscillator,noise,series,unzip,zip,fft,linspace,statistics,linearRegression |
 | jsh/javascript-mqtt-module.md | JSH MQTT 클라이언트 | mqtt.Client,publish,subscribe,QoS,callback |
 | jsh/javascript-opcua-module.md | OPC-UA 클라이언트 | opcua.Client,read,write,nodes,TimestampsToReturn |
 | jsh/javascript-process-module.md | 프로세스 관리 | pid,daemonize,schedule,sleep,process list,cleanup,addShutdownHook |
@@ -156,9 +157,9 @@
 | jsh/javascript-tail-module.md | JSH Tail 모듈 | tail,file follower,poll,SSE adapter,log monitoring,setInterval |
 | jsh/javascript-system-module.md | 시스템 유틸리티 | Log,parseTime,timezone,location,now |
 | operations/address-ports.md | 바인드주소 및 포트 | bind address,listening port,shell,mqtt,http |
-| operations/command-line.md | 명령줄 옵션 | machbase-neo serve,flags,--host,--config,session limit |
+| operations/command-line.md | 명령줄 옵션 | machbase-neo serve,flags,--host,--config,session limit,서버시작,서버실행,서버구동,프로세스시작,neo실행,외부접속,원격접속허용,host바인드,바인드주소,데이터디렉터리지정,data경로지정,설정파일지정,config옵션,pid파일,pid지정,설정파일로실행,configpid,데이터베이스복원,백업복원,restore,백업디렉터리복원,복구명령,machbase-neo restore,restore명령,복원명령,neo복원,백업디렉터리로부터복원,복원명령어,대화형셸,neoshell,셸접속,shell명령,인터랙티브셸,서버접속셸,포트변경,http포트변경,httpport,5654변경,포트지정,다른포트로실행 |
 | operations/metrics.md | 성능 메트릭 수집 | statz,latency percentile,HTTP metrics,MQTT,query time |
-| operations/server-config.md | 서버 설정 파일 | machbase-neo.conf,HCL,listeners,logging,preferences |
+| operations/server-config.md | 서버 설정 파일 | machbase-neo.conf,HCL,listeners,logging,preferences,설정파일생성,genconfig,설정템플릿출력,기본설정파일,conf파일생성,설정파일만들기 |
 | operations/service-linux.md | Linux 서비스 관리 | systemd,supervisord,PM2,auto-start,startup script |
 | operations/service-windows.md | Windows 서비스 등록 | service install,service remove,Administrator |
 | security/security.md | 보안 인증 및 토큰 | key generation,X.509 certificate,HTTP token,MQTT TLS,private key |

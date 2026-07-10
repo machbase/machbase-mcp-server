@@ -66,7 +66,7 @@ Metadata columns store information that's specific to each tag name (like room n
 
 ```sql
 Mach> create tag table TAG (name varchar(20) primary key, time datetime basetime, value double)
-   2  metadata (room_no integer, tag_description varchar(100));
+metadata (room_no integer, tag_description varchar(100));
 Executed successfully.
 ```
 

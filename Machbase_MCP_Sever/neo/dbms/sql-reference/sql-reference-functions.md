@@ -2698,6 +2698,25 @@ name1                 NULL
 [4] row(s) selected
 ```
 
+### JSON Dot Shorthand
+
+JSON member values can be accessed with the JSONPath-based `->` operator or with **JSON dot shorthand**. The two forms below are equivalent:
+
+```sql
+SELECT jval->'$.items[0].name' FROM jsontbl;   -- JSONPath arrow syntax
+SELECT jval.items[0].name FROM jsontbl;        -- JSON dot shorthand
+```
+
+- Array elements use `[index]`, for example `jval.items[0]`.
+- A key that contains special characters (a dot, hyphen, etc.) must be double-quoted in dot shorthand, or written with bracket syntax in the arrow form:
+
+```sql
+SELECT jval.items[0]."product-id" FROM jsontbl;   -- double-quoted key in dot shorthand
+SELECT jval->'$["a.b"]' FROM jsontbl;             -- bracket syntax for a key containing a dot
+```
+
+When a JSON member value is compared with a numeric SQL value in a `WHERE` clause, the JSON value is parsed and compared numerically.
+
 ## WINDOW FUNCTION
 
 The WINDOW function is a function for comparison, operation, and definition between rows. It is also called an analysis function or ranking function.

@@ -413,6 +413,28 @@ CREATE INDEX index1 on table1 ( c1 )
 CREATE INDEX index2 on table1 (var_column) INDEX_TYPE KEYWORD PAGE_SIZE=100000;
 ```
 
+### Index on a JSON Member
+
+When creating an index on a member of a JSON column, you can use both the existing JSONPath arrow syntax and JSON dot shorthand.
+
+```sql
+-- JSON dot shorthand
+CREATE INDEX tag_log_sensor_idx ON tag_log (value.sensor.name);
+
+-- Existing JSONPath arrow syntax
+CREATE INDEX tag_log_metric_idx ON tag_log (value->'$.metric');
+
+-- Array index and double-quoted key
+CREATE INDEX tag_log_item_idx ON tag_log (value.items[0]."product-id");
+```
+
+The arrow DDL syntax also remains available when the JSON column name is double-quoted or is a keyword column name.
+
+```sql
+CREATE INDEX tag_log_q_idx ON tag_log_q ("value"->'$.sensor.name');
+CREATE INDEX tag_log_kw_idx ON tag_log_kw (left->'$.sensor.name');
+```
+
 ## DROP INDEX
 
 **drop_index_stmt:**

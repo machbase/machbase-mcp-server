@@ -154,6 +154,93 @@ ID                   NAME                  TYPE        CREATE_DATE              
 
 > **Note**: When updating metadata, you must include the NAME column in the WHERE clause.
 
+## Metadata Update Time
+
+When a metadata row is created, `_LAST_UPDATE_TIME` is recorded automatically. It is updated only when a user-defined metadata value actually changes; an update that sets the same value again is treated as a no-op and preserves `_LAST_UPDATE_TIME`.
+
+## JSON Metadata Columns
+
+A metadata column can be declared as `JSON`. Do not specify a length for a `JSON` metadata column; invalid JSON text raises an error, and no automatic index is created for the raw JSON column itself.
+
+```sql
+CREATE TAG TABLE ships (
+    name VARCHAR(20) PRIMARY KEY,
+    time DATETIME BASETIME,
+    value DOUBLE
+)
+METADATA (
+    status VARCHAR(20),
+    info JSON
+);
+
+INSERT INTO ships METADATA VALUES (
+    'SHIP_001',
+    'READY',
+    '{"name":"alpha","ship":{"status":"READY"}}'
+);
+```
+
+### Query JSON Paths
+
+Use the `->` operator (or JSON dot shorthand) to query JSON metadata; the same path expression also works in normal tag queries.
+
+```sql
+SELECT name, info->'$.name', info->'$.ship.status'
+  FROM ships METADATA
+ WHERE info->'$.ship.status' = 'READY'
+ ORDER BY name;
+
+SELECT name, time, value
+  FROM ships
+ WHERE info->'$.ship.status' = 'READY';
+```
+
+Path notation rules:
+- Simple key `$.name`, nested key `$.ship.status`.
+- Use bracket notation when the key name contains `.` or `-`: `info->'$[''ship.owner'']'`, `info->'$[''ship-owner'']'`.
+
+### JSON Path Indexes
+
+Define frequently queried paths at table-creation time. Strings inside `INDEX(...)` are interpreted as JSON paths (`'name'` → `$.name`, `'ship.status'` → `$.ship.status`); use full JSONPath for special keys.
+
+```sql
+METADATA (
+    status VARCHAR(20),
+    info JSON INDEX('name', 'ship.status')
+)
+-- special key: info JSON INDEX('$[''ship.owner'']')
+```
+
+Add or drop an index later:
+
+```sql
+CREATE INDEX idx_ship_owner ON ships METADATA (info->'$.owner');
+DROP INDEX idx_ship_owner;
+```
+
+JSON path indexes work mainly for string comparisons. A string-literal comparison (`info->'$.num' = '10'`) can use the index; a numeric-literal comparison (`info->'$.num' = 10`) may fall back to a full scan.
+
+### Partial JSON Updates
+
+Update part of a JSON metadata document without rewriting the whole document.
+
+```sql
+-- Store a SQL scalar as a JSON scalar
+UPDATE ships METADATA SET info = JSON_SET(info, '$.ship.status', 'DONE') WHERE name = 'SHIP_001';
+
+-- Parse a string as JSON and store it as an object/array
+UPDATE ships METADATA SET info = JSON_SET_JSON(info, '$.owner', '{"name":"machbase","team":"db"}') WHERE name = 'SHIP_001';
+
+-- Remove a member or subtree
+UPDATE ships METADATA SET info = JSON_REMOVE(info, '$.owner.team') WHERE name = 'SHIP_001';
+```
+
+Rules:
+- `JSON_SET(..., path, NULL)` stores JSON `null`; `JSON_SET_JSON(..., path, NULL)` returns SQL `NULL`.
+- If the JSON document argument is `NULL`, the result is SQL `NULL`. If the path is `NULL` or empty, an error is raised.
+- `JSON_REMOVE` on a missing path is a no-op; `JSON_REMOVE(..., '$')` is not allowed.
+- Partial mutation is supported for object paths; array-element mutation such as `$.items[0]` is not supported.
+
 ## RESTful API for Tag Metadata
 
 ### Getting All Tags
