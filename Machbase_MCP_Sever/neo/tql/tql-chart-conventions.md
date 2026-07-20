@@ -62,8 +62,9 @@ SQL(`SELECT TIME, NAME, VALUE FROM TABLE WHERE NAME IN ('tagA','tagB','tagC') AN
 SCRIPT({
     var s = {};
 },{
-    if (!s[$.values[1]]) s[$.values[1]] = [];
-    s[$.values[1]].push([$.values[0], $.values[2]]);   // 태그별 [time, value] 페어 누적
+    var k = $.values[1].string;                        // ⚠️ NAME(문자열 컬럼)은 {string, valid} 객체 — 반드시 .string으로 추출
+    if (!s[k]) s[k] = [];
+    s[k].push([$.values[0], $.values[2]]);             // 태그별 [time, value] 페어 누적
 },{
     var a = s['tagA'] || [], b = s['tagB'] || [], c = s['tagC'] || [];
     var n = Math.max(a.length, b.length, c.length);
@@ -72,6 +73,7 @@ SCRIPT({
 // CHART series: [{ name:"tagA", data: column(0) }, { name:"tagB", data: column(1) }, { name:"tagC", data: column(2) }]
 ```
 - 각 시리즈 = **한 태그의 [time, value] 페어 배열**. deinit에서 **인덱스별로** 각 태그의 페어를 yield → `column(0)`=tagA, `column(1)`=tagB ...
+- ⚠️ **SQL의 문자열 컬럼(NAME 등)은 SCRIPT에 원시 문자열이 아니라 `{string, valid}` 객체로 들어옵니다.** `s[$.values[1]]` 키잉, `String($.values[1])`, `$.values[1] === 'tagA'` 비교 전부 `"[object Object]"`가 되어 **에러 없이 전부 miss → 빈 차트**. 반드시 **`$.values[1].string`** 으로 꺼낸 뒤 키/비교에 쓰세요 (숫자 컬럼·AVG 등 집계값은 순수 숫자로 정상).
 - ❌ **`$.yield(time, name, value)` 처럼 NAME(문자열)을 컬럼으로 내보내지 마세요** → `column(0)`에 시간, `column(1)`에 이름 문자열이 잡혀 **시간축이 1970~로 펼쳐지고 차트가 깨집니다** (실제 발생한 버그).
 - 태그별 길이가 달라도 `|| null` 패딩 — 각 페어가 자기 시간을 들고 있어 ECharts가 올바른 위치에 그립니다.
 
@@ -90,7 +92,11 @@ SCRIPT({
 - 시계열 차트는 `xAxis: { type: "time" }` + `series.data` 에 **[timestamp, value] 페어 배열**을 넣습니다.
 - SQL 결과(시간, 값)를 SCRIPT에서 `$.yield([$.values[0], $.values[1]])` 로 페어 yield → CHART에서 `data: column(0)`.
 - TIME과 VALUE를 별도 컬럼/축으로 주거나 인덱스를 x축에 쓰면 **시간축이 깨집니다** (예: `09:00:00 030` 처럼 표시됨).
-- ⚠️ **`$.values[0]`(TIME)은 숫자/문자열이 아니라 Time 객체입니다.** [t,v] 페어엔 그대로 넣으면 됩니다(Neo가 직렬화). 하지만 **일자 버킷 등 계산이 필요하면** `$.values[0].UnixNano() / 1000000` 로 ms를 얻어 `new Date(...)` 로 변환하세요. Time 객체에 직접 `/` · `Math.floor` 같은 산술을 하면 **`NaN`** 이 되어 데이터가 한 곳에 뭉쳐 **빈 차트**가 됩니다(실제 캔들스틱 버그였음).
+- ⚠️ **`$.values[0]`(TIME)은 숫자/문자열이 아니라 Time 객체입니다.** [t,v] 페어엔 그대로 넣으면 됩니다(Neo가 직렬화). Time 객체에 직접 `/` · `Math.floor` 같은 산술을 하면 **`NaN`** 이 되어 데이터가 한 곳에 뭉쳐 **빈 차트**가 됩니다(실제 캔들스틱 버그였음). `.UnixNano()`/`.Unix()`/`.getTime()` 메서드도 **없습니다**(Object has no member).
+- **일자 버킷 등 시간 계산이 필요하면** `String($.values[0])` 이 `"2026-06-08 16:00:55.268 +0900 KST"` 형태의 문자열을 주므로 정규식으로 파싱해 ms를 얻으세요 (버킷 키 계산용 — [t,v] 페어엔 여전히 원본 Time 객체를 그대로):
+  ```js
+  function toMs(o){ var m = String(o).match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/); return m ? Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]) : NaN; }
+  ```
 
 ### 3. NULL 회피
 - 빈 시간 버킷의 집계, 0으로 나누기 등으로 **NULL 표현식**이 생기면 `MACH-ERR 2042 (Expression cannot have a NULL value)` 가 납니다.

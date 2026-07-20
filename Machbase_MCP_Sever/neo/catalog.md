@@ -138,6 +138,7 @@
 | installation/installation.md | Machbase Neo 설치 및 시작 | Docker,direct install,platform support,web UI,login,리눅스설치,ubuntu설치,라즈베리파이설치,압축해제설치,다운로드설치,neo설치,도커설치,docker설치,컨테이너실행,dockerpull,dockerrun,도커컴포즈,볼륨마운트,다이렉트설치,directinstall,installsh,스크립트설치,curl설치,원라인설치 |
 | jsh/javascript-analysis-module.md | JavaScript 통계분석 | sort,cdf,quantile,correlation,covariance,entropy,linearRegression,FFT,spline |
 | jsh/javascript-db-module.md | JavaScript DB 클라이언트 | db.Client,connection,query,appender,rows,result |
+| jsh/javascript-dbus-module.md | JavaScript dbus 모듈 (Linux D-Bus) | dbus,Connection,ObjectProxy,call,getProperty,setProperty,introspect,subscribeSignal,watchName,type hint |
 | jsh/javascript-examples.md | JSH 실행 예제 | HTTP server,routing,daemonize,RESTful |
 | jsh/javascript-filter-module.md | JavaScript 필터링 | Kalman,MovAvg,Lowpass,signal processing |
 | jsh/javascript-generator-module.md | JavaScript 데이터생성 | arrange,linspace,meshgrid,Simplex noise,UUID |
