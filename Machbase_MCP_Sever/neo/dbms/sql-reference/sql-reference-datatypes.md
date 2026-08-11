@@ -82,18 +82,19 @@ This type is mainly used to store and retrieve large text files as separate colu
 
 ### binary
 
-Binary columns in log/lookup/volatile tables store unstructured data such as
+Binary columns in log tables store unstructured data such as
 images or documents. Indexes cannot be created, and up to 64 megabytes can be
-stored (same as TEXT).
+stored (same as TEXT). Lookup and Volatile tables do not accept `BINARY` columns.
 
 Tag-table `BINARY(n)` is a fixed-length variant for sensor frames.
 Valid sizes are 1 to 32K-1 (32767) bytes. Inputs must be hex strings (0x prefix
 optional); odd-length inputs pad the leading nibble with 0, and shorter values
 pad with 0x00 to the declared length. Over-length or non-hex input raises
-`[ERR-02233: Error occurred at column (n): (Invalid insert value.)]`. `LENGTH`
-and metadata report the declared byte length, and machsql displays uppercase
-hex without the `0x` prefix. This fixed-length `BINARY(n)` is accepted only in
-Tag tables.
+`[ERR-02233: Error occurred at column (n): (Invalid insert value.)]`. Metadata
+reports the declared byte length, while SQL `LENGTH(binary_col)` and machsql text
+output exclude trailing zero padding added for shorter inputs. machsql displays
+uppercase hex without the `0x` prefix. This fixed-length `BINARY(n)` is accepted
+only in Tag tables.
 
 #### Binary Literals
 
@@ -107,7 +108,7 @@ SQL also accepts explicit binary literals for `BINARY` values: `X'...'` (hexadec
 
 - Hexadecimal `X'...'` can contain `0-9`, `A-F`, `a-f`; the number of digits must be even.
 - Bit `B'...'` can contain only `0` and `1`; the number of bits must be a multiple of 8.
-- Octal `O'...'` can contain only `0-7`; digits must be grouped in units of three.
+- Octal `O'...'` can contain only `0-7`; digits must be grouped in units of three, and each 3-digit group must be in the 1-byte range `000` to `377`.
 
 `X'0A'`, `B'00001010'`, and `O'012'` all represent the same one-byte value `0x0A`.
 

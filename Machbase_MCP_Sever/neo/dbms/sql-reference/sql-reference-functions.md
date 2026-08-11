@@ -2715,7 +2715,23 @@ SELECT jval.items[0]."product-id" FROM jsontbl;   -- double-quoted key in dot sh
 SELECT jval->'$["a.b"]' FROM jsontbl;             -- bracket syntax for a key containing a dot
 ```
 
-When a JSON member value is compared with a numeric SQL value in a `WHERE` clause, the JSON value is parsed and compared numerically.
+When a JSON member value is compared with a numeric SQL value in a `WHERE` clause, the JSON value is parsed and compared numerically. Such comparisons support `=`, `<>`, `<`, `<=`, `>`, `>=`, `BETWEEN`, and a literal `IN (...)` list. A JSON integer is compared as an integer against a SQL integer, so values beyond double precision (such as `9007199254740992` and `9007199254740993`) are compared as distinct values. If a JSON value cannot be parsed as a number during a numeric comparison, the predicate does not match and no error is raised. JSON boolean values can be compared with the string literals `'true'` and `'false'`, and when a JSON member is compared with a character value, ordinary string comparison is used (for example `WHERE jval->'$.name' = 'test1'`). The comparison policy for ordinary `VARCHAR` columns is unchanged; automatic numeric comparison applies only to JSON member access expressions.
+
+Normal SQL column-name resolution takes precedence over JSON dot resolution: Machbase resolves an expression as a standard column name first, and treats `jval.name` as JSON member access only when the column reference fails and `jval` is a JSON column.
+
+The following JSON path patterns are **not** supported:
+
+- Wildcard: `jval.items[*].name`
+- Recursive descent: `jval..name`
+- Filter expression: `jval.items[?(@.price > 10)]`
+- Negative array index: `jval.items[-1]`
+- Single-quoted key: `jval.'product-id'`
+- Mixed dot and arrow syntax: `jval.items->'$.name'`
+- Dot access on a non-JSON column: `name.member`
+- Dot access after an arbitrary expression: `(jval->'$.sensor').temperature`
+- Quoted member arrow path: `jval->'$."a.b"'`
+
+Numeric automatic comparison for JSON member values inside a subquery `IN (SELECT ...)` predicate is also unsupported; use a literal `IN (...)` list instead.
 
 ## WINDOW FUNCTION
 

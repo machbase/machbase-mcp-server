@@ -63,6 +63,7 @@ Notes:
 - `-K`, `--auth-key-file` internally enables `AUTH_MODE=CHALLENGE`, and `-p` is not used for authentication in that case.
 - If `--auth-sig-scheme` is omitted, the default scheme is chosen from the key algorithm: `ECDSA` for an ECDSA key, `RSA_PKCS1_V15` for an RSA key.
 - Supported key parameters are ECDSA `P-256`, `P-384`, `P-521` and RSA `2048`, `3072`, `4096` bits. To use RSA-PSS authentication, specify `--auth-sig-scheme=RSA_PSS`.
+- The `-K` file is always the client's **private key**, even when the server-side AUTH KEY was registered from an X.509 certificate; the certificate itself is not used by the client.
 - On POSIX systems, restricting the private key file permission to `600` is recommended.
 
 The connection-string form is also supported, but `-K` is recommended because the connection string may expose the key file path in process arguments or logs:

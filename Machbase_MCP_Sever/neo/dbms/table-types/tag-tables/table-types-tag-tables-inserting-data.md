@@ -66,7 +66,7 @@ csvimport -t TAG -d data.csv -F "time YYYY-MM-DD HH24:MI:SS mmm:uuu:nnn" -l erro
 
 > **When to use**: Bulk loading, data migration, batch imports
 
-> **Important**: Tag names must exist in tag metadata before importing data.
+> **Note**: Missing tag names are auto-registered during import. Pre-register tag metadata beforehand only when you need explicit metadata values (unit, location, status, etc.) at load time.
 
 ## Method 3: RESTful API
 
@@ -167,13 +167,15 @@ INSERT INTO sensors VALUES (
 );
 ```
 
+> **Note**: `_LAST_UPDATE_TIME` is the system-managed metadata changed time. Do not specify it when inserting — the server manages it automatically. When using a column list, list only the required user-defined columns. A data-only insert for an existing tag does not change metadata, so `_LAST_UPDATE_TIME` is not changed. See [Metadata Update Time](table-types-tag-tables-tag-metadata.md#metadata-update-time).
+
 ## Best Practices
 
-1. **Register Tags First**: Always insert tag metadata before inserting data
+1. **Pre-register Metadata When Needed**: Missing tag names are auto-registered on insert/import; pre-insert tag metadata only when you need explicit metadata values (unit, location, status)
 2. **Use Batch Operations**: For large datasets, use CSV import or batch API calls
 3. **Handle Errors**: Always check return values and log errors
 4. **Time Precision**: Be consistent with timestamp precision across your data
-5. **Validate Data**: Ensure tag names exist before insertion to avoid errors
+5. **Validate Data**: Validate values and timestamps; tag names themselves are auto-registered if missing
 
 ## Performance Tips
 

@@ -30,6 +30,34 @@ The basic SINK functions include `INSERT()`, which writes the incoming records t
 
 MAP functions are essential for transforming data from one shape to another. They allow you to perform various operations such as mathematical calculations, string manipulations, and data format conversions. By using MAP functions, you can efficiently process and reshape your data to meet the specific requirements of your application.
 
+## Tagged Raw Literals
+
+When multi-line string content itself contains a backtick or brace characters (`{`, `}`), use tagged raw literals to avoid boundary conflicts. Two forms are available; both treat the body as raw text and close at the tagged closing line:
+
+- Tagged backtick: `` `<<TAG ... TAG` ``
+- Tagged brace block: `{<<TAG ... TAG}`
+
+The example below embeds JavaScript that contains a brace character:
+
+```js
+SCRIPT(`<<JS
+// this is a function return '{'
+function a () { return '{' }
+JS`)
+CSV()
+```
+
+The tagged brace form lets Markdown content contain its own fenced code block:
+
+~~~js
+MARKDOWN({<<MD
+```mermaid
+erDiagram
+    CUSTOMER ||--o{ ORDER :places
+```
+MD})
+~~~
+
 ## Output Format Independence
 
 You can generate various output formats from the same data source:

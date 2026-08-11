@@ -435,6 +435,8 @@ CREATE INDEX tag_log_q_idx ON tag_log_q ("value"->'$.sensor.name');
 CREATE INDEX tag_log_kw_idx ON tag_log_kw (left->'$.sensor.name');
 ```
 
+String comparison predicates can use JSON path indexes. Predicates with numeric or boolean meaning are not used as JSON path index range predicates, because string ordering and numeric ordering can differ.
+
 ## DROP INDEX
 
 **drop_index_stmt:**

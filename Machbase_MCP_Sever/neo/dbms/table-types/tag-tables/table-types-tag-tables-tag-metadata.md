@@ -78,6 +78,22 @@ ID                   NAME
 
 > **Important**: You can only delete tag metadata if no actual sensor data references it.
 
+If the `WHERE` clause is omitted, all metadata rows in the tag table are deleted.
+
+```sql
+DELETE FROM sensors METADATA;
+```
+
+- If any matched tag still has data rows, the whole statement fails; metadata for tags that are still in use cannot be deleted.
+- Even for a full metadata delete, if any target tag is still in use, the whole statement fails without partially deleting metadata rows.
+
+To delete metadata for a tag that is still in use, delete the data rows for that tag first, then run the metadata delete again.
+
+```sql
+DELETE FROM sensors WHERE name = 'TEMP_001';
+DELETE FROM sensors METADATA;
+```
+
 ## Working with Additional Metadata
 
 ### Creating Rich Metadata Structure
@@ -156,7 +172,29 @@ ID                   NAME                  TYPE        CREATE_DATE              
 
 ## Metadata Update Time
 
-When a metadata row is created, `_LAST_UPDATE_TIME` is recorded automatically. It is updated only when a user-defined metadata value actually changes; an update that sets the same value again is treated as a no-op and preserves `_LAST_UPDATE_TIME`.
+When a metadata row is created, `_LAST_UPDATE_TIME` is recorded automatically. It is updated only when a user-defined metadata value actually changes; an update that sets the same value again is treated as a no-op and preserves `_LAST_UPDATE_TIME`. It is not the last insert time of a tag data row — it is the time the metadata row was created or its metadata value actually changed. `SELECT *` and `table_alias.*` do not include `_LAST_UPDATE_TIME`; name it explicitly in the select list to retrieve it.
+
+`_LAST_UPDATE_TIME` is managed by the server and cannot be inserted or updated directly. The following are prohibited:
+
+```sql
+INSERT INTO sensors METADATA(name, location, status, _last_update_time)
+VALUES('TEMP_004', 'Building-A/F4', 'READY', now);
+
+UPDATE sensors METADATA
+   SET _last_update_time = now
+ WHERE name = 'TEMP_003';
+```
+
+The column also cannot be used as the TAG name, included in user-defined metadata columns, or targeted by `ALTER TABLE`. Reserved names that only share the prefix (such as `_LAST_UPDATE_TIME2`) remain usable as standard columns. The reserved behavior applies only to the TAG metadata system column — a column literally named `_LAST_UPDATE_TIME` in a normal LOG, LOOKUP, or VOLATILE table behaves as an ordinary user-defined column.
+
+An index for time-predicate queries is provided automatically on `_LAST_UPDATE_TIME`, so you do not need to create a duplicate user index on the same column.
+
+```sql
+SELECT name, location, _last_update_time
+  FROM sensors METADATA
+ WHERE _last_update_time >= TO_DATE('2026-06-08 00:00:00')
+ ORDER BY _last_update_time;
+```
 
 ## JSON Metadata Columns
 

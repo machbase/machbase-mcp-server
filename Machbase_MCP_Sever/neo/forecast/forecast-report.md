@@ -150,7 +150,9 @@ save_html_report가 이 템플릿을 고르면 `{FORECAST_DATA_JSON}`을 채우�
   .spec-k { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-muted); }
   .spec-v { margin-top: 7px; font-size: 24px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; line-height: 1.1; }
   .spec-v .unit { font-size: 14px; font-weight: 600; color: var(--text-tertiary); margin-left: 2px; }
-  .spec-meta { margin-top: 14px; font-size: 12px; color: var(--text-tertiary); font-family: 'D2Coding', 'Consolas', monospace; }
+  /* 한 줄 말줄임 — machbase:session:… 같은 긴 태그명은 공백이 없어 줄바꿈이 안 돼 옆 칸을 침범한다(STAT 67태그 실사례).
+     전체 목록은 바로 아래 요약표에 있으므로 여기선 잘라도 정보 손실 0. 호버 시 title 툴팁으로 전체 노출(JS에서 부여). */
+  .spec-meta { margin-top: 14px; font-size: 12px; color: var(--text-tertiary); font-family: 'D2Coding', 'Consolas', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spec-meta .m { color: var(--text-secondary); }
 
   /* Section */
@@ -343,7 +345,8 @@ save_html_report가 이 템플릿을 고르면 `{FORECAST_DATA_JSON}`을 채우�
     <div class="spec-col">
       <div class="spec-k">예측 태그</div>
       <div class="spec-v">{TAG_COUNT}<span class="unit">개</span></div>
-      <div class="spec-meta" id="specTags">-</div>
+      <!-- 태그 이름 나열은 넣지 않는다(긴 이름이 칸을 침범, 전체 목록은 요약표가 담당) — 대신 **선정 기준**(짧고 고정 길이). -->
+      <div class="spec-meta">{TAG_PICK_NOTE}</div>
     </div>
     <div class="spec-col">
       <div class="spec-k">예측 구간</div>
@@ -484,7 +487,6 @@ save_html_report가 이 템플릿을 고르면 `{FORECAST_DATA_JSON}`을 채우�
         : Math.round(days) + '<span class="unit">일</span>');
       var es = document.getElementById('specSpan'); if (es) es.innerHTML = span;
     }
-    var st = document.getElementById('specTags'); if (st) st.textContent = tags.join('·');
     var au = t0 && t0.models[t0.auto], fc = au && au.fc;
     if (fc && fc.length) {
       var fr = document.getElementById('specFcRange');

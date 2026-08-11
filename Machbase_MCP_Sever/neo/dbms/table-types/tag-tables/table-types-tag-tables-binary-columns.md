@@ -18,7 +18,7 @@ CREATE TAG TABLE t1(
 
 - Valid length: `1 <= n <= 32767` (32K-1).
 - Out-of-range sizes cause create-time errors (for example `BINARY(0)`).
-- `LENGTH` and `DESC` show the declared byte length (not hex width).
+- `DESC` and metadata show the declared byte length (not hex width). SQL `LENGTH(binary_col)` returns the displayed value length, excluding trailing zero padding added for shorter inputs.
 
 ## Input Rules (all paths)
 
@@ -51,14 +51,20 @@ In addition to hex strings, SQL accepts explicit binary literals: `X'...'` (hexa
 
 - Hexadecimal `X'...'` can contain `0-9`, `A-F`, `a-f`; the number of digits must be even.
 - Bit `B'...'` can contain only `0` and `1`; the number of bits must be a multiple of 8.
-- Octal `O'...'` can contain only `0-7`; digits must be grouped in units of three.
+- Octal `O'...'` can contain only `0-7`; digits must be grouped in units of three, and each 3-digit group must be in the 1-byte range `000` to `377`.
 
 `X'0A'`, `B'00001010'`, and `O'012'` all represent the same one-byte value `0x0A`.
 
+Use empty quotes for a zero-length binary value: `X''`, `B''`, `O''`.
+
+The legacy string form `'0x...'` is still accepted for compatibility — it is a string converted into `BINARY`, whereas `X'...'`/`B'...'`/`O'...'` are explicit binary literals; prefer the explicit literals in new SQL. The forms `'0b...'`, `'0o...'`, and unquoted `0x...`, `0b...`, `0o...` are **not** valid binary literal formats.
+
+The same length limit applies when a binary value is produced inside a SQL expression such as `CASE`, `INSERT ... SELECT`, or a view.
+
 ## Output and Tooling Notes
 
-- machsql displays uppercase hex without the `0x` prefix; output width follows
-  the declared length (including padding).
+- machsql displays uppercase hex without the `0x` prefix; the text output
+  excludes trailing zero padding added for shorter inputs.
 - machloader: declare `BINARY(n)` in the schema; odd-length hex pads, invalid
   hex or over-length values fail.
 - REST append: JSON string is decoded as hex; falls back to the legacy base64

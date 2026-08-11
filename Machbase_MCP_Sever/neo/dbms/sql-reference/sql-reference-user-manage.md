@@ -94,7 +94,7 @@ ALTER USER user3 IDENTIFIED BY "Ff#NewPwd66" PASSWORD POLICY NONE;
 Notes:
 
 - `ALTER USER ... IDENTIFIED BY ...` validates the new password with the policy currently stored for that user.
-- `ALTER USER ... IDENTIFIED BY ... PASSWORD POLICY ...` validates the new password with the new policy.
+- `ALTER USER ... IDENTIFIED BY ... PASSWORD POLICY ...` validates the new password with the new policy. To change the policy you must supply a new password together with it; a policy-only statement such as `ALTER USER user_name PASSWORD POLICY HIGH` (without `IDENTIFIED BY`) is not allowed.
 - When a policy is set to `HIGH`, or when the password of a `HIGH` policy user is changed, `VALID_BEFORE` is updated to 90 days from the current time.
 - When a policy is set to `LOW` or `NONE`, `VALID_BEFORE` is updated to `NULL`.
 - An expired account cannot log in, so the user cannot change the password with that account. Reset the password from an administrator account.
@@ -121,16 +121,16 @@ A user may own both a password and one or more AUTH KEY entries. The actual auth
 ```sql
 CREATE USER app_user IDENTIFIED BY 'App#1234'
 WITH AUTH KEY (
-    key='-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEshxcrSmtosaqWjhRkOoAw4v3QWqL\ns3OFN2jbJrustEc12uAn/IdtTG94KK69bY7DWl80pzQ48dNL+ENXe8PT3g==\n-----END PUBLIC KEY-----\n',
-    valid_before='2047-12-31',
-    comment='initial key'
+    PUBKEY = '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEshxcrSmtosaqWjhRkOoAw4v3QWqL\ns3OFN2jbJrustEc12uAn/IdtTG94KK69bY7DWl80pzQ48dNL+ENXe8PT3g==\n-----END PUBLIC KEY-----\n',
+    VALID_BEFORE = '2047-12-31',
+    COMMENT = 'initial key'
 );
 ```
 
-- `key` must contain a PEM public key.
+- `PUBKEY` must contain a PEM public key or an X.509 certificate (see [Register from an X.509 Certificate](#register-from-an-x509-certificate)).
 - In SQL text, PEM line breaks can be written as `\n`.
-- `valid_before` uses the `YYYY-MM-DD` format and does not accept a datetime value with a time portion such as `YYYY-MM-DD HH24:MI:SS`.
-- `comment` is required by the current AUTH KEY syntax.
+- `VALID_BEFORE` uses the `YYYY-MM-DD` format and does not accept a datetime value with a time portion such as `YYYY-MM-DD HH24:MI:SS`.
+- `COMMENT` is required by the current AUTH KEY syntax.
 - The first key created by `CREATE USER ... WITH AUTH KEY` is registered as active (`ACTIVATED=1`).
 
 ### Manage AUTH KEY
@@ -139,9 +139,9 @@ Add an AUTH KEY. An added key is created as active immediately (`ACTIVATED=1`). 
 
 ```sql
 ALTER USER app_user ADD AUTH KEY (
-    key='-----BEGIN RSA PUBLIC KEY-----\n...\n-----END RSA PUBLIC KEY-----\n',
-    valid_before='2048-01-31',
-    comment='rollover candidate'
+    PUBKEY = '-----BEGIN RSA PUBLIC KEY-----\n...\n-----END RSA PUBLIC KEY-----\n',
+    VALID_BEFORE = '2048-01-31',
+    COMMENT = 'rollover candidate'
 );
 ```
 
@@ -163,6 +163,28 @@ Drop an AUTH KEY. A dropped key cannot be used for authentication immediately. W
 ```sql
 ALTER USER app_user DROP AUTH KEY ID 3;
 ```
+
+### Register from an X.509 Certificate
+
+`PUBKEY` accepts three PEM input formats:
+
+- `-----BEGIN PUBLIC KEY-----` — ECDSA or RSA public key in SubjectPublicKeyInfo (SPKI) format.
+- `-----BEGIN RSA PUBLIC KEY-----` — PKCS#1 RSA public key.
+- `-----BEGIN CERTIFICATE-----` — X.509 certificate; the public key and expiration date are taken from the certificate.
+
+```sql
+CREATE USER app_x509 IDENTIFIED BY 'App#1234'
+WITH AUTH KEY (
+    PUBKEY = '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n',
+    VALID_BEFORE = '2036-07-12',
+    COMMENT = 'x509 certificate key'
+);
+```
+
+- For a key registered from an X.509 certificate, `VALID_BEFORE` cannot be later than the certificate `notAfter`; registration (or a later `ALTER`) fails if this is not met.
+- During authentication the client still uses the matching **private key file** (via `-K` / `AUTH_KEY_FILE`), not the certificate file. The registered certificate and the client-side private key must belong to the same key pair.
+- Machbase extracts and stores the public key from the certificate; it does **not** perform certificate chain or CA trust validation — the certificate is only an input format carrying a public key and an expiration date.
+- The input must contain exactly one PEM block. Chain PEM input, private-key PEM input, raw OpenSSH public keys, unsupported PEM headers, and non-whitespace trailing text after a valid PEM block are rejected.
 
 ### Generate AUTH KEY Files
 
@@ -192,7 +214,25 @@ openssl rsa -in app_user_rsa.key -pubout -out app_user_rsa.pub
 chmod 600 app_user_rsa.key
 ```
 
-To embed the public key in SQL, convert the PEM file into a single SQL string with escaped line breaks, then use the output as the `key` value:
+To produce a PKCS#1 RSA public key (`-----BEGIN RSA PUBLIC KEY-----`) instead of the default SPKI form, add `-RSAPublicKey_out`:
+
+```bash
+openssl rsa -in app_user_rsa.key -RSAPublicKey_out -out app_user_rsa_pkcs1.pub
+```
+
+To register an X.509 certificate, create a self-signed certificate with the same private key and use the certificate PEM as `PUBKEY`:
+
+```bash
+openssl req -new -x509 \
+    -key app_user_ecdsa.key \
+    -out app_user_ecdsa.crt \
+    -days 3650 \
+    -subj "/CN=app_user"
+```
+
+Raw OpenSSH public keys (`ssh-rsa ...`, `ecdsa-sha2-nistp256 ...`) cannot be registered directly in `PUBKEY`; convert them to a PEM public key first with `ssh-keygen -e -m PKCS8`.
+
+To embed the public key in SQL, convert the PEM file into a single SQL string with escaped line breaks, then use the output as the `PUBKEY` value in `CREATE USER ... WITH AUTH KEY` or `ALTER USER ... ADD AUTH KEY`:
 
 ```bash
 awk '{printf "%s\\n", $0}' app_user_ecdsa.pub
@@ -210,7 +250,7 @@ If `AUTH_SIG_SCHEME` is omitted, Machbase uses the default scheme for the key al
 
 ### Query AUTH KEY Metadata
 
-Registered AUTH KEY metadata can be queried from `V$USER_AUTH_KEYS`. Major columns: `KEY_ID` (identifier), `USER_NAME` (owner), `KEY_ALGO` (`RSA` or `ECDSA`), `KEY_PARAM` (RSA bit length such as `2048`, or EC curve name such as `P-256`), `ACTIVATED`, `VALID_AFTER` / `VALID_BEFORE`, `COMMENT`, and `PUBKEY` (PEM public key body).
+Registered AUTH KEY metadata can be queried from `V$USER_AUTH_KEYS`. Major columns: `KEY_ID` (identifier), `USER_NAME` (owner), `KEY_ALGO` (`RSA` or `ECDSA`), `KEY_PARAM` (RSA bit length such as `2048`, or EC curve name such as `P-256`), `ACTIVATED`, `VALID_AFTER` / `VALID_BEFORE`, `COMMENT`, `PUBKEY` (PEM public key body), and `ADDITIONAL_INFO` (input source: `type=PUBLIC_KEY`, or `type=CERTIFICATE; cert_not_after=YYYY-MM-DD` when registered from an X.509 certificate).
 
 ```sql
 SELECT key_id, user_name, key_algo, key_param, activated, valid_before, comment
