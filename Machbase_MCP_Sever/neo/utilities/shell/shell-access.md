@@ -1,26 +1,26 @@
 # Machbase Neo Shell Access Guide
 
-## Remote Access via Web
+## 웹 원격 접속
 
-Click the Shell tab to run the interactive shell on the web.
+Shell 탭을 클릭하면 웹에서 대화형 셸을 실행합니다.
 
-## Remote Access via SSH
+## SSH 원격 접속
 
-SSH (Secure Shell) is a protocol used to securely log onto remote systems. It can use a password for authentication, but it also supports a more secure method called public key authentication.
+SSH(Secure Shell)는 원격 시스템에 안전하게 로그인하기 위한 프로토콜입니다. 비밀번호 인증도 가능하지만, 더 안전한 공개 키 인증도 지원합니다.
 
-machbase-neo provides an SSH interface for remote operation and administration. Users can access the SQL interpreter by using the SSH command as shown below.
+machbase-neo는 원격 운영·관리를 위한 SSH 인터페이스를 제공합니다. 아래와 같이 SSH 명령으로 SQL 인터프리터에 접속할 수 있습니다.
 
-**Connection Details:**
+**연결 정보:**
 - User: SYS
-- Default password: manager
-- Default port: 5652
+- 기본 비밀번호: manager
+- 기본 포트: 5652
 
 ```sh
 $ ssh -p 5652 sys@127.0.0.1
 sys@127.0.0.1's password: manager↵
 ```
 
-Then after `machbase-neo» ` prompt, users can query with SQL statements.
+`machbase-neo» ` 프롬프트가 뜨면 SQL 문으로 조회할 수 있습니다.
 
 ```
 machbase-neo» select * from example;
@@ -35,53 +35,53 @@ machbase-neo» select * from example;
 └─────────┴──────────┴─────────────────────────┴───────────┘
 ```
 
-## SSH without Password
+## 비밀번호 없는 SSH
 
-### Key Pair Setup Process
+### 키 쌍 설정 과정
 
-1. **Generate a key pair** - The first step is to generate a new key pair on the local machine (the machine you will log in from). This is done using the `ssh-keygen` command.
+1. **키 쌍 생성** - 먼저 로그인할 로컬 장비에서 새 키 쌍을 생성합니다. `ssh-keygen` 명령을 사용합니다.
 
-   > You can skip this step, if you have already a key pair.
+   > 이미 키 쌍이 있다면 이 단계는 건너뛰어도 됩니다.
 
    ```bash
    ssh-keygen -t rsa
    ```
 
-   This command will create two files in the .ssh directory in your home directory: `id_rsa` (private key) and `id_rsa.pub` (public key).
+   이 명령은 홈 디렉터리의 .ssh 디렉터리에 `id_rsa`(개인 키)와 `id_rsa.pub`(공개 키) 두 파일을 만듭니다.
 
-2. **Copy the public key to the remote machine** - The next step is to copy the public key to the remote machine.
+2. **원격 장비로 공개 키 복사** - 다음으로 공개 키를 원격 장비에 복사합니다.
 
-   To register the public key into the machbase server, follow the steps below.
+   공개 키를 machbase 서버에 등록하려면 아래 단계를 따르세요.
 
-3. **Log in with the key pair** - Now you can log in to the machbase server using your key pair. The SSH client will automatically use your private key to decrypt a challenge sent by the server, proving your identity.
+3. **키 쌍으로 로그인** - 이제 키 쌍으로 machbase 서버에 로그인할 수 있습니다. SSH 클라이언트가 개인 키로 서버가 보낸 챌린지를 복호화해 신원을 증명합니다.
 
    ```bash
    ssh -p 5652 sys@127.0.0.1
    ```
 
-   If everything is set up correctly, you should be logged in to the machbase-neo without being asked for a password.
+   모두 올바르게 설정되었다면 비밀번호를 묻지 않고 machbase-neo에 로그인됩니다.
 
-### Register SSH Key from Web UI
+### 웹 UI에서 SSH 키 등록
 
-1. Select "SSH Keys" menu from the left bottom menu
+1. 왼쪽 아래 메뉴에서 "SSH Keys"를 선택합니다
 
-   > Since Machbase Neo v8.0.20
+   > Machbase Neo v8.0.20부터
 
-2. To add a new SSH key, click on the "New SSH Key" button. Paste your public key in the designated field and provide a title. Finally, click on the "Add SSH Key" button to complete the process.
+2. 새 SSH 키를 추가하려면 "New SSH Key" 버튼을 클릭합니다. 지정된 칸에 공개 키를 붙여넣고 제목을 입력한 뒤 "Add SSH Key" 버튼을 클릭해 완료합니다.
 
-3. Your SSH key has been registered shows on the list.
+3. 등록된 SSH 키가 목록에 표시됩니다.
 
-### Register SSH Key from Shell Command
+### 셸 명령으로 SSH 키 등록
 
-Adding the public key to the machbase-neo server enables the execution of any `machbase-neo shell` command without the need for a prompt or password entry.
+machbase-neo 서버에 공개 키를 추가하면 프롬프트나 비밀번호 입력 없이 모든 `machbase-neo shell` 명령을 실행할 수 있습니다.
 
-1. **Add your public key to server**
+1. **서버에 공개 키 추가**
 
    ```sh
    machbase-neo shell ssh-key add `cat ~/.ssh/id_rsa.pub`
    ```
 
-2. **Get list of registered public keys**
+2. **등록된 공개 키 목록 조회**
 
    ```sh
    machbase-neo shell ssh-key list
@@ -101,13 +101,13 @@ Adding the public key to the machbase-neo server enables the execution of any `m
    └────────┴────────────────────────────┴─────────────────────┴──────────────────────────────────┘
    ```
 
-3. **Remove registered public key**
+3. **등록된 공개 키 제거**
 
    ```sh
    machbase-neo» ssh-key del <fingerprint>
    ```
 
-### Connect without Password
+### 비밀번호 없이 접속
 
 ```sh
 $ ssh -p 5652 sys@127.0.0.1 ↵
@@ -117,9 +117,9 @@ machbase-neo v8.0.20-snapshot (8f10fa95 2024-06-19T16:32:09) standard
 sys machbase-neo»
 ```
 
-## Execute Commands via SSH
+## SSH로 명령 실행
 
-We can execute any machbase-neo shell command remotely only with `ssh`.
+`ssh`만으로 모든 machbase-neo 셸 명령을 원격 실행할 수 있습니다.
 
 ```sh
 $ ssh -p 5652 sys@127.0.0.1 'select * from example order by time desc limit 5'↵
@@ -133,16 +133,16 @@ $ ssh -p 5652 sys@127.0.0.1 'select * from example order by time desc limit 5'�
  5       wave.cos  2023-02-09 11:46:44  0.913431  
 ```
 
-## Security Considerations
+## 보안 고려사항
 
-While public key authentication is more secure than password authentication, it is important to keep your private key safe. Anyone who gains access to your private key can log in to any system that has your public key.
+공개 키 인증이 비밀번호 인증보다 안전하지만 개인 키를 안전하게 보관하는 것이 중요합니다. 개인 키에 접근한 사람은 공개 키가 등록된 모든 시스템에 로그인할 수 있습니다.
 
-## Quick Reference
+## 빠른 참조
 
-| Method | Description | Requirements |
+| 방법 | 설명 | 요구사항 |
 |--------|-------------|--------------|
-| **Web Access** | Interactive shell via web browser | Browser access to web UI |
-| **SSH Password** | Standard SSH with password | Default: sys/manager, port 5652 |
-| **SSH Key** | Public key authentication | Key pair generation and registration |
-| **Remote Commands** | Execute commands via SSH | SSH access with credentials |
-| **Key Management** | Add/list/remove SSH keys | Web UI or shell commands |
+| **웹 접속** | 웹 브라우저를 통한 대화형 셸 | 브라우저로 웹 UI 접속 |
+| **SSH 비밀번호** | 비밀번호를 쓰는 표준 SSH | 기본값: sys/manager, 포트 5652 |
+| **SSH 키** | 공개 키 인증 | 키 쌍 생성 및 등록 |
+| **원격 명령** | SSH로 명령 실행 | 자격 증명으로 SSH 접속 |
+| **키 관리** | SSH 키 추가/목록/제거 | 웹 UI 또는 셸 명령 |

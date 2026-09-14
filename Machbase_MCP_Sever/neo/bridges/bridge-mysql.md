@@ -1,16 +1,16 @@
 # Machbase Neo Bridge - MySQL
 
-## Register a bridge to MySQL
+## MySQL 브리지 등록
 
-Register a bridge that connects to the MySQL database.
+MySQL 데이터베이스에 연결하는 브리지를 등록합니다.
 
-The connection string is according to the MySQL specification.
+연결 문자열은 MySQL 사양을 따릅니다.
 
 ```
 bridge add -t mysql my root:password@tcp(127.0.0.1:3306)/mydb?parseTime=true;
 ```
 
-**Warning**: For handling TIMESTAMP typed column properly, option parameter `parseTime=true` is required.
+**주의**: TIMESTAMP 타입 컬럼을 올바르게 처리하려면 옵션 파라미터 `parseTime=true`가 필요합니다.
 
 ```
 machbase-neo» bridge list;
@@ -21,9 +21,9 @@ machbase-neo» bridge list;
 ╰────────┴──────────┴─────────────────────────────────────────────────────────╯
 ```
 
-## Create table
+## 테이블 생성
 
-Open machbase-neo shell and execute the command below which creates a `my_example` table via the `my` bridge.
+machbase-neo 셸을 열고 아래 명령을 실행해 `my` 브리지로 `my_example` 테이블을 만듭니다.
 
 ```sh
 bridge exec my CREATE TABLE IF NOT EXISTS my_example(
@@ -58,7 +58,7 @@ mysql> desc my_example;
 9 rows in set (0.01 sec)
 ```
 
-## *TQL* writing on the MySQL
+## MySQL에 *TQL*로 쓰기
 
 ```js
 BYTES(payload() ?? `{
@@ -102,7 +102,7 @@ machbase-neo» bridge query my select id, company, employee, plan, created_on fr
 ╰────┴────────────┴──────────┴────────┴─────────────────────────╯
 ```
 
-## *TQL* reading from the MySQL
+## MySQL에서 *TQL*로 읽기
 
 ```js
 SQL(bridge('my'), "select * from my_example")

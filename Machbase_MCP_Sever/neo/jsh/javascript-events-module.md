@@ -1,9 +1,9 @@
 # Machbase Neo JavaScript Events Module
 
-The `events` module provides a small `EventEmitter` implementation for JSH.
-Many built-in JSH modules use this class as the base for event-driven APIs.
+`events` 모듈은 JSH를 위한 간단한 `EventEmitter` 구현을 제공합니다.
+많은 JSH 내장 모듈이 이벤트 기반 API의 기반으로 이 클래스를 사용합니다.
 
-Typical usage looks like this.
+일반적인 사용법은 다음과 같습니다.
 
 ```js
 const EventEmitter = require('events');
@@ -11,33 +11,33 @@ const EventEmitter = require('events');
 
 ## EventEmitter
 
-Creates a new event emitter instance.
+새 이벤트 emitter 인스턴스를 만듭니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new EventEmitter()
 ```
 
-The implementation stores listeners per event name and returns the emitter instance from most mutating methods so calls can be chained.
+이 구현은 이벤트 이름별로 리스너를 저장하며, 대부분의 변경 메서드가 emitter 인스턴스를 반환하므로 메서드 체이닝이 가능합니다.
 
 ## on()
 
-Registers a listener for an event.
+이벤트에 리스너를 등록합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.on(event, listener)
 ```
 
-`listener` must be a function, otherwise `TypeError` is thrown.
+`listener`는 함수여야 하며, 아니면 `TypeError`가 발생합니다.
 
 ## addListener()
 
 Alias of `on()`.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.addListener(event, listener)
@@ -45,21 +45,21 @@ emitter.addListener(event, listener)
 
 ## once()
 
-Registers a listener that runs only once.
+한 번만 실행되는 리스너를 등록합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.once(event, listener)
 ```
 
-After the first invocation, the listener is removed automatically.
+첫 호출 이후 리스너가 자동으로 제거됩니다.
 
 ## removeListener()
 
-Removes one matching listener.
+일치하는 리스너 하나를 제거합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.removeListener(event, listener)
@@ -69,7 +69,7 @@ emitter.removeListener(event, listener)
 
 Alias of `removeListener()`.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.off(event, listener)
@@ -77,9 +77,9 @@ emitter.off(event, listener)
 
 ## removeAllListeners()
 
-Removes all listeners for one event, or all events when called without an argument.
+한 이벤트의 모든 리스너를 제거하며, 인자 없이 호출하면 모든 이벤트의 리스너를 제거합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.removeAllListeners()
@@ -88,26 +88,26 @@ emitter.removeAllListeners(event)
 
 ## emit()
 
-Emits an event and passes all remaining arguments to listeners.
+이벤트를 발생시키고 나머지 인자를 모두 리스너에 전달합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 emitter.emit(event, ...args)
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-- `true` if at least one listener existed for the event
+- 해당 이벤트에 리스너가 하나라도 있었으면 `true`
 - `false` otherwise
 
-If a listener throws while handling a non-`error` event and the emitter has an `error` listener, the emitter forwards the error through `emit('error', err)`.
+`error`가 아닌 이벤트를 처리하는 중 리스너가 예외를 던지고 emitter에 `error` 리스너가 있으면, emitter는 `emit('error', err)`로 오류를 전달합니다.
 
-## Introspection helpers
+## 내부 조회 도우미
 
 ### listeners()
 
-Returns a shallow copy of the current listeners for an event.
+이벤트에 등록된 현재 리스너들의 얕은 복사본을 반환합니다.
 
 ```js
 emitter.listeners(event)
@@ -115,7 +115,7 @@ emitter.listeners(event)
 
 ### listenerCount()
 
-Returns the number of listeners registered for an event.
+이벤트에 등록된 리스너 수를 반환합니다.
 
 ```js
 emitter.listenerCount(event)
@@ -123,17 +123,17 @@ emitter.listenerCount(event)
 
 ### eventNames()
 
-Returns the registered event names.
+등록된 이벤트 이름들을 반환합니다.
 
 ```js
 emitter.eventNames()
 ```
 
-## Listener limits
+## 리스너 제한
 
 ### setMaxListeners()
 
-Sets the warning threshold for listener counts.
+리스너 수 경고 임계값을 설정합니다.
 
 ```js
 emitter.setMaxListeners(n)
@@ -141,16 +141,16 @@ emitter.setMaxListeners(n)
 
 ### getMaxListeners()
 
-Returns the current listener warning threshold.
+현재 리스너 경고 임계값을 반환합니다.
 
 ```js
 emitter.getMaxListeners()
 ```
 
-The default maximum is `10` listeners per event.
-When the limit is exceeded, the implementation writes a warning using `console.warn()`, but it still keeps the listeners.
+기본 최대치는 이벤트당 리스너 `10`개입니다.
+제한을 넘으면 `console.warn()`으로 경고를 남기지만 리스너는 그대로 유지합니다.
 
-## Usage example
+## 사용 예제
 
 ```js
 const EventEmitter = require('events');
@@ -164,7 +164,7 @@ emitter.emit('greet', 'Alice');
 emitter.emit('greet', 'Bob');
 ```
 
-## once() example
+## once() 예제
 
 ```js
 const EventEmitter = require('events');
@@ -178,9 +178,9 @@ emitter.emit('greet', 'Alice');
 emitter.emit('greet', 'Bob');
 ```
 
-## Behavior notes
+## 동작 참고사항
 
-- The module exports the `EventEmitter` class directly.
-- This is a lightweight implementation, not a full drop-in replacement for Node.js `events`.
-- Listener arrays are copied during `emit()`, so removing listeners while emitting does not affect the current dispatch pass.
-- Only one warning mechanism is provided for too many listeners; it does not prevent registration.
+- 이 모듈은 `EventEmitter` 클래스를 직접 내보냅니다.
+- 가벼운 구현이며 Node.js `events`를 완전히 대체하지는 않습니다.
+- `emit()` 중에는 리스너 배열이 복사되므로, 발생 도중 리스너를 제거해도 현재 전달 과정에는 영향이 없습니다.
+- 리스너가 너무 많을 때는 경고만 제공하며 등록 자체를 막지는 않습니다.

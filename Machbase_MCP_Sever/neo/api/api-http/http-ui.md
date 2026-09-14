@@ -1,8 +1,8 @@
 # Machbase Neo HTTP User Interface API
 
-These user interface API validates the requests from clients with JWT based authentication.
+이 사용자 인터페이스 API는 JWT 기반 인증으로 클라이언트의 요청을 검증합니다.
 
-## User Authenticate
+## 사용자 인증
 
 ### Login
 
@@ -28,7 +28,7 @@ These user interface API validates the requests from clients with JWT based auth
 }
 ```
 
-### Refresh token
+### 토큰 갱신
 
 **POST `/web/api/relogin`**
 
@@ -67,7 +67,7 @@ These user interface API validates the requests from clients with JWT based auth
 
 **GET `/web/api/check`**
 
-Validates current  token status.
+현재 토큰 상태를 검증합니다.
 
 - `LoginCheckRsp`
 ```json
@@ -100,13 +100,13 @@ Validates current  token status.
 
 - types
 
-| type | description      |
+| 타입 | 설명      |
 |:-----| :------------    |
-| sql  | sql editor       |
-| tql  | tql editor       |
-| wrk  | workspace editor |
-| taz  | tag analyzer     |
-| term | terminal         |
+| sql  | SQL 에디터       |
+| tql  | TQL 에디터       |
+| wrk  | 워크스페이스 에디터 |
+| taz  | 태그 분석기     |
+| term | 터미널         |
 
 ## Database
 
@@ -114,17 +114,17 @@ Validates current  token status.
 
 **GET,POST `/web/machbase`**
 
-It works as same as `/db/query` API, the only difference is the way of authentication.
-The `/db/query` authorize the client applications by API Token, while `/web/machbase` validates JWT for user interactions.
+`/db/query` API와 동일하게 동작하며 인증 방식만 다릅니다.
+`/db/query`는 API 토큰으로 클라이언트 애플리케이션을 인가하고, `/web/machbase`는 사용자 상호작용을 위해 JWT를 검증합니다.
 
 ### List tables
 
 **GET `/web/api/tables?showall=false&name=pattern`**
 
-Return table list
+테이블 목록을 반환합니다
 
-- `showall` returns includes all hidden tables if set `true`
-- `name` table name filtering pattern, the pattern can be a glob (includes `?` or `*`) or prefix (which has no `?` and `*`)
+- `showall` `true`면 숨겨진 테이블까지 모두 반환합니다
+- `name` 테이블 이름 필터 패턴. glob(`?`나 `*` 포함) 또는 접두(`?`와 `*`가 없는 경우)를 쓸 수 있습니다
 
 ```json
 {
@@ -145,9 +145,9 @@ Return table list
 
 **GET `/web/api/tables/:table/tags?name=prefix`**
 
-Returns tag list of the table
+테이블의 태그 목록을 반환합니다
 
-- `name` returns only tags those name starts with the given prefix
+- `name` 주어진 접두로 시작하는 태그만 반환합니다
 
 ```json
 {
@@ -168,7 +168,7 @@ Returns tag list of the table
 
 **GET `/web/api/tables/:table/:tag/stat`**
 
-Returns the stat of tag of the table
+테이블 태그의 통계를 반환합니다
 
 ```json
 {
@@ -187,19 +187,19 @@ Returns the stat of tag of the table
 }
 ```
 
-## Shell & Terminal
+## 셸 & 터미널
 
-### Data channel
+### 데이터 채널
 
 **`ws:///web/api/term/:term_id/data`**
 
-Web socket for terminal
+터미널용 웹소켓
 
 ### Window size
 
 **POST `/web/api/term/:term_id/windowsize`**
 
-Change terminal size
+터미널 크기 변경
 
 `TerminalSize`
 
@@ -207,29 +207,29 @@ Change terminal size
 { "rows": 24, "cols": 80 }
 ```
 
-### Get Shell Definition
+### 셸 정의 조회
 
 **GET `/web/api/shell/:id`**
 
-Returns `ShellDefinition` for the given id
+주어진 id의 `ShellDefinition`을 반환합니다
 
-### Update Shell Definition
+### 셸 정의 수정
 
 **POST `/web/api/shell/:id`**
 
-Update the `ShellDefinition` of the given id
+주어진 id의 `ShellDefinition`을 수정합니다
 
-### Make copy of Shell
+### 셸 복사본 만들기
 
 **GET `/web/api/shell/:id/copy`**
 
-Returns `ShellDefinition` for a new copy of the shell of the given id
+주어진 id의 셸을 복사한 새 `ShellDefinition`을 반환합니다
 
-### Delete Shell Definition 
+### 셸 정의 삭제 
 
 **DELETE `/web/api/shell/:id`**
 
-Delete the shell of the given id
+주어진 id의 셸을 삭제합니다
 
 ```json
 {
@@ -239,15 +239,15 @@ Delete the shell of the given id
 }
 ```
 
-## Server events
+## 서버 이벤트
 
-### Event channel
+### 이벤트 채널
 
 **`ws:/web/api/console/:console_id/data?token={jwt_token}`**
 
-Web socket for the bi-directional messages. This endpoint requires a JWT access token supplied as the `token` query parameter, because the WebSocket handshake cannot send the HTTP `Authorization` header.
+양방향 메시지용 웹소켓입니다. WebSocket 핸드셰이크는 HTTP `Authorization` 헤더를 보낼 수 없으므로, 이 엔드포인트는 `token` 쿼리 파라미터로 JWT 액세스 토큰을 전달해야 합니다.
 
-- message type
+- 메시지 타입
 
 ```json
 {
@@ -262,77 +262,77 @@ Web socket for the bi-directional messages. This endpoint requires a JWT access 
 }
 ```
 
-| type           |  fields          | description        |
+| 타입           |  필드          | 설명        |
 |:---------------| :----------------| :------------------|
-| `ping`         |                  | ping message       |
-|                | `ping.tick`      | any integer number, server will respond with the same number that client sends |
+| `ping`         |                  | ping 메시지       |
+|                | `ping.tick`      | 임의의 정수. 서버가 클라이언트가 보낸 것과 같은 수로 응답합니다 |
 | `log`          | `log.level`      | log level `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`|
 |                | `log.message`    | log message        |
-|                | `log.repeat`     | count, if the same message repeats more than two times in serial |
+|                | `log.repeat`     | 같은 메시지가 연속으로 두 번 넘게 반복될 때의 횟수 |
 
 
-## TQL & Workspace
+## TQL & 워크스페이스
 
-**Content-types of TQL**
+**TQL의 Content-type**
 
-| Header <br/>`Content-Type` | Header <br/>`X-Chart-Type` |          Content            |
+| 헤더 <br/>`Content-Type` | 헤더 <br/>`X-Chart-Type` |          내용            |
 |:--------------------------:| :-------------------------:| :-------------------------- |
-| text/html                  | "echart", "geomap"         | Full HTML <br/>ex) It may be inside of `<iframe>`|
-| text/html                  | -                          | Full HTML <br/>ex) It may be inside of `<iframe>` |
+| text/html                  | "echart", "geomap"         | 전체 HTML <br/>예) `<iframe>` 안에 넣을 수 있습니다|
+| text/html                  | -                          | 전체 HTML <br/>예) `<iframe>` 안에 넣을 수 있습니다 |
 | text/csv                   | -                          | CSV                         |
-| text/markdown              | -                          | Markdown                    |
-| application/json           | "echart", "geomap"         | JSON (echart or geomap data)|
+| text/markdown              | -                          | 마크다운                    |
+| application/json           | "echart", "geomap"         | JSON (echart 또는 geomap 데이터)|
 | application/json           | -                          | JSON                        |
-| application/xhtml+xml      | -                          | HTML Element, ex) `<div>...</div>` |
+| application/xhtml+xml      | -                          | HTML 요소, 예) `<div>...</div>` |
 
 
 ### Run tql file
 
 **GET `/web/api/tql/*path`**
 
-Run the tql of the path, refer the section of 'Content-types of TQL' for the response
+해당 경로의 tql을 실행합니다. 응답은 'Content-types of TQL' 항목을 참고하세요
 
 **POST `/web/api/tql/*path`**
 
-Run the tql of the path, refer the section of 'Content-types of TQL' for the response
+해당 경로의 tql을 실행합니다. 응답은 'Content-types of TQL' 항목을 참고하세요
 
-### Run tql script
+### tql 스크립트 실행
 
 **POST `/web/api/tql`**
 
-Post tql script as content payload, server will response the execution result.
-refer the section of 'Content-types of TQL' for the response.
+tql 스크립트를 내용 페이로드로 전송하면 서버가 실행 결과를 응답합니다.
+응답은 'Content-types of TQL' 항목을 참고하세요.
 
-If the request has a `$` named query parameter, it will be taken as the tql script,
-and the payload will be treated as data. This `$` query parameter is available since v8.0.17.
+요청에 `$` 이름의 쿼리 파라미터가 있으면 그것을 tql 스크립트로 취급하고,
+페이로드는 데이터로 취급합니다. 이 `$` 쿼리 파라미터는 v8.0.17부터 사용할 수 있습니다.
 
-### Markdown rendering
+### 마크다운 렌더링
 
 **POST `/web/api/md`**
 
-Post markdown as content payload, sever will response the rendering result in xhtml
+마크다운을 내용 페이로드로 전송하면 서버가 xhtml로 렌더링 결과를 응답합니다
 
-## File management
+## 파일 관리
 
 ### Content-Type
 
-File types and content-type
+파일 유형과 content-type
 
-| file type | Content-Type             |
+| 파일 유형 | Content-Type             |
 |:----------|:-------------------------|
 | .sql      | text/plain               |
 | .tql      | text/plain               |
 | .taz      | application/json         |
 | .wrk      | application/json         |
-| unknown   | application/octet-stream |
+| 알 수 없음   | application/octet-stream |
 
 ### Read file
 
 **GET `/web/api/files/*path`**
 
-Returns the content of the file if the path is pointing a file.
+경로가 파일을 가리키면 파일 내용을 반환합니다.
 
-Returns Dir entries if the path is pointing a directory.
+경로가 디렉터리를 가리키면 디렉터리 항목들을 반환합니다.
 
 - `Entry`
 
@@ -357,17 +357,17 @@ Returns Dir entries if the path is pointing a directory.
 }
 ```
 
-### Write file
+### 쓰기 file
 
 **POST `/web/api/files/*path`**
 
-- if the `path` points a file, it will write the payload content into the file.
+- `path`가 파일을 가리키면 페이로드 내용을 파일에 씁니다.
 
-- if the `path` is a directory and request with no content, it will create a empty directory.
-  and returns the `Entry` of the directory
+- `path`가 디렉터리이고 내용 없이 요청하면 빈 디렉터리를 만듭니다.
+  그리고 해당 디렉터리의 `Entry`를 반환합니다
 
-- if the `path` is a directory and payload is json of `GitCloneReq`,
-  it will clone the remote git repository to the `path` and returns `Entry` of the directory.
+- `path`가 디렉터리이고 페이로드가 `GitCloneReq` json이면,
+  원격 git 저장소를 `path`에 클론하고 해당 디렉터리의 `Entry`를 반환합니다.
 
 `GitCloneReq`
 
@@ -380,11 +380,11 @@ Returns Dir entries if the path is pointing a directory.
 
 - `command` : `clone`, `pull`
 
-### Rename/move file
+### 파일 이름 변경/이동
 
 **PUT `/web/api/files/*path`**
 
-Rename(move) a file (or a directory).
+파일(또는 디렉터리)의 이름을 바꾸거나 이동합니다.
 
 `RenameReq`
 
@@ -394,22 +394,22 @@ Rename(move) a file (or a directory).
 }
 ```
 
-This api returns status code `200 OK` if the operation has done successfully.
+작업이 정상적으로 완료되면 이 API는 상태 코드 `200 OK`를 반환합니다.
 
 
 ### Remove file
 
 **DELETE `/web/api/files/*path`**
 
-Delete the file at the `path`, if the path is pointing a directory and is not empty, it will return error.
+`path`의 파일을 삭제합니다. 경로가 비어 있지 않은 디렉터리를 가리키면 오류를 반환합니다.
 
-## Key management
+## 키 관리
 
 ### List Key
 
 **GET `/web/api/keys/:id`**
 
-Return key info list
+키 정보 목록을 반환합니다
 
 `response`
 
@@ -428,13 +428,13 @@ Return key info list
     "elapse": "131.9µs"
 }
 ```
-### Generate Key
+### 키 생성
 
 **POST `/web/api/keys`**
 
-generate key
+키 생성
 - `name` is required
-- `notAfter` is expiration date
+- `notAfter` 만료일
 
 **Request:**
 ```json
@@ -461,7 +461,7 @@ generate key
 
 **DELETE `/web/api/keys/:id`**
 
-Delete the key of the given id
+주어진 id의 키를 삭제합니다
 
 `response`
 
@@ -479,7 +479,7 @@ Delete the key of the given id
 
 **GET `/web/api/sshkeys`**
 
-Return ssh-key info list
+ssh 키 정보 목록을 반환합니다
 
 `response`
 
@@ -498,13 +498,13 @@ Return ssh-key info list
 }
 ```
 
-### Generate Ssh Key
+### SSH 키 생성
 
 **POST `/web/api/sshkeys`**
 
-**Use public key authentication with SSH**   
+**SSH 공개 키 인증 사용**   
 
-Adding the public key to machbase-neo server makes it possible to execute any `machbase-neo shell` command without prompt and entering password.
+machbase-neo 서버에 공개 키를 추가하면 프롬프트나 비밀번호 입력 없이 모든 `machbase-neo shell` 명령을 실행할 수 있습니다.
 
 **Request:**
 ```json
@@ -522,11 +522,11 @@ Adding the public key to machbase-neo server makes it possible to execute any `m
 }
 ```
 
-### Delete Ssh Key
+### SSH 키 삭제
 
 **DELETE `/web/api/sshkeys/:fingerprint`**
 
-Delete the ssh-key of the given fingerprint   
+주어진 지문의 ssh 키를 삭제합니다   
 
 `response`
 ```json
@@ -543,7 +543,7 @@ Delete the ssh-key of the given fingerprint
 
 **GET `/web/api/timers/:name`**
 
-Return timer info
+타이머 정보를 반환합니다
 
 - state: `RUNNING`, `STARTING`, `STOP`, `STOPPING`,`FAILED`, `UNKNWON`
 
@@ -570,7 +570,7 @@ Return timer info
 
 **GET `/web/api/timers`**
 
-Return timer info list
+타이머 정보 목록을 반환합니다
 - state: `RUNNING`, `STARTING`, `STOP`, `STOPPING`,`FAILED`, `UNKNWON`
 
 `response`
@@ -607,8 +607,8 @@ Add Timer
 - `name`, `autoStart`, `schedule`, `path` is required  
 
 Timer `schedule`
-- `0 30 * * * *`           Every hour on the half hour
-- `@every 1h30m`           Every hour thirty
+- `0 30 * * * *`           매시 30분마다
+- `@every 1h30m`           1시간 30분마다
 - `@daily`                 Every day
 
 **Request:**
@@ -676,11 +676,11 @@ Stop Timer
 }
 ```
 
-### Update Timer
+### 타이머 수정
 
 **PUT `/web/api/timers/:name`**
 
-Update Timer
+타이머 수정
 - `autoStart`, `schedule`, `path` 
 
 **Request:**
@@ -701,11 +701,11 @@ Update Timer
 }
 ```
 
-### Delete Timer
+### 타이머 삭제
 
 **DELETE `/web/api/timers/:name`**
 
-Delete Timer
+타이머 삭제
 
 `Response`
 ```json
@@ -722,7 +722,7 @@ Delete Timer
 
 **GET `/web/api/bridges`**
 
-Return bridge info list
+브리지 정보 목록을 반환합니다
 
 `response`
 
@@ -746,7 +746,7 @@ Return bridge info list
 
 Add Bridge
 - `name`, `type`, `path` is required
-- supported bridges `SQLite`, `PostgreSql`, `Mysql`, `MSSQL`, `MQTT`
+- 지원 브리지 `SQLite`, `PostgreSql`, `Mysql`, `MSSQL`, `MQTT`
 
 **Request:**
 ```json
@@ -790,11 +790,11 @@ Exec Bridge
 }
 ```
 
-### Query Bridge
+### 브리지 조회
 
 **POST `/web/api/bridges/:name/state`**
 
-Query Bridge
+브리지 조회
 - `state`, `command` is required
 
 **Request:**
@@ -871,11 +871,11 @@ Test Bridge
 }
 ```
 
-### Delete Bridge
+### 브리지 삭제
 
 **DELETE `/web/api/bridges/:name`**
 
-Delete the bridge of the given name
+주어진 이름의 브리지를 삭제합니다
 
 `response`
 
@@ -889,13 +889,13 @@ Delete the bridge of the given name
 
 ## Subscriber
 
-### Get Subscriber
+### 구독자 조회
 
 **GET `/web/api/subscribers/:name`**
 
-Return subscriber info
+구독자 정보를 반환합니다
 - state: `RUNNING`, `STARTING`, `STOP`, `STOPPING`,`FAILED`, `UNKNWON`
-- `autoStart`, `queue`, `Qos` field is omitempty
+- `autoStart`, `queue`, `Qos` 필드는 omitempty입니다
 
 `response`
 
@@ -920,13 +920,13 @@ Return subscriber info
 }
 ```
 
-### List Subscriber
+### 구독자 목록
 
 **GET `/web/api/subscribers`**
 
-Return subscriber info list
+구독자 정보 목록을 반환합니다
 - state: `RUNNING`, `STARTING`, `STOP`, `STOPPING`,`FAILED`, `UNKNWON`
-- `autoStart`, `queue`, `Qos` field is omitempty
+- `autoStart`, `queue`, `Qos` 필드는 omitempty입니다
 
 `response`
 
@@ -962,21 +962,21 @@ Return subscriber info list
 }
 ```
 
-### Add Subscribers
+### 구독자 추가
 
 **POST `/web/api/subscribers`**
 
-Add Subscriber   
-- `autostart`:   '--autostart' makes the subscriber starts along with machbase-neo starts. Ommit this to start/stop manually.   
-- `name` 'nats_subr' the name of the subscriber.   
-- `bridge` 'my_nats' the name of the bridge that the subscriber is going to use.   
-- `topic` 'iot.sensor' subject name to subscribe. it should be in NATS subject syntax.   
-- `task` 'db/append/EXAMPLE:csv' writing descriptor, it means the incoming data is in CSV format and writing data into the table EXAMPLE in append mode.   
-- `autostart` makes the subscriber will start automatically when machbase-neo starts. If the subscriber is not autostart mode, you can make it start and stop manually by subscriber start <name> and subscriber stop <name> commands.
-- `QoS` <int> if the bridge is MQTT type, it specifies the QoS level of the subscription to the topic. It supports 0, 1 and the default is 0 if it is not specified.
-- `queue` <string> if the bridge is NATS type, it specifies the Queue Group.
+구독자 추가   
+- `autostart`:   '--autostart'는 machbase-neo와 함께 구독자를 시작합니다. 수동 시작·중지하려면 생략하세요.   
+- `name` 'nats_subr' 구독자의 이름입니다.   
+- `bridge` 'my_nats' 구독자가 사용할 브리지의 이름입니다.   
+- `topic` 'iot.sensor' 구독할 subject 이름입니다. NATS subject 문법을 따라야 합니다.   
+- `task` 'db/append/EXAMPLE:csv' 쓰기 서술자입니다. 들어오는 데이터가 CSV 형식이고 append 모드로 EXAMPLE 테이블에 쓴다는 뜻입니다.   
+- `autostart`는 machbase-neo가 시작될 때 구독자를 자동으로 시작합니다. autostart 모드가 아니면 subscriber start <name>, subscriber stop <name> 명령으로 수동 시작·중지할 수 있습니다.
+- `QoS` <int> 브리지가 MQTT 타입이면 토픽 구독의 QoS 수준을 지정합니다. 0과 1을 지원하며 지정하지 않으면 기본값은 0입니다.
+- `queue` <string> 브리지가 NATS 타입이면 Queue Group을 지정합니다.
 
-nats-bridge manual https://docs.machbase.com/neo/bridges/31.nats/
+nats-bridge 매뉴얼 https://docs.machbase.com/neo/bridges/31.nats/
 
 **Request:**
 ```json
@@ -1000,7 +1000,7 @@ nats-bridge manual https://docs.machbase.com/neo/bridges/31.nats/
 }
 ```
 
-### Start Subscriber
+### 구독자 시작
 
 **POST `/web/api/subscribers/:name/state`**
 
@@ -1022,7 +1022,7 @@ nats-bridge manual https://docs.machbase.com/neo/bridges/31.nats/
 }
 ```
 
-### Stop Subscriber
+### 구독자 중지
 
 **POST `/web/api/subscribers/:name/state`**
 
@@ -1044,11 +1044,11 @@ nats-bridge manual https://docs.machbase.com/neo/bridges/31.nats/
 }
 ```
 
-### Delete Subscriber
+### 구독자 삭제
 
 **DELETE `/web/api/subscribers/:name`**
 
-Delete the subscriber of the given name
+주어진 이름의 구독자를 삭제합니다
 
 `response`
 
@@ -1066,9 +1066,9 @@ Delete the subscriber of the given name
 
 **GET `/web/api/backup/archives`**
 
-Return backup list
-- default backup dir `$MACHBASE_HOME/dbs/backup`
-- machbase-neo serve `--backup-dir={path}` required
+백업 목록을 반환합니다
+- 기본 백업 디렉터리 `$MACHBASE_HOME/dbs/backup`
+- machbase-neo serve 시 `--backup-dir={path}` 필요
 
 `response`
 
@@ -1095,10 +1095,10 @@ Return backup list
 
 **POST `/web/api/backup/archive`**
 
-backup database</br>
-- **Full backup**:   Backup of entire data
-- **Incremental backup**:   Backup of the data added after the full or previous incremental backup
-- **Time Duration backup**:   Backup of data for a specific period
+데이터베이스 백업</br>
+- **전체 백업**:   전체 데이터 백업
+- **증분 백업**:   전체 백업 또는 직전 증분 백업 이후 추가된 데이터 백업
+- **기간 백업**:   특정 기간의 데이터 백업
 
 `request`
 
@@ -1118,7 +1118,7 @@ backup database</br>
 }
 ```
 
-**Incremental Backup:**
+**증분 백업:**
 ```json
 {
     "type":"database", // database or table
@@ -1150,7 +1150,7 @@ backup database</br>
 }
 ```
 
-**Table Backup:**
+**테이블 백업:**
 ```json
 {
     "type":"table", // database or table
@@ -1175,11 +1175,11 @@ backup database</br>
 }
 ```
 
-### Status Backup
+### 백업 상태
 
 **GET `/web/api/backup/archive/status`**
 
-return backup status</br>
+백업 상태 반환</br>
 
 `response`
 ```json
@@ -1207,7 +1207,7 @@ return backup status</br>
 
 **GET `/web/api/backup/mounts`**
 
-Return mount list
+마운트 목록을 반환합니다
 
 `response`
 
@@ -1237,9 +1237,9 @@ Return mount list
 
 **POST `/web/api/backup/mounts/:name`**
 
-database mount
+데이터베이스 마운트
 - `:name` mount name
-- `path` backup database path (`Absolute Path`, `Relative Path` available)
+- `path` 백업 데이터베이스 경로 (`절대 경로`, `상대 경로` 모두 가능)
 
 **Request:**
 ```json
@@ -1262,8 +1262,8 @@ database mount
 
 **DELETE `/web/api/backup/mounts/:name`**
 
-database unmount
-- `:name` unmount name
+데이터베이스 언마운트
+- `:name` 언마운트할 이름
 
 `response`
 ```json
@@ -1281,8 +1281,8 @@ database unmount
 **GET `/web/api/pkgs/search?name=pkg_name&possibles=10`**
 
 `Query Parameter`
- - `name` is package name, required
- - `possible` is search count ( possible=0, all search )
+ - `name` 패키지 이름, 필수
+ - `possible` 검색 개수 ( possible=0 이면 전체 검색 )
 
 
 `response`
@@ -1299,7 +1299,7 @@ database unmount
 
 **GET `/web/api/pkgs/sync`**
 
-Package sync 
+패키지 동기화 
 
 `response`
 
@@ -1315,7 +1315,7 @@ Package sync
 
 **GET `/web/api/pkgs/insall/:name`**
 
- - `:name` is install package name, required
+ - `:name` 설치할 패키지 이름, 필수
 
 `response`
 ```json
@@ -1332,7 +1332,7 @@ Package sync
 
 **GET `/web/api/pkgs/uninsall/:name`**
 
- - `:name` is uninstall package name, required
+ - `:name` 제거할 패키지 이름, 필수
 
 `response`
 ```json
@@ -1370,11 +1370,11 @@ Package sync
 ```
 
 - type: `url`, `wrk`, `tql`, `sql`
-- address: if address has prefix `serverfile://<path>` it points a server side file, 
-  otherwise external web url that starts with `https://`
+- address: 주소에 `serverfile://<path>` 접두가 있으면 서버 측 파일을 가리키고, 
+  그 외에는 `https://`로 시작하는 외부 웹 URL입니다
 
 
-### SQL statements splitter
+### SQL 문 분할기
 
 **POST `/web/api/splitter/sql`**
 
@@ -1417,7 +1417,7 @@ Package sync
 }
 ```
 
-### License info
+### 라이선스 정보
 
 **GET `/web/api/license`**
 
@@ -1438,8 +1438,8 @@ Package sync
 }
 ```
 
-### License install
+### 라이선스 설치
 
 **POST `/web/api/license`**
 
-Install license file
+라이선스 파일을 설치합니다

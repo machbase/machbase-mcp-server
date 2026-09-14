@@ -1,6 +1,6 @@
 # Machbase Neo JavaScript Semver Module
 
-The `semver` module provides semantic version comparison helpers for JSH applications.
+`semver` 모듈은 JSH 애플리케이션을 위한 시맨틱 버전 비교 도우미를 제공합니다.
 
 ```js
 const semver = require('semver');
@@ -8,56 +8,56 @@ const semver = require('semver');
 
 ## satisfies()
 
-Checks whether a version matches a semantic version constraint.
+버전이 시맨틱 버전 제약 조건에 맞는지 확인합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 semver.satisfies(version, constraint)
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-Returns `true` when `version` satisfies `constraint`, otherwise `false`.
-An empty constraint and `latest` are treated as `*`.
+`version`이 `constraint`를 만족하면 `true`, 아니면 `false`를 반환합니다.
+빈 제약 조건과 `latest`는 `*`로 취급됩니다.
 
 ## maxSatisfying()
 
-Returns the highest version that satisfies a constraint.
+제약 조건을 만족하는 가장 높은 버전을 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 semver.maxSatisfying(versions, constraint)
 ```
 
-<h6>Parameters</h6>
+<h6>파라미터</h6>
 
 - `versions` `String[]`
 - `constraint` `String`
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-Returns the original version string of the best match.
-If no version matches, an empty string is returned. Invalid candidate versions are skipped.
+가장 잘 맞는 버전의 원본 문자열을 반환합니다.
+맞는 버전이 없으면 빈 문자열을 반환합니다. 잘못된 후보 버전은 건너뜁니다.
 
 ## compare()
 
-Compares two semantic versions.
+두 시맨틱 버전을 비교합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 semver.compare(left, right)
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
 - `-1` if `left < right`
 - `0` if `left === right`
 - `1` if `left > right`
 
-## Usage example
+## 사용 예제
 
 ```js
 const semver = require('semver');
@@ -71,8 +71,8 @@ console.println(semver.compare('1.2.0', '1.1.0'));
 console.println(semver.compare('1.2.0', '1.2.0'));
 ```
 
-## Behavior notes
+## 동작 참고사항
 
-- Invalid `version`, `left`, `right`, or `constraint` values raise an error.
-- Leading and trailing spaces are trimmed before parsing.
-- Constraint parsing follows semantic version rules including range expressions such as `1.2 - 1.4` and `~1.1`.
+- `version`, `left`, `right`, `constraint` 값이 잘못되면 오류가 발생합니다.
+- 파싱 전에 앞뒤 공백이 제거됩니다.
+- 제약 조건 파싱은 `1.2 - 1.4`, `~1.1` 같은 범위 표현을 포함한 시맨틱 버전 규칙을 따릅니다.

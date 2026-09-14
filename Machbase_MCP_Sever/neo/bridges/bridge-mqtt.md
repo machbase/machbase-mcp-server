@@ -1,10 +1,10 @@
 # Machbase Neo Bridge - MQTT
 
-MQTT Bridge enables machbase-neo to send and receive message to/from any external MQTT brokers.
+MQTT 브리지를 사용하면 machbase-neo가 외부 MQTT 브로커와 메시지를 주고받을 수 있습니다.
 
-**Note**: The beauty of the MQTT bridge comes when any existing "MQTT based" platforms adopt machbase-neo, there is no changes required on the existing system.
+**참고**: MQTT 브리지의 장점은 기존 "MQTT 기반" 플랫폼이 machbase-neo를 도입할 때 기존 시스템을 전혀 바꾸지 않아도 된다는 점입니다.
 
-- Send messages to external MQTT broker
+- 외부 MQTT 브로커로 메시지 전송
 
 ```mermaid
 flowchart LR
@@ -22,7 +22,7 @@ flowchart LR
   end
 ```
 
-- Receive messages from external MQTT broker
+- 외부 MQTT 브로커에서 메시지 수신
 
 ```mermaid
 flowchart RL
@@ -42,35 +42,35 @@ flowchart RL
     end
 ```
 
-## Register a bridge to an external MQTT broker
+## 외부 MQTT 브로커 브리지 등록
 
-Register a bridge
+브리지 등록
 
 ```
 bridge add -t mqtt my_mqtt broker=127.0.0.1:1883 id=client-id;
 ```
 
-A mqtt bridge just defines how machbase-neo can connect to the external MQTT broker, See the subscriber section below to get it to receive messages.
+MQTT 브리지는 machbase-neo가 외부 MQTT 브로커에 어떻게 접속할지만 정의합니다. 메시지를 받으려면 아래 구독자 항목을 참고하세요.
 
-Available connect options
+사용 가능한 연결 옵션
 
-| Option           | Description                          | example         |
+| 옵션           | 설명                          | 예시         |
 | :-----------     | :---------------------------------   | :-------------  |
-| `broker`         | broker address, If the broker has redundant access points, use multiple "broker" options | `broker=192.0.1.100:1883` |
+| `broker`         | 브로커 주소. 접속 지점이 여러 개면 "broker" 옵션을 여러 번 사용하세요 | `broker=192.0.1.100:1883` |
 | `id`             | client id                            |                 |
 | `username`       | username                             |                 |
 | `password`       | password                             |                 |
-| `keepalive`      | keepalive in duration format         | `keepalive=30s` |
-| `cleansession`   | cleansession                         | `cleansession=1` `cleansession=false` |
-| `cafile`         | ca cert (`*.pem`) file path            |  *TLS*          |
-| `key`            | client private key (`*.pem`) file path |  *TLS*          |
-| `cert`           | client certificate (`*.pem`) file path |  *TLS*          |
+| `keepalive`      | keepalive (기간 형식)         | `keepalive=30s` |
+| `cleansession`   | 클린 세션                         | `cleansession=1` `cleansession=false` |
+| `cafile`         | CA 인증서(`*.pem`) 파일 경로            |  *TLS*          |
+| `key`            | 클라이언트 개인 키(`*.pem`) 파일 경로 |  *TLS*          |
+| `cert`           | 클라이언트 인증서(`*.pem`) 파일 경로 |  *TLS*          |
 
-When all three of `cafile`, `key`, `cert` options are set, the secure mqtt connection is enabled with TLS.
+`cafile`, `key`, `cert` 세 옵션을 모두 설정하면 TLS로 보안 MQTT 연결이 활성화됩니다.
 
-## Send messages
+## 메시지 전송
 
-Run `mosuqitto_sub` with debug mode (`-d`) option. This will receive messages from topic 'neo/messages' via mosquitto broker when machbase-neo publish messages to the topic.
+`mosquitto_sub`을 디버그 모드(`-d`) 옵션으로 실행합니다. machbase-neo가 'neo/messages' 토픽으로 메시지를 발행하면 mosquitto 브로커를 통해 이를 수신합니다.
 
 ```sh
 mosquitto_sub -d -h 127.0.0.1 -p 1883 -i client-app -t neo/messages                                            1 ↵
@@ -81,9 +81,9 @@ Client client-app received SUBACK
 Subscribed (mid: 1): 0
 ```
 
-Make a *TQL* script that call the `publish()` function of the bridge.
+브리지의 `publish()` 함수를 호출하는 *TQL* 스크립트를 만듭니다.
 
-**TIMER**: This example uses `FAKE()` and execute manually for the briefness, the "publish" feature of bridges will be useful and powerful when it combines with Timer to send data automatically by any given schedule.
+**TIMER**: 이 예제는 간결함을 위해 `FAKE()`를 쓰고 수동으로 실행하지만, 브리지의 "publish" 기능은 Timer와 결합해 정해진 일정에 따라 자동으로 데이터를 보낼 때 훨씬 유용합니다.
 
 ```js
 FAKE(linspace(0,10, 5))
@@ -96,7 +96,7 @@ SCRIPT("tengo", {
 CSV()
 ```
 
-As soon as executing the script above the `mosquitto_sub` prints out the messages that it receives on the screen.
+위 스크립트를 실행하면 곧바로 `mosquitto_sub`이 수신한 메시지를 화면에 출력합니다.
 
 ```sh
 mosquitto_sub -d -h 127.0.0.1 -p 1883 -i client-app -t neo/messages                                            1 ↵
@@ -113,11 +113,11 @@ Client client-app received PUBLISH (d0, q0, r0, m0, 'neo/messages', ... (24 byte
 The message number is 10
 ```
 
-## Receive messages - Subscriber
+## 메시지 수신 - 구독자
 
-Let's make an example that receives messages from MQTT broker and storing the data into database utilizing bridge and subscriber.
+브리지와 구독자를 활용해 MQTT 브로커에서 메시지를 받아 데이터베이스에 저장하는 예제를 만들어 봅시다.
 
-In this demonstration we will use the `mosquitto` as MQTT broker and `mosquitto_pub` as MQTT client. These tools are simulating an "external" system.
+이 시연에서는 MQTT 브로커로 `mosquitto`를, MQTT 클라이언트로 `mosquitto_pub`을 사용합니다. 이 도구들이 "외부" 시스템을 흉내 냅니다.
 
 ```mermaid
 flowchart RL
@@ -136,11 +136,11 @@ flowchart RL
     end
 ```
 
-### 1. Run MQTT Broker
+### 1. MQTT 브로커 실행
 
-The MQTT bridge of machbase-neo should work with any MQTT broker that is compatible MQTT v3.1.1 specification.
+machbase-neo의 MQTT 브리지는 MQTT v3.1.1 사양과 호환되는 모든 MQTT 브로커에서 동작합니다.
 
-If you don't have an installed MQTT broker, get and run *mosquitto* for the demo. [https://mosquitto.org](https://mosquitto.org)
+설치된 MQTT 브로커가 없다면 데모용으로 *mosquitto*를 받아 실행하세요. https://mosquitto.org
 
 ```sh
 $ mosquitto -p 1883
@@ -155,15 +155,15 @@ $ mosquitto -p 1883
 1691466522: mosquitto version 2.0.15 running
 ```
 
-### 2. Register a bridge
+### 2. 브리지 등록
 
-Open machbase-neo shell, and execute `bridge add...` command.
+machbase-neo 셸을 열고 `bridge add...` 명령을 실행합니다.
 
 ```
 bridge add -t mqtt my_mqtt broker=127.0.0.1:1883 id=demo;
 ```
 
-It defines the way how machbase-neo can connect to the designated broker.
+machbase-neo가 지정한 브로커에 접속하는 방법을 정의합니다.
 
 ```
 machbase-neo» bridge list;
@@ -174,24 +174,24 @@ machbase-neo» bridge list;
 ╰─────────┴──────────┴─────────────────────────────────╯
 ```
 
-When the bridge `my_mqtt` successfully registered, machbase-neo connects to the broker and mosquitto shows the connection log like below.
+브리지 `my_mqtt`가 정상 등록되면 machbase-neo가 브로커에 접속하고 mosquitto가 아래와 같은 연결 로그를 보여줍니다.
 
-If there is any network problem or the broker is down, machbase-neo does periodically retry to connect, so that it keeps the best efforts to make the bridge available.
+네트워크 문제가 있거나 브로커가 다운되면 machbase-neo가 주기적으로 재연결을 시도해 브리지를 최대한 사용 가능한 상태로 유지합니다.
 
 ```
 1691466529: New connection from 127.0.0.1:65440 on port 1883.
 1691466529: New client connected from 127.0.0.1:65440 as demo (p2, c1, k30).
 ```
 
-### 3-A. Subscriber with writing descriptor
+### 3-A. 쓰기 서술자를 사용하는 구독자
 
-Open machbase-neo shell to add a new subscriber which makes a pipeline between the bridge and database table.
+machbase-neo 셸을 열어 브리지와 데이터베이스 테이블을 잇는 새 구독자를 추가합니다.
 
 ```
 subscriber add --autostart mqtt_subr my_mqtt iot/sensor db/append/EXAMPLE:csv;
 ```
 
-Execute `subscriber list` to confirm the registration.
+`subscriber list`를 실행해 등록을 확인합니다.
 
 ```
 ┌───────────┬─────────┬────────────┬───────────────────────┬───────────┬─────────┐
@@ -201,16 +201,16 @@ Execute `subscriber list` to confirm the registration.
 └───────────┴─────────┴────────────┴───────────────────────┴───────────┴─────────┘
 ```
 
-It specifies...
-- `--autostart` makes the subscriber starts along with machbase-neo starts. Omit this to start/stop manually.
-- `mqtt_subr` the name of the subscriber.
-- `my_mqtt` the name of the bridge that the subscriber is going to use.
-- `iot/sensor` topic to subscribe. it should be in MQTT topic syntax.
-- `db/append/EXAMPLE:csv` writing descriptor, it means the incoming data is in CSV format and writing data into the table `EXAMPLE` in *append* mode.
+다음을 지정합니다...
+- `--autostart`는 machbase-neo와 함께 구독자를 시작합니다. 수동으로 시작·중지하려면 생략하세요.
+- `mqtt_subr` 구독자의 이름입니다.
+- `my_mqtt` 구독자가 사용할 브리지의 이름입니다.
+- `iot/sensor` 구독할 토픽입니다. MQTT 토픽 문법을 따라야 합니다.
+- `db/append/EXAMPLE:csv` 쓰기 서술자입니다. 들어오는 데이터가 CSV 형식이고 `EXAMPLE` 테이블에 *append* 모드로 쓴다는 뜻입니다.
 
-The place of writing description can be replaced with a file path of *TQL* script. We will see an example later.
+쓰기 서술자 자리에 *TQL* 스크립트 파일 경로를 대신 넣을 수 있습니다. 예제는 뒤에서 다룹니다.
 
-The syntax of writing descriptor is ...
+쓰기 서술자의 문법은 다음과 같습니다 ...
 
 ```
 db/{method}/{table_name}:{format}:{compress}?{options}
@@ -218,14 +218,14 @@ db/{method}/{table_name}:{format}:{compress}?{options}
 
 **method**
 
-There are two methods `append` and `write`. The `append` is recommended on the stream environment like MQTT.
+`append`와 `write` 두 가지 방식이 있습니다. MQTT 같은 스트림 환경에서는 `append`를 권장합니다.
 
-- `append` writing data in append mode
-- `write` writing data with INSERT sql statement
+- `append` append 모드로 데이터를 씁니다
+- `write` INSERT SQL 문으로 데이터를 씁니다
 
 **table_name**
 
-Specify the destination table name, case insensitive.
+대상 테이블 이름을 지정합니다. 대소문자를 구분하지 않습니다.
 
 **format**
 
@@ -234,38 +234,38 @@ Specify the destination table name, case insensitive.
 
 **compress**
 
-Currently `gzip` is supported, If `:{compress}` part is omitted, it means the data is not compressed.
+현재 `gzip`을 지원합니다. `:{compress}` 부분을 생략하면 데이터가 압축되지 않았다는 뜻입니다.
 
 **options**
 
-The writing description can contain an optional question-mark-separated URL-encoded parameters.
+쓰기 서술자에는 물음표로 구분된 URL 인코딩 파라미터를 선택적으로 넣을 수 있습니다.
 
-| Name          | Default      | Description                                                    |
+| 이름          | 기본값      | 설명                                                    |
 | :------------ | :----------- | :------------------------------------------------------------- |
-| `timeformat`  | `ns`         | Time format: s, ms, us, ns                                     |
-| `tz`          | `UTC`        | Time Zone: UTC, Local and location spec                        |
-| `delimiter`   | `,`          | CSV delimiter, ignored if content is not csv                   |
-| `heading`     | `false`      | If CSV contains header line, set `true` to skip the first line |
+| `timeformat`  | `ns`         | 시간 형식: s, ms, us, ns                                     |
+| `tz`          | `UTC`        | 시간대: UTC, Local, 지역 지정                        |
+| `delimiter`   | `,`          | CSV 구분자. 내용이 CSV가 아니면 무시됩니다                   |
+| `heading`     | `false`      | CSV에 헤더 줄이 있으면 `true`로 두어 첫 줄을 건너뜁니다 |
 
 - `db/append/EXAMPLE:csv?timeformat=s&heading=true`
 - `db/write/EXAMPLE:csv:gzip?timeformat=s`
 
-#### Send messages with `mosquitto_pub`
+#### `mosquitto_pub`으로 메시지 전송
 
-Make a data file `data.csv` as like below.
+아래와 같이 데이터 파일 `data.csv`를 만듭니다.
 
 ```csv
 mqtt-demo.temp,1691470297923000000,34.1
 mqtt-demo.humidity,1691470297923000000,67.8
 ``` 
 
-Execute `mosquitto_pub` publishing the `data.csv` to the MQTT broker.
+`mosquitto_pub`으로 `data.csv`를 MQTT 브로커에 발행합니다.
 
 ```sh
 mosquitto_pub -d -h 127.0.0.1 -p 1883 -t iot/sensor -f data.csv
 ```
 
-Query the stored data.
+저장된 데이터를 조회합니다.
 
 ```sh
 machbase-neo» select * from example where name in ('mqtt-demo.temp', 'mqtt-demo.humidity');
@@ -277,11 +277,11 @@ machbase-neo» select * from example where name in ('mqtt-demo.temp', 'mqtt-demo
 ╰────────┴────────────────────┴─────────────────────────┴───────────╯
 ```
 
-### 3-B. Subscriber with TQL
+### 3-B. TQL을 사용하는 구독자
 
-#### Data writing TQL script
+#### 데이터 쓰기 TQL 스크립트
 
-Open machbase-neo *TQL* editor, and copy the code below and save it as `mqttsubr.tql`.
+machbase-neo *TQL* 에디터를 열고 아래 코드를 붙여넣어 `mqttsubr.tql`로 저장합니다.
 
 ```js
 CSV(payload())
@@ -290,20 +290,20 @@ MAPVALUE(2, parseFloat(value(2)))
 APPEND( table("example") )
 ```
 
-Open machbase-neo shell to add a new subscriber which makes a pipeline between the bridge and the TQL script.
+machbase-neo 셸을 열어 브리지와 TQL 스크립트를 잇는 새 구독자를 추가합니다.
 
 ```sh
 subscriber add --autostart --qos 1 mqttsubr my_mqtt iot/sensor /mqttsubr.tql;
 ```
 
-It specifies ...
-- `--autostart` makes the subscriber starts along with machbase-neo starts
-- `--qos 1` subscribe to the topic QoS 1, MQTT bridges support QoS 0 and 1
-- `mqttsubr` name of the subscriber
-- `my_mqtt` name of bridge that the subscriber is going to use
-- `iot/sensor` topic name to subscribe. it supports standard MQTT topic syntax includes `#` and `+`
+다음을 지정합니다 ...
+- `--autostart`는 machbase-neo와 함께 구독자를 시작합니다
+- `--qos 1` QoS 1로 토픽을 구독합니다. MQTT 브리지는 QoS 0과 1을 지원합니다
+- `mqttsubr` 구독자 이름
+- `my_mqtt` 구독자가 사용할 브리지 이름
+- `iot/sensor` 구독할 토픽 이름입니다. `#`와 `+`를 포함한 표준 MQTT 토픽 문법을 지원합니다
 
-Check the newly register subscriber is in `RUNNING` state, since it is registered with `--autostart` option.
+`--autostart` 옵션으로 등록했으므로 새로 등록한 구독자가 `RUNNING` 상태인지 확인합니다.
 
 ```
 machbase-neo» subscriber list;
@@ -314,22 +314,22 @@ machbase-neo» subscriber list;
 ╰──────────┴─────────┴────────────┴───────────────┴───────────┴─────────╯
 ```
 
-#### Send messages with `mosquitto_pub`
+#### `mosquitto_pub`으로 메시지 전송
 
-Make a data file `data.csv` as like below.
+아래와 같이 데이터 파일 `data.csv`를 만듭니다.
 
 ```csv
 mqtt-demo.temp,1691470297923000000,34.1
 mqtt-demo.humidity,1691470297923000000,67.8
 ``` 
 
-Execute `mosquitto_pub` publishing the `data.csv` to the MQTT broker.
+`mosquitto_pub`으로 `data.csv`를 MQTT 브로커에 발행합니다.
 
 ```sh
 mosquitto_pub -d -h 127.0.0.1 -p 1883 -t iot/sensor -f data.csv
 ```
 
-Query the stored data.
+저장된 데이터를 조회합니다.
 
 ```sh
 machbase-neo» select * from example where name in ('mqtt-demo.temp', 'mqtt-demo.humidity');

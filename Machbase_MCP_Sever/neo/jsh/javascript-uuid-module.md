@@ -1,38 +1,38 @@
 # Machbase Neo JavaScript UUID Module
 
-UUID generator for JSH applications.
+JSH 애플리케이션용 UUID 생성기입니다.
 
 ## UUID
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new UUID(ver)
 ```
 
-<h6>Parameters</h6>
+<h6>파라미터</h6>
 
-`ver` UUID version number. It should be one of 1, 4, 6, 7.
+`ver` UUID 버전 번호입니다. 1, 4, 6, 7 중 하나여야 합니다.
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-A new UUID generator object.
+새 UUID 생성기 객체입니다.
 
 ### eval()
 
-Generates a new UUID string.
+새 UUID 문자열을 생성합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 eval()
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
 `String` a new UUID.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const {UUID} = require("@jsh/generator")

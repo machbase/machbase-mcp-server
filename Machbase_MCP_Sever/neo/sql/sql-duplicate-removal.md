@@ -1,27 +1,27 @@
 # Machbase Neo SQL Duplicate Data Removal
 
-## Introduction
+## 소개
 
-In distributed systems involving sensor data collection and transmission, transient network interruptions or specific device configurations can lead to the retransmission of identical data points. While intended to ensure data delivery and prevent loss, this practice results in duplicate records being ingested into the database. Managing data integrity by identifying and eliminating these duplicates at the application layer presents significant challenges, particularly concerning performance degradation under high data volumes.
+센서 데이터를 수집·전송하는 분산 시스템에서는 일시적인 네트워크 중단이나 특정 장비 설정으로 인해 동일한 데이터 포인트가 재전송될 수 있습니다. 데이터 전달을 보장하고 유실을 막기 위한 것이지만, 그 결과 중복 레코드가 데이터베이스에 적재됩니다. 애플리케이션 계층에서 이 중복을 찾아 제거해 데이터 무결성을 관리하는 일은, 특히 데이터량이 많을 때 성능 저하 측면에서 상당한 어려움이 있습니다.
 
-Machbase provides a built-in, database-level mechanism to address this issue. The Duplicate Transmission Removal feature allows for the automatic detection and rejection of duplicate data entries based on a configurable temporal window, thereby maintaining data consistency without requiring complex application-level logic. This feature operates specifically on Machbase TAG tables.
+Machbase는 이 문제를 해결하기 위해 데이터베이스 수준의 내장 메커니즘을 제공합니다. 중복 전송 제거 기능은 설정 가능한 시간 창을 기준으로 중복 데이터를 자동으로 감지해 거부하므로, 복잡한 애플리케이션 로직 없이 데이터 일관성을 유지할 수 있습니다. 이 기능은 Machbase TAG 테이블에서만 동작합니다.
 
-## Core Concept
+## 핵심 개념
 
-The Duplicate Transmission Removal feature functions by defining a specific lookback duration during TAG table creation. This duration establishes a temporal window, relative to the system time of data insertion. When a new data row is being inserted into the TAG table, Machbase performs a check:
+중복 전송 제거 기능은 TAG 테이블 생성 시 특정 소급 기간을 정의해 동작합니다. 이 기간은 데이터 입력 시점의 시스템 시간을 기준으로 하는 시간 창을 만듭니다. 새 데이터 행이 TAG 테이블에 입력될 때 Machbase는 다음을 검사합니다:
 
-1.  **Identification:** It compares the `PRIMARY KEY` column value (typically the Tag ID or `name`) and the `BASETIME` column value (the timestamp) of the incoming row against existing rows in the table.
-2.  **Temporal Check:** It searches for any existing row that has the *exact same* `PRIMARY KEY` and `BASETIME` values as the incoming row.
-3.  **Window Condition:** If such an identical row exists, and its `BASETIME` falls within the configured lookback duration (measured backward from the **system time** of the current insertion attempt), the incoming row is considered a duplicate.
-4.  **Action:** Duplicate incoming rows identified through this process are automatically discarded and are not persisted in the TAG table.
+1.  **식별:** 들어온 행의 `PRIMARY KEY` 컬럼 값(보통 Tag ID 또는 `name`)과 `BASETIME` 컬럼 값(타임스탬프)을 테이블의 기존 행들과 비교합니다.
+2.  **시간 검사:** 들어온 행과 `PRIMARY KEY`, `BASETIME` 값이 *완전히 동일한* 기존 행이 있는지 찾습니다.
+3.  **창 조건:** 그런 동일한 행이 있고 그 `BASETIME`이 설정된 소급 기간(현재 입력 시도의 **시스템 시간**에서 거슬러 측정) 안에 들어오면, 들어온 행을 중복으로 판단합니다.
+4.  **처리:** 이 과정으로 중복으로 판단된 행은 자동으로 폐기되며 TAG 테이블에 저장되지 않습니다.
 
-Essentially, this mechanism implements a "first-write-wins" semantic within the defined temporal window. The very first instance of a data point, identified by its unique combination of Tag ID and timestamp, is successfully stored. Any subsequent attempts to insert a row with the *exact same* Tag ID and timestamp, occurring while the original record's timestamp is still within the lookback window relative to the current system time, will be silently ignored. Importantly, this check is based *only* on the `PRIMARY KEY` and `BASETIME` columns; differences in other columns (like the sensor value) do not prevent a row from being identified as a duplicate if the key and time match.
+본질적으로 이 메커니즘은 정의된 시간 창 안에서 "먼저 쓴 것이 이긴다(first-write-wins)" 의미를 구현합니다. Tag ID와 타임스탬프의 고유 조합으로 식별되는 데이터 포인트의 최초 한 건만 저장됩니다. 원본 레코드의 타임스탬프가 현재 시스템 시각 기준 조회 창 안에 있는 동안 *완전히 동일한* Tag ID와 타임스탬프로 행을 입력하려는 이후 시도는 조용히 무시됩니다. 중요한 점은 이 검사가 `PRIMARY KEY`와 `BASETIME` 컬럼*만*을 기준으로 한다는 것입니다. 키와 시각이 일치하면 다른 컬럼(예: 센서 값)이 달라도 중복으로 판정됩니다.
 
-## Configuration
+## 설정
 
-The Duplicate Transmission Removal feature is configured at the time of TAG table creation using a specific table property:
+중복 전송 제거 기능은 TAG 테이블 생성 시 다음 테이블 속성으로 설정합니다:
 
-*   **`TAG_DUPLICATE_CHECK_DURATION`**: This property specifies the duration, in minutes, for the lookback window used for duplicate detection.
+*   **`TAG_DUPLICATE_CHECK_DURATION`**: 중복 검출에 사용할 조회 창의 길이를 분 단위로 지정하는 속성입니다.
 
 **Syntax:**
 
@@ -35,23 +35,23 @@ CREATE TAG TABLE table_name (
 TAG_DUPLICATE_CHECK_DURATION = duration_in_minutes;
 ```
 
-*   `duration_in_days`: An integer specifying the lookback period in minutes.
-    *   Minimum value: `1` (minute)
-    *   Maximum value: `43200` (minutes)
-    *   Default value: `0` (disabled)
+*   `duration_in_days`: 조회 기간을 분 단위로 지정하는 정수입니다.
+    *   최솟값: `1`(분)
+    *   최댓값: `43200`(분)
+    *   기본값: `0`(비활성)
 
-**Verification:**
+**확인 방법:**
 
-The configured duration for a specific TAG table can be verified by querying the system catalog views.
+특정 TAG 테이블에 설정된 기간은 시스템 카탈로그 뷰를 조회해 확인할 수 있습니다.
 
-1.  **Retrieve Table ID:**
+1.  **테이블 ID 조회:**
     ```sql
     SELECT id
     FROM m$sys_tables
-    WHERE name = 'YOUR_TABLE_NAME'; -- Note: Table name must be in uppercase
+    WHERE name = 'YOUR_TABLE_NAME'; -- 참고: 테이블 이름은 대문자여야 합니다
     ```
 
-2.  **Query Property Value:**
+2.  **속성 값 조회:**
     ```sql
     SELECT value
     FROM m$sys_table_property
@@ -59,34 +59,34 @@ The configured duration for a specific TAG table can be verified by querying the
       AND name = 'TAG_DUPLICATE_CHECK_DURATION';
     ```
 
-**Changing configuration**
-TAG_DUPLICATE_CHECK_DURATION settings can be modified as shown below.
+**설정 변경**
+TAG_DUPLICATE_CHECK_DURATION 설정은 아래와 같이 변경할 수 있습니다.
 ```sql
 ALTER TABLE {table_name} set TAG_DUPLICATE_CHECK_DURATION={duration in minutes};
 ```
 
-## Behavior and Constraints
+## 동작과 제약
 
-Understanding the following constraints and behavioral aspects is crucial for effectively utilizing this feature:
+이 기능을 제대로 활용하려면 다음 제약과 동작 특성을 이해해야 합니다:
 
-*   **Granularity and Scope:** The duration is configured exclusively in minutes units, with a maximum temporal scope of 43200 minutes(30 days).
-*   **Interaction with Data Deletion:** The deduplication check relies on the presence of the original data point within the lookback window. If the *original* data record (the "first write") is explicitly deleted from the TAG table *before* an identical duplicate arrives, the newly arriving record will **not** be identified as a duplicate. It will be treated as a new "first write" because its potential duplicate counterpart no longer exists for comparison within the database's current state.
-*   **Semantic Behavior:** The mechanism strictly adheres to keeping the *first* encountered record for a given (Primary Key, Basetime) combination and discarding subsequent identical entries within the defined window. It is not suitable for scenarios requiring "last-write-wins" semantics.
-*   **Consistency Model:** In high-volume, real-time ingestion scenarios, there might be minimal latency between data insertion and the point at which the deduplication check fully reflects the most current state across all internal structures. This is consistent with typical eventually consistent behaviors in distributed data systems.
-*   **Target-Based Deduplication:** This feature performs deduplication within the Machbase database (target-based). It does not prevent duplicate data from being transmitted by the source system.
-*   **Resource Implications:** Compared to source-based deduplication (where the application filters duplicates before transmission), target-based deduplication inherently consumes additional database resources (CPU, I/O) to perform the necessary checks during the ingestion process.
+*   **단위와 범위:** 기간은 분 단위로만 설정하며 최대 43200분(30일)까지 지정할 수 있습니다.
+*   **데이터 삭제와의 상호작용:** 중복 검사는 조회 창 안에 원본 데이터 포인트가 존재한다는 전제에 의존합니다. 동일한 중복 데이터가 도착하기 *전에* *원본* 레코드("최초 쓰기")가 TAG 테이블에서 명시적으로 삭제되면, 새로 도착한 레코드는 중복으로 판정되지 **않습니다**. 비교할 대상이 데이터베이스의 현재 상태에 더 이상 없으므로 새로운 "최초 쓰기"로 처리됩니다.
+*   **동작 의미:** 이 메커니즘은 주어진 (Primary Key, Basetime) 조합에 대해 *처음* 들어온 레코드를 유지하고, 정의된 창 안의 이후 동일 항목은 버리는 방식을 엄격히 따릅니다. "나중에 쓴 것이 이긴다(last-write-wins)"가 필요한 시나리오에는 적합하지 않습니다.
+*   **일관성 모델:** 대용량 실시간 적재 시나리오에서는 데이터 입력 시점과 중복 검사가 모든 내부 구조의 최신 상태를 완전히 반영하는 시점 사이에 약간의 지연이 있을 수 있습니다. 이는 분산 데이터 시스템의 전형적인 최종적 일관성 동작과 같습니다.
+*   **수신 측 중복 제거:** 이 기능은 Machbase 데이터베이스 안에서 중복을 제거합니다(수신 측 기준). 원본 시스템이 중복 데이터를 전송하는 것 자체를 막지는 않습니다.
+*   **자원 영향:** 전송 전에 애플리케이션이 중복을 걸러 내는 송신 측 중복 제거와 비교하면, 수신 측 중복 제거는 적재 과정에서 검사를 수행하느라 데이터베이스 자원(CPU, I/O)을 추가로 사용합니다.
 
-## Examples
+## 예제
 
-This section provides practical examples of creating a TAG table with duplicate removal enabled and observing its behavior.
+이 절에서는 중복 제거를 활성화한 TAG 테이블을 만들고 동작을 확인하는 실전 예제를 다룹니다.
 
-**1. Schema Definition:**
+**1. 스키마 정의:**
 
 ```sql
 DROP TABLE IF EXISTS dup_tag;
 ```
 
-Create a TAG table named 'dup_tag', configured to check for duplicates within a 1440 minutes (1-day) window:
+1440분(1일) 창 안에서 중복을 검사하도록 설정한 'dup_tag' TAG 테이블을 만듭니다:
 
 ```sql
 CREATE TAG TABLE dup_tag (
@@ -96,11 +96,11 @@ CREATE TAG TABLE dup_tag (
 ) TAG_DUPLICATE_CHECK_DURATION=1440;
 ```
 
-**2. Data Insertion:**
+**2. 데이터 입력:**
 
-The following INSERT statements demonstrate how duplicates are handled. Assume these are executed sequentially and the system time progresses such that the 1-day window is relevant for timestamps on `2024-01-02` relative to each other, `2024-01-04` relative to each other, etc.
+다음 INSERT 문들은 중복이 어떻게 처리되는지 보여줍니다. 순차적으로 실행되며, `2024-01-02`의 타임스탬프들끼리, `2024-01-04`의 타임스탬프들끼리 1일 창이 적용되는 상황을 가정합니다.
 
-Insert initial records for tag1:
+tag1의 최초 레코드를 입력합니다:
 
 ```sql
 INSERT INTO dup_tag VALUES('tag1', '2024-01-01 09:00:00 000:000:001', 0);
@@ -114,21 +114,21 @@ INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:001', 0);
 INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:002', 0);
 ```
 
-Attempt to insert a duplicate (same name, same time as previous row). This row has a different 'value' (1 vs 0), but will still be treated as a duplicate because the (name, time) pair matches an existing record within the duration:
+중복 입력을 시도합니다(앞 행과 name·time이 동일). 이 행은 'value'가 다르지만(1 대 0), 기간 안에 (name, time) 쌍이 일치하는 레코드가 있으므로 중복으로 처리됩니다:
 
 ```sql
 INSERT INTO dup_tag VALUES('tag1', '2024-01-02 09:00:00 000:000:002', 1);
 ```
 
-> Discarded (duplicate based on name & time).
+> 폐기됨 (name과 time 기준 중복).
 
-Insert record for a subsequent day:
+다음 날 레코드를 입력합니다:
 
 ```sql
 INSERT INTO dup_tag VALUES('tag1', '2024-01-03 09:00:00 000:000:003', 0);
 ```
 
-Insert records for a different tag ('tag2'), demonstrating multiple duplicates at the same timestamp:
+다른 태그('tag2')의 레코드를 입력해 같은 타임스탬프의 중복이 여러 건일 때를 확인합니다:
 
 ```sql
 INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 0);
@@ -138,15 +138,15 @@ INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 0);
 INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 1);
 ```
 
-> Discarded (duplicate based on name & time).
+> 폐기됨 (name과 time 기준 중복).
 
 ```sql
 INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:001', 2);
 ```
 
-> Discarded (duplicate based on name & time).
+> 폐기됨 (name과 time 기준 중복).
 
-Insert records for 'tag2' at different timestamps:
+서로 다른 타임스탬프의 'tag2' 레코드를 입력합니다:
 
 ```sql
 INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:002', 1);
@@ -157,17 +157,17 @@ INSERT INTO dup_tag VALUES('tag2', '2024-01-04 09:00:00 000:000:003', 2);
 ```
 
 
-**3. Data Verification:**
+**3. 데이터 확인:**
 
-Querying the table will show only the records that were successfully inserted (i.e., the "first-write" for each unique `name` and `time` combination within the effective window).
+테이블을 조회하면 실제로 입력된 레코드만 보입니다. 즉 유효 창 안에서 고유한 `name`·`time` 조합마다 "최초 쓰기" 한 건씩입니다.
 
-Query data for 'tag1':
+'tag1'의 데이터를 조회합니다:
 
 ```sql
 SELECT * FROM dup_tag WHERE name = 'tag1';
 ```
 
-Expected output (the row with value 1 at 000:000:002 was discarded):
+예상 출력(000:000:002의 value 1 행은 폐기됨):
 
 ```text
 ROWNUM | NAME | TIME                              | VALUE
@@ -178,13 +178,13 @@ ROWNUM | NAME | TIME                              | VALUE
 4      | tag1 | 2024-01-03 09:00:00 000:000:003 | 0.0
 ```
 
-Query data for 'tag2':
+'tag2'의 데이터를 조회합니다:
 
 ```sql
 SELECT * FROM dup_tag WHERE name = 'tag2';
 ```
 
-Expected output (rows with values 1 and 2 at 000:000:001 were discarded):
+예상 출력(000:000:001의 value 1, 2 행은 폐기됨):
 
 ```text
 ROWNUM | NAME | TIME                              | VALUE

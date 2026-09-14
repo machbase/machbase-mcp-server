@@ -1,194 +1,194 @@
 # Machbase Neo Dashboard Guide
 
-## Overview
-The dashboard provides the functionality to view data stored in Machbase in chart format.  
-It is offered in the form of a dashboard composed of multiple charts, with adjustable chart panel sizes and positions. Additionally, it supports an auto-refresh feature to periodically update data.
+## 개요
+대시보드는 Machbase에 저장된 데이터를 차트 형태로 볼 수 있는 기능입니다.  
+여러 차트로 구성된 대시보드 형태로 제공되며, 차트 패널의 크기와 위치를 조절할 수 있습니다. 또한 데이터를 주기적으로 갱신하는 자동 새로고침 기능도 지원합니다.
 
-### Starting Dashboard
-By clicking the "DASHBOARD" on the Machbase Neo home screen, you can create a new dashboard.
+### 대시보드 시작하기
+Machbase Neo 홈 화면에서 "DASHBOARD"를 클릭하면 새 대시보드를 만들 수 있습니다.
 
-If you select a pre-created dashboard file (*.dsh) from the "EXPLORER" on the left side, you can view and edit the corresponding dashboard.  
-View mode is provided using the link of a saved dashboard. (Please refer to the "Dashboard Control" section).
+왼쪽 "EXPLORER"에서 미리 만들어 둔 대시보드 파일(*.dsh)을 선택하면 해당 대시보드를 보고 편집할 수 있습니다.  
+저장된 대시보드의 링크로 보기 전용 모드를 제공합니다. ("대시보드 제어" 절 참고)
 
 ## Dashboard
 
-### Screen Layout
+### 화면 구성
 
-The dashboard consists of charts that display actual data. The size and position of each chart panel can be freely adjusted.
+대시보드는 실제 데이터를 표시하는 차트들로 구성됩니다. 각 차트 패널의 크기와 위치는 자유롭게 조절할 수 있습니다.
 
-1. Area where the chart(s) are displayed
-2. Title of the dashboard
-3. Control area for managing the entire dashboard
+1. 차트가 표시되는 영역
+2. 대시보드 제목
+3. 대시보드 전체를 관리하는 제어 영역
 
-### Adding Charts
-By clicking the [+] button in the dashboard control area, the screen switches to the chart settings.  
-After setting the chart as desired and clicking the [Save] button, a chart panel is added to the dashboard.  
-> Please refer to the "Chart Settings" section.
+### 차트 추가
+대시보드 제어 영역의 [+] 버튼을 클릭하면 차트 설정 화면으로 전환됩니다.  
+원하는 대로 차트를 설정하고 [Save] 버튼을 클릭하면 대시보드에 차트 패널이 추가됩니다.  
+> "차트 설정" 절을 참고하세요.
 
-The newly added chart is placed with a default size.  
-You can adjust the size by dragging the bottom-right corner of the panel and change its position by dragging the top of the panel.
+새로 추가된 차트는 기본 크기로 배치됩니다.  
+패널의 오른쪽 아래 모서리를 드래그해 크기를 조절하고, 패널 상단을 드래그해 위치를 바꿀 수 있습니다.
 
-### Dashboard Control
+### 대시보드 제어
 #### Time Range
-Displays the time range applied to the dashboard. You can specify a fixed time range or configure it to sync with the current time. ('now' represents the current time, 'h' for hours, 'm' for minutes, 's' for seconds)  
-Example: now-3h = Current time minus 3 hours
+대시보드에 적용된 시간 범위를 표시합니다. 고정된 시간 범위를 지정하거나 현재 시각과 동기화되도록 설정할 수 있습니다. ('now'는 현재 시각, 'h'는 시간, 'm'은 분, 's'는 초)  
+예: now-3h = 현재 시각에서 3시간 전
 
-#### Dashboard Control Buttons
+#### 대시보드 제어 버튼
 
-1. Adds a new chart.
-2. Reloads data and updates the charts.
-3. Allows configuration of the time range for data queries.
-    - You can use "now" or "last" for time ranges:  
-      **now** : Current time  
-      **last** : The last time of the data stored in the database
-    - Clicking an item in the "Quick Range" sets the From/To time accordingly.
-    - < or > buttons shift the specified time range by 50%. If "now" or "last" is used, they are converted to absolute times.
-    - If a refresh interval is set, the dashboard will automatically redraw at the specified intervals.
-4. Saves the current dashboard.
-    - The file extension is '.dsh'.
-    - For a new dashboard, you can specify a file name and folder.
-5. Saves the dashboard with a new name.
-6. Copies the link to the dashboard's view mode to the clipboard.
-    - This function is only available if the dashboard has been saved.
-    - Login is required to access the dashboard in view mode.
-    - In view mode, only time range adjustments and the refresh function are available.  
-7. Set up variables. *(Available since version 8.0.46)*  
-    **Define Variable**  
+1. 새 차트를 추가합니다.
+2. 데이터를 다시 읽어 차트를 갱신합니다.
+3. 데이터 질의에 사용할 시간 범위를 설정합니다.
+    - 시간 범위에는 "now" 또는 "last"를 사용할 수 있습니다:  
+      **now** : 현재 시각  
+      **last** : 데이터베이스에 저장된 데이터의 마지막 시각
+    - "Quick Range"의 항목을 클릭하면 From/To 시각이 그에 맞게 설정됩니다.
+    - < 또는 > 버튼은 지정한 시간 범위를 50%씩 이동시킵니다. "now"나 "last"를 사용 중이면 절대 시각으로 변환됩니다.
+    - 새로고침 주기를 설정하면 지정한 간격으로 대시보드가 자동으로 다시 그려집니다.
+4. 현재 대시보드를 저장합니다.
+    - 파일 확장자는 '.dsh'입니다.
+    - 새 대시보드라면 파일 이름과 폴더를 지정할 수 있습니다.
+5. 대시보드를 새 이름으로 저장합니다.
+6. 대시보드 보기 모드 링크를 클립보드에 복사합니다.
+    - 이 기능은 대시보드를 저장한 경우에만 사용할 수 있습니다.
+    - 보기 모드로 대시보드에 접근하려면 로그인이 필요합니다.
+    - 보기 모드에서는 시간 범위 조정과 새로고침 기능만 사용할 수 있습니다.  
+7. 변수를 설정합니다. *(8.0.46 버전부터 사용 가능)*  
+    **변수 정의**  
 
-    You can view, add, edit, and delete variables set in the dashboard.  
-    - [+ New variable] : Create a new variable.  
+    대시보드에 설정된 변수를 보고 추가·수정·삭제할 수 있습니다.  
+    - [+ New variable] : 새 변수를 만듭니다.  
         
-        * Label : Title of the variable input field.  
-        * Variable Name : Variable name to use in Chart Setting. (It is recommended to define and use the format {{variable name}}.)  
-        * Value : Defines the optional items in the variable input field.  
-    - You can click on an existing variable to edit it.  
-    - [Export], [Import] : Export or import variables settings.  
+        * Label : 변수 입력 필드의 제목입니다.  
+        * Variable Name : 차트 설정에서 사용할 변수 이름입니다. ({{변수명}} 형식으로 정의해 사용하기를 권장합니다.)  
+        * Value : 변수 입력 필드에서 고를 수 있는 항목을 정의합니다.  
+    - 기존 변수를 클릭하면 수정할 수 있습니다.  
+    - [Export], [Import] : 변수 설정을 내보내거나 가져옵니다.  
 
-    **Using Variables**  
-    - in Chart Settings  
+    **변수 사용**  
+    - 차트 설정에서  
   
-        In Chart Setting, enter the "Variable Name" in the section where you want to apply the variable.  
-    - Changing variables in the dashboard  
-        1. When you set up a variable, a variable input field appears next to the dashboard title.  
+        차트 설정에서 변수를 적용할 위치에 "Variable Name"을 입력합니다.  
+    - 대시보드에서 변수 변경  
+        1. 변수를 설정하면 대시보드 제목 옆에 변수 입력 필드가 나타납니다.  
         
-        2. You can select a variable by clicking the variable input icon.  
+        2. 변수 입력 아이콘을 클릭해 변수를 선택할 수 있습니다.  
   
 
 ## Chart Panel
-### Screen Layout
+### 화면 구성
 
-1. Drag Panel Header:  
-    Dragging the top of the panel allows you to change the position of the panel.
-2. Resize Panel:  
-    Dragging the bottom-right corner of the panel allows you to adjust its size.
-3. Toggle Legend:  
-    Clicking on a legend item toggles the corresponding series on or off.
+1. 패널 헤더 드래그:  
+    패널 상단을 드래그하면 패널의 위치를 바꿀 수 있습니다.
+2. 패널 크기 조절:  
+    패널의 오른쪽 아래 모서리를 드래그하면 크기를 조절할 수 있습니다.
+3. 범례 토글:  
+    범례 항목을 클릭하면 해당 시리즈의 표시/숨김이 전환됩니다.
 4. Panel menu:  
-    Clicking the button in the top-right corner of the chart panel reveals a menu with the following options:
-    - Setting : Modifies the chart settings. (Please refer to the "Chart Settings" section.)
-    - Duplicate : Creates a new chart by copying the existing one.
-    - Show Taganalyzer : Views the content of the current chart in the Tag Analyzer.
-    - Delete : Removes the chart panel.
-    - Save to tql : Saves the content of the chart as a TQL file.  
+    차트 패널 오른쪽 위의 버튼을 클릭하면 다음 항목이 있는 메뉴가 나타납니다:
+    - Setting : 차트 설정을 변경합니다. ("차트 설정" 절 참고)
+    - Duplicate : 기존 차트를 복사해 새 차트를 만듭니다.
+    - Show Taganalyzer : 현재 차트의 내용을 Tag Analyzer에서 봅니다.
+    - Delete : 차트 패널을 제거합니다.
+    - Save to tql : 차트의 내용을 TQL 파일로 저장합니다.  
 
 #### Save to TQL
-The charts in the dashboard internally generate TQL to display the data. This function allows you to save the TQL used by the dashboard.
+대시보드의 차트는 데이터를 표시하기 위해 내부적으로 TQL을 생성합니다. 이 기능으로 대시보드가 사용한 TQL을 저장할 수 있습니다.
 
-- File Name : Specifies the name of the TQL file to be saved.
-- Output : Defines the type of TQL to save.  
-    **DATA** : TQL used to retrieve the required data.  
-    **CHART** : TQL used to render the corresponding chart.
-- Block : Used only when the output is set to DATA. Allows you to specify the Tag Name.  
+- File Name : 저장할 TQL 파일의 이름을 지정합니다.
+- Output : 저장할 TQL의 종류를 정의합니다.  
+    **DATA** : 필요한 데이터를 조회하는 데 사용하는 TQL입니다.  
+    **CHART** : 해당 차트를 그리는 데 사용하는 TQL입니다.
+- Block : output이 DATA일 때만 사용합니다. Tag Name을 지정할 수 있습니다.  
 
-### Chart Settings
-Chart settings allow you to configure the detailed parameters of a chart.
+### 차트 설정
+차트 설정에서 차트의 세부 항목을 구성할 수 있습니다.
 
 1. Chart Type  
-    Select the type of chart. The available configuration options depend on the chosen chart type.
-    - Chart Types : Line, Bar, Scatter, Gauge, Pie, Liquid Fill, TQL Chart  
-      > Please refer to the "Options by Chart Type" and "TQL chart" section.
+    차트 종류를 선택합니다. 선택한 차트 종류에 따라 설정 가능한 항목이 달라집니다.
+    - 차트 종류 : Line, Bar, Scatter, Gauge, Pie, Liquid Fill, TQL Chart  
+      > "차트 종류별 옵션"과 "TQL 차트" 절을 참고하세요.
 2. Query  
-    Configure the data to be used in the chart. The input fields vary depending on the type of input mode, which are "Tag-Based Query Mode" and "Advanced Query Mode".  
-3. Transform *(Available since version 8.0.46)*  
-    Calculate new data using the defined **Query**. (Please refer to the "Chart Settings > Transform Data" section.)
+    차트에 사용할 데이터를 구성합니다. 입력 모드("Tag-Based Query Mode"와 "Advanced Query Mode")에 따라 입력 항목이 달라집니다.  
+3. Transform *(8.0.46 버전부터 사용 가능)*  
+    정의한 **Query**를 사용해 새 데이터를 계산합니다. ("차트 설정 > 데이터 변환" 절 참고)
 4. Time  
-    Use this option to specify a time range for the chart independently of the dashboard's global time range.  
-    Functions the same as the dashboard's time range settings but applies only to the specific chart, overriding the dashboard time range.
+    대시보드 전역 시간 범위와 별개로 이 차트만의 시간 범위를 지정할 때 사용합니다.  
+    대시보드 시간 범위 설정과 동작은 같지만 해당 차트에만 적용되며 대시보드 시간 범위보다 우선합니다.
 
-#### Tag-Based Query Mode
-This feature can only be used with **Tag Tables**. Please refer to the image above.  
-- Table : Specify the table name.
-- Tag : Enter or select the Tag Name to use.
-- Aggregator : Choose the aggregation function to apply based on the time interval of the x-axis. If 'value' is selected, raw data is used without aggregation.  
-  **Options** : value, sum, avg, min, max, count  
-- Alias : Name to be displayed in the legend.
+#### Tag-Based Query 모드
+이 기능은 **태그 테이블**에서만 사용할 수 있습니다. 위 그림을 참고하세요.  
+- Table : 테이블 이름을 지정합니다.
+- Tag : 사용할 Tag Name을 입력하거나 선택합니다.
+- Aggregator : x축 시간 간격을 기준으로 적용할 집계 함수를 고릅니다. 'value'를 선택하면 집계 없이 원본 데이터를 사용합니다.  
+  **선택 항목** : value, sum, avg, min, max, count  
+- Alias : 범례에 표시할 이름입니다.
 
-#### Advanced Query Mode
-Allows specifying all query elements manually.  
+#### Advanced Query 모드
+질의의 모든 요소를 직접 지정할 수 있습니다.  
   
-- Table : Specify the table name.
-- Time Field : Select the column to use as the x-axis time value.
-- Value Field : Select the column to use as the y-axis value.
-- Aggregator : Aggregation function (same as in "Tag-Based Query Mode").
-- Alias : Name to be displayed in the legend.
-- Filter : Input conditions to be used in the WHERE clause of the query.  
-   Multiple conditions can be entered, and they are combined using 'AND'.
+- Table : 테이블 이름을 지정합니다.
+- Time Field : x축 시간 값으로 사용할 컬럼을 선택합니다.
+- Value Field : y축 값으로 사용할 컬럼을 선택합니다.
+- Aggregator : 집계 함수입니다("Tag-Based Query 모드"와 동일).
+- Alias : 범례에 표시할 이름입니다.
+- Filter : 질의의 WHERE 절에 사용할 조건을 입력합니다.  
+   조건을 여러 개 입력할 수 있으며 'AND'로 결합됩니다.
 
-#### Transform Data  
-You can calculate new data using the results of the defined **Query**. *(Available since version 8.0.46)*  
-- For example, the queries in the figure below,  
+#### 데이터 변환(Transform Data)  
+정의한 **Query**의 결과를 사용해 새 데이터를 계산할 수 있습니다. *(8.0.46 버전부터 사용 가능)*  
+- 예를 들어 아래 그림의 질의에서는  
 
-    Two **Queries** are defined.  
-- If you do not want to display the **Query** used for calculation on the chart, turn off the "Visible" icon as shown below.  
+    **Query** 두 개가 정의되어 있습니다.  
+- 계산에 사용한 **Query**를 차트에 표시하고 싶지 않으면 아래처럼 "Visible" 아이콘을 끕니다.  
   
-- Change to the Transform tab, select the **Queries** you want to use for calculations, and enter the formula. When using **Query** in a formula, replace it with the alphabetic character displayed in front of the selected **Query**. ( e.g. log(B/A) )  
+- Transform 탭으로 이동해 계산에 사용할 **Query**들을 선택하고 수식을 입력합니다. 수식에서 **Query**를 참조할 때는 선택한 **Query** 앞에 표시된 알파벳 문자를 사용합니다. (예: log(B/A) )  
   
-- Brief help is available using the [?] button, and available math functions can be found under "Math" in "TQL > Utility Functions" in the left side menu.  
+- [?] 버튼으로 간단한 도움말을 볼 수 있으며, 사용 가능한 수학 함수는 왼쪽 메뉴의 "TQL > Utility Functions" 아래 "Math"에서 확인할 수 있습니다.  
   
-> Since it uses the query results to match the time and recalculate, it may be slower than using **Query** directly.  
+> 질의 결과를 시간에 맞춰 다시 계산하는 방식이라 **Query**를 직접 사용하는 것보다 느릴 수 있습니다.  
 
-#### Control Function  
+#### 제어 기능  
   
-- a. Enter the query directly. *(Available since version 8.0.46)*  
+- a. 질의를 직접 입력합니다. *(8.0.46 버전부터 사용 가능)*  
 
-    - The SELECT clause should be structured with Time(in milli seconds) followed by Value(a numerical number).  
+    - SELECT 절은 시간(밀리초)에 이어 값(숫자)이 오도록 구성해야 합니다.  
       e.g. SELECT TO_TIMESTAMP(TIME ROLLUP {{period_value}} {{period_unit}}) / 1000000 as TIME, avg(VALUE) as 'Usage'
-    - You can use both the predefined variables and the user-defined variables. (For predefined variables, please refer to the "TQL Chart Settings" section)
-    - Brief help is available using the [?] icon.
-- b. Input a formula to process values extracted from the database (value = DB value)  
-     Example: value * 1.5
-- c. Choose whether to show the query in the chart. *(Available since version 8.0.46)*
-- d. Assign a color to the chart.
-- e. Switch between "Advanced Query Mode" and "Tag-Based Query Mode".
-- f. Remove the query.
+    - 사전 정의 변수와 사용자 정의 변수를 모두 사용할 수 있습니다. (사전 정의 변수는 "TQL 차트 설정" 절 참고)
+    - [?] 아이콘으로 간단한 도움말을 볼 수 있습니다.
+- b. 데이터베이스에서 가져온 값을 가공할 수식을 입력합니다(value = DB 값)  
+     예: value * 1.5
+- c. 해당 질의를 차트에 표시할지 선택합니다. *(8.0.46 버전부터 사용 가능)*
+- d. 차트에 색을 지정합니다.
+- e. "Advanced Query 모드"와 "Tag-Based Query 모드"를 전환합니다.
+- f. 질의를 제거합니다.
 
 ### TQL chart
-The "TQL Chart" type allows you to use custom TQL files in the dashboard. Only TQL files where the SINK function is set to "CHART" can be used.
+"TQL Chart" 종류를 사용하면 직접 만든 TQL 파일을 대시보드에서 쓸 수 있습니다. SINK 함수가 "CHART"로 설정된 TQL 파일만 사용할 수 있습니다.
 
-#### TQL Chart Settings
+#### TQL 차트 설정
 **Tql path :**  
-Select the TQL file to be used.  
+사용할 TQL 파일을 선택합니다.  
 **Params :**  
-Register the parameters to pass to the TQL file.  
-You can input values directly or use the predefined variables provided by Machbase Neo Dashboard. By default, the provided variables include Time Range and the x-axis time interval, which are explained in detail in the right panel.
-- Time range : It is used to synchronize the time with other chart panels in the dashboard.
+TQL 파일에 전달할 파라미터를 등록합니다.  
+값을 직접 입력하거나 Machbase Neo 대시보드가 제공하는 사전 정의 변수를 사용할 수 있습니다. 기본으로 제공되는 변수에는 시간 범위와 x축 시간 간격이 있으며, 오른쪽 패널에 자세히 설명되어 있습니다.
+- Time range : 대시보드의 다른 차트 패널과 시간을 동기화하는 데 사용합니다.
   | Params | Desc |
   |:-------|:-----|
-  | {{from_str}} | date string (YYYY-MM-DD HH:MI:SS) |  
-  | {{from_s}},{{from_ms}},{{from_us}},{{from_ns}} | unix timestamp (milli, micro, nano) |
-  | {{to_str}} | date string (YYYY-MM-DD HH:MI:SS) |
-  | {{to_s}},{{to_ms}},{{to_us}},{{to_ns}} | unix timestamp (milli, micro, nano) |
-- period : The time interval for the x-axis ticks, calculated based on the time range and panel size.  
+  | {{from_str}} | 날짜 문자열 (YYYY-MM-DD HH:MI:SS) |  
+  | {{from_s}},{{from_ms}},{{from_us}},{{from_ns}} | unix 타임스탬프 (밀리, 마이크로, 나노) |
+  | {{to_str}} | 날짜 문자열 (YYYY-MM-DD HH:MI:SS) |
+  | {{to_s}},{{to_ms}},{{to_us}},{{to_ns}} | unix 타임스탬프 (밀리, 마이크로, 나노) |
+- period : 시간 범위와 패널 크기를 바탕으로 계산한 x축 눈금의 시간 간격입니다.  
   | Params | Desc |
   |:-------|:-----|
-  | {{period}} | duration expression (ex: 10s) |
-  | {{period_value}} | period value (ex: 10) |
-  | {{period_unit}} | period unit (ex: sec) |
+  | {{period}} | 기간 표현식 (예: 10s) |
+  | {{period_value}} | 기간 값 (예: 10) |
+  | {{period_unit}} | 기간 단위 (예: sec) |
 
-#### Applying Parameters in TQL Files
-To use parameters in a TQL file for chart rendering, the param() function is used.  
+#### TQL 파일에서 파라미터 사용하기
+차트를 그리는 TQL 파일에서 파라미터를 사용하려면 param() 함수를 씁니다.  
 
-Example TQL File:
+TQL 파일 예제:
 ```sql
 SQL(strSprintf(`
 SELECT date_trunc('%s', TIME, %1.0f) as TIME, avg(VALUE) as VALUE
@@ -205,252 +205,261 @@ parseFloat(param('to') ?? 1703055583),
 CHART_LINE()
 ```
 **SQL():**  
-- Executes a query where the parameters are dynamically applied using the param() and strSprintf() functions.  
+- param()과 strSprintf() 함수로 파라미터를 동적으로 적용한 질의를 실행합니다.  
 - Parameters:
-  - period_unit: Unit for the time interval (default :  msec).
-  - period_value: Interval value (default : 10).
-  - from and to: Time range for the query.
-  - tag: Specifies the tag to query (default : tag01).
+  - period_unit: 시간 간격의 단위 (기본값: msec).
+  - period_value: 간격 값 (기본값: 10).
+  - from과 to: 질의의 시간 범위.
+  - tag: 질의할 태그를 지정합니다 (기본값: tag01).
 
 **CHART_LINE():**  
-- Uses the query result to render the chart as a line chart.  
+- 질의 결과로 선 차트를 그립니다.  
 
-### Options by Chart Type
-#### Common Options
+### 차트 종류별 옵션 — 공통·직교좌표계
+#### 공통 옵션
 
-**Panel option**
+**패널 옵션**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Title           | The title displayed on the chart panel.                    |
-| Theme           | The theme of the chart. (Refer to the "TQL > CHART" section on left side menu) |
+| Title           | 차트 패널에 표시되는 제목입니다.                           |
+| Theme           | 차트 테마입니다. (왼쪽 메뉴의 "TQL > CHART" 절 참고)      |
 
-**Legend**
-| Option          | Desc                                                       |
-|:----------------|:-----------------------------------------------------------|
-| Show legend     | Checkbox to toggle the display of the legend.              |
-| Vertical        | Vertical position (top / center / bottom)                  |
-| Horizontal      | Horizontal position (left / center / right)                |
-| Alignment type  | Alignment method (horizontal / vertical)                   |
-
-**Panel padding**  
-Set the size of the margin between the panel border and the chart.  
-> Space for the legend must be reserved by adjusting the padding settings.
+**범례**
 
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Top             | Top margin                                                 |
-| Bottom          | Bottom margin                                              |
-| Left            | Left margin                                                |
-| Right           | Right margin                                               |
+| Show legend     | 범례 표시 여부를 켜고 끄는 체크박스입니다.                 |
+| Vertical        | 세로 위치 (top / center / bottom)                          |
+| Horizontal      | 가로 위치 (left / center / right)                          |
+| Alignment type  | 정렬 방식 (horizontal / vertical)                          |
 
-**Tooltip**
+**패널 여백**  
+패널 테두리와 차트 사이의 여백 크기를 설정합니다.  
+> 범례가 들어갈 공간은 여백 설정으로 확보해야 합니다.
+
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Show tooltip    | Checkbox to enable or disable the use of tooltips.         |
-| Type            | Tooltip type (axis / item).                                |
-| Unit            | Unit displayed in the tooltip.                             |
-| Decimals        | Number of decimal places for the tooltip value.            |
+| Top             | 위쪽 여백                                                  |
+| Bottom          | 아래쪽 여백                                                |
+| Left            | 왼쪽 여백                                                  |
+| Right           | 오른쪽 여백                                                |
+
+**툴팁**
+
+| Option          | Desc                                                       |
+|:----------------|:-----------------------------------------------------------|
+| Show tooltip    | 툴팁 사용 여부를 켜고 끄는 체크박스입니다.                 |
+| Type            | 툴팁 종류 (axis / item).                                   |
+| Unit            | 툴팁에 표시할 단위입니다.                                  |
+| Decimals        | 툴팁 값의 소수점 자릿수입니다.                             |
 
 **xAxis**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Interval type   | Unit of time intervals for the x-axis (none / sec / min / hour). Note: none = auto-calculated. |
-| Interval value  | Value of the time intervals for the x-axis.                 |
+| Interval type   | x축 시간 간격의 단위 (none / sec / min / hour). 참고: none은 자동 계산입니다. |
+| Interval value  | x축 시간 간격의 값입니다.                                   |
 
 **yAxis**  
-> You can configure a dual Y-axis by pressing the [+] button. *(Available since version 8.0.46)* Simply add a Y-axis and select the Series you want to use. The Options used are the same as the basic Y-axis.
+> [+] 버튼을 눌러 이중 Y축을 구성할 수 있습니다. *(8.0.46 버전부터 사용 가능)* Y축을 추가하고 사용할 Series를 선택하기만 하면 됩니다. 사용 가능한 옵션은 기본 Y축과 같습니다.
 
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Position        | Position of the Y-axis (left / right).                     |
-| Offset          | The gap between the axis line and the number.              |
-| Type            | Type of Y-axis values.                                     |
-| - Unit          | Unit of measurement.                                       |
-| - Decimals      | Number of decimal places.                                  |
-| - Name          | Name of the Y-axis (displayed at the top of the axis).     |
-| Min             | Minimum value of the Y-axis.                               |
-| Max             | Maximum value of the Y-axis.                               |
-| Start at zero   | Y-axis always includes 0                                   |
+| Position        | Y축의 위치 (left / right).                                 |
+| Offset          | 축 선과 숫자 사이의 간격입니다.                            |
+| Type            | Y축 값의 종류입니다.                                       |
+| - Unit          | 측정 단위입니다.                                           |
+| - Decimals      | 소수점 자릿수입니다.                                       |
+| - Name          | Y축의 이름입니다(축 위쪽에 표시됩니다).                    |
+| Min             | Y축의 최솟값입니다.                                        |
+| Max             | Y축의 최댓값입니다.                                        |
+| Start at zero   | Y축이 항상 0을 포함합니다                                  |
 
 #### Line
 
-**Chart option**
+**차트 옵션**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Fill area       | Enable or disable the use of area fill. Note: Requires opacity setting (0 ~ 1). |
-| Smooth line     | Display lines smoothly.                                    |
-| Step line       | Display lines in a step-like format.                       |
-| Stack mode      | Display lines in a stacked format.                         |
-| Large data mode | Mode used when handling a large amount of data.            |
-| Symbol          | Display symbols on values.                                 |
+| Fill area       | 영역 채우기 사용 여부입니다. 참고: 불투명도 설정(0 ~ 1)이 필요합니다. |
+| Smooth line     | 선을 부드럽게 표시합니다.                                  |
+| Step line       | 선을 계단 형태로 표시합니다.                               |
+| Stack mode      | 선을 누적 형태로 표시합니다.                               |
+| Large data mode | 대량 데이터를 다룰 때 사용하는 모드입니다.                 |
+| Symbol          | 값에 심볼을 표시합니다.                                    |
 
 **Symbol**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Type            | Type of symbol (circle / rect / roundRect / triangle / diamond / pin / arrow). |
-| Size            | Size of the symbol.                                        |
+| Type            | 심볼 종류 (circle / rect / roundRect / triangle / diamond / pin / arrow). |
+| Size            | 심볼의 크기입니다.                                         |
 
 #### Bar
 
-**Chart option**
+**차트 옵션**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Stack mode      | Enable stack mode.                                         |
-| Large data mode | Mode used when handling a large amount of data.            |
-| Polar mode      | Enable polar mode.                                         |
+| Stack mode      | 누적 모드를 사용합니다.                                    |
+| Large data mode | 대량 데이터를 다룰 때 사용하는 모드입니다.                 |
+| Polar mode      | 극좌표 모드를 사용합니다.                                  |
 
-**Polar mode**
+**극좌표 모드**
+
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Max             | Maximum value.                                             |
-| Start angle     | Starting angle of the Y-axis.                              |
-| Radius          | Inner radius (0: no inner circle).                         |
-| Polar size      | Outer radius (100: circle that fills the entire panel).    |
-| Polar axis      | X-axis type (time / category).                             |
+| Max             | 최댓값입니다.                                              |
+| Start angle     | Y축의 시작 각도입니다.                                     |
+| Radius          | 안쪽 반지름 (0이면 안쪽 원 없음).                          |
+| Polar size      | 바깥쪽 반지름 (100이면 패널 전체를 채우는 원).             |
+| Polar axis      | X축 종류 (time / category).                                |
 
 #### Scatter
 
-**Chart option**
+**차트 옵션**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Large data mode | Mode used when handling a large amount of data.            |
+| Large data mode | 대량 데이터를 다룰 때 사용하는 모드입니다.                 |
 
 **Symbol**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Type            | Type of symbol (circle / rect / roundRect / triangle / diamond / pin / arrow). |
-| Size            | Size of the symbol.                                        |
+| Type            | 심볼 종류 (circle / rect / roundRect / triangle / diamond / pin / arrow). |
+| Size            | 심볼의 크기입니다.                                         |
 
 #### Adv scatter
-*(Available since version 8.0.46)*
+*(8.0.46 버전부터 사용 가능)*
 
 **xAxis**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Type            | Type of X-axis values.                                     |
-| - Unit          | Unit of measurement.                                       |
-| - Decimals      | Number of decimal places.                                  |
-| Min             | Minimum value of the X-axis.                               |
-| Max             | Maximum value of the X-axis.                               |
-| Start at zero   | X-axis always includes 0                                   |
-| Series          | Select the Series to use as the X-axis. The first **Query** is selected by default. |
+| Type            | X축 값의 종류입니다.                                       |
+| - Unit          | 측정 단위입니다.                                           |
+| - Decimals      | 소수점 자릿수입니다.                                       |
+| Min             | X축의 최솟값입니다.                                        |
+| Max             | X축의 최댓값입니다.                                        |
+| Start at zero   | X축이 항상 0을 포함합니다                                  |
+| Series          | X축으로 사용할 Series를 선택합니다. 기본값은 첫 번째 **Query**입니다. |
 
 **Symbol**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Type            | Type of symbol (circle / rect / roundRect / triangle / diamond / pin / arrow). |
-| Size            | Size of the symbol.                                        |
+| Type            | 심볼 종류 (circle / rect / roundRect / triangle / diamond / pin / arrow). |
+| Size            | 심볼의 크기입니다.                                         |
+
+### 차트 종류별 옵션 — 게이지·원형·지도
 
 #### Gauge
 
-**Chart option**
+**차트 옵션**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Min             | Minimum value.                                             |
-| Max             | Maximum value.                                             |
+| Min             | 최솟값입니다.                                              |
+| Max             | 최댓값입니다.                                              |
 
 **Axis**
 | Option               | Desc                                                  |
 |:---------------------|:------------------------------------------------------|
-| Label distance       | Distance of the label from the line of the circle. (negative values are outside). |
-| Show axis tick       | Display axis ticks.                                   |
-| Setting line colors  | Set colors based on values. (value range is specified as a ratio from 0 to 1). |
+| Label distance       | 원의 선에서 라벨까지의 거리입니다. (음수면 바깥쪽)     |
+| Show axis tick       | 축 눈금을 표시합니다.                                 |
+| Setting line colors  | 값에 따라 색을 설정합니다. (값 범위는 0~1 비율로 지정) |
 
 **Anchor**
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Show anchor     | Display the central circle.                                |
-| Size            | Size of the central circle.                                |
+| Show anchor     | 가운데 원을 표시합니다.                                    |
+| Size            | 가운데 원의 크기입니다.                                    |
 
-**Display value**
+**값 표시**
 | Option              | Desc                                                   |
 |:--------------------|:-------------------------------------------------------|
-| Font size           | Font size of the value displayed inside the gauge.     |
-| Offset from center  | Distance from the center.                              |
-| Decimal places      | Number of decimal places.                              |
-| Active animation    | Whether animation is applied.                          |
+| Font size           | 게이지 안에 표시되는 값의 글꼴 크기입니다.             |
+| Offset from center  | 중심으로부터의 거리입니다.                             |
+| Decimal places      | 소수점 자릿수입니다.                                   |
+| Active animation    | 애니메이션 적용 여부입니다.                            |
 
 #### Pie
 
-**Chart option**
+**차트 옵션**
 | Option           | Desc                                                      |
 |:-----------------|:----------------------------------------------------------|
-| Doughnut ratio   | Proportion of the inner circle (0-100).                   |
-| Nightingale mode | Apply Nightingale mode (radius changes according to the values). |
+| Doughnut ratio   | 안쪽 원의 비율입니다 (0-100).                             |
+| Nightingale mode | 나이팅게일 모드를 적용합니다(값에 따라 반지름이 변합니다). |
 
 #### Liquid fill
 
-**Chart option**
+**차트 옵션**
 | Option           | Desc                                                      |
 |:-----------------|:----------------------------------------------------------|
-| Shape            | Shape (container/circle/rect/roundRect/triangle/diamond/pin/arrow). |
-| Unit             | Unit of the displayed value.                              |
-| Digit            | Number of decimal places.                                 |
-| Font size        | Font size.                                                |
-| Wave min         | Minimum value for the wave display.                       |
-| Wave max         | Maximum value for the wave display.                       |
-| Wave amplitude   | Amplitude of the wave display (0: straight line).         |
-| Background color | Background color of the wave display area.                |
-| Wave animation   | Whether wave animation is applied.                        |
-| Outline          | Whether to display the outline.                           |
+| Shape            | 모양 (container/circle/rect/roundRect/triangle/diamond/pin/arrow). |
+| Unit             | 표시되는 값의 단위입니다.                                 |
+| Digit            | 소수점 자릿수입니다.                                      |
+| Font size        | 글꼴 크기입니다.                                          |
+| Wave min         | 물결 표시의 최솟값입니다.                                 |
+| Wave max         | 물결 표시의 최댓값입니다.                                 |
+| Wave amplitude   | 물결 표시의 진폭입니다 (0이면 직선).                      |
+| Background color | 물결 표시 영역의 배경색입니다.                            |
+| Wave animation   | 물결 애니메이션 적용 여부입니다.                          |
+| Outline          | 외곽선 표시 여부입니다.                                   |
 
 #### Text
-*(Available since version 8.0.46)*
+*(8.0.46 버전부터 사용 가능)*
 
-The first **Query** result is displayed as Text. When you add a second **Query**, the result is displayed as a background chart.
+첫 번째 **Query** 결과가 텍스트로 표시됩니다. 두 번째 **Query**를 추가하면 그 결과가 배경 차트로 표시됩니다.
 
-**Text option**
+**텍스트 옵션**
+
 | Option           | Desc                                                      |
 |:-----------------|:----------------------------------------------------------|
-| Font size        | Font size.                                                |
-| Unit             | Unit of the displayed value.                              |
-| Digit            | Number of decimal places.                                 |
-| Color            | Color of chart.                                           |
+| Font size        | 글꼴 크기입니다.                                          |
+| Unit             | 표시되는 값의 단위입니다.                                 |
+| Digit            | 소수점 자릿수입니다.                                      |
+| Color            | 차트의 색입니다.                                          |
 
-**Chart option**
+**차트 옵션**
 | Option           | Desc                                                      |
 |:-----------------|:----------------------------------------------------------|
-| Type             | Type of background chart. (line / bar / scatter).         |
-| Opacity          | Opacity of fill area. (0~1, line type only)               |
-| Symbol size      | Size of the point. (0: no point)                          |
-| Color            | Color of chart.                                           |
+| Type             | 배경 차트의 종류입니다. (line / bar / scatter)            |
+| Opacity          | 채움 영역의 불투명도입니다. (0~1, line 종류만)            |
+| Symbol size      | 점의 크기입니다. (0이면 점 없음)                          |
+| Color            | 차트의 색입니다.                                          |
 
 #### Geomap
-*(Available since version 8.0.46)*
+*(8.0.46 버전부터 사용 가능)*
 
-**Tooltip**
+**툴팁**
+
 | Option              | Desc                                                   |
 |:--------------------|:-------------------------------------------------------|
-| Time                | Displays the time in the tooltip.                      |
-| Latitude, Longitude | Displays the latitude and longitude in the tooltip.    |
+| Time                | 툴팁에 시간을 표시합니다.                              |
+| Latitude, Longitude | 툴팁에 위도와 경도를 표시합니다.                       |
 
-**Interval**
+**간격**
+
 | Option          | Desc                                                       |
 |:----------------|:-----------------------------------------------------------|
-| Interval type   | Unit of time intervals for the x-axis (none / sec / min / hour). Note: none = auto-calculated. |
-| Interval value  | Value of the time intervals for the x-axis.                 |
+| Interval type   | x축 시간 간격의 단위 (none / sec / min / hour). 참고: none은 자동 계산입니다. |
+| Interval value  | x축 시간 간격의 값입니다.                                   |
 
-**Map option**
+**맵 옵션**
+
 | Option           | Desc                                                      |
 |:-----------------|:----------------------------------------------------------|
-| Use zoom control | Enables zoom control in the Geomap panel.                 |
-| Series           | Specify for each query.                                   |
-| - Latitude       | Name of Latitude column. Note: Select by alias or value column with aggregator. |
-| - Longitude      | Name of Longitude column. Note: Select by alias or value column with aggregator. |
-| - Marker shape   | Types of Markers displayed on the map. (marker, circleMarker, circle) |
-| - Marker radius  | The radius of the marker. (circleMarker : pixel, circle : meter) |
+| Use zoom control | Geomap 패널에서 확대/축소 제어를 사용합니다.              |
+| Series           | 질의별로 지정합니다.                                      |
+| - Latitude       | 위도 컬럼의 이름입니다. 참고: alias 또는 aggregator가 적용된 값 컬럼으로 선택합니다. |
+| - Longitude      | 경도 컬럼의 이름입니다. 참고: alias 또는 aggregator가 적용된 값 컬럼으로 선택합니다. |
+| - Marker shape   | 지도에 표시되는 마커의 종류입니다. (marker, circleMarker, circle) |
+| - Marker radius  | 마커의 반지름입니다. (circleMarker는 픽셀, circle은 미터) |
 
 ---
 
-## Quick Reference
+## 빠른 참조
 
-| Function | Action | Notes |
+| 기능 | 동작 | 비고 |
 |----------|--------|-------|
-| Create Dashboard | Click "DASHBOARD" on home screen | Creates new dashboard |
-| Add Chart | Click [+] button | Opens chart settings |
-| Resize Panel | Drag bottom-right corner | Adjusts chart size |
-| Move Panel | Drag panel header | Changes position |
-| Save Dashboard | Use save button | Extension: .dsh |
-| Time Range | Configure in control area | Supports 'now', 'last' |
-| Variables | Set up in dashboard control | Available since v8.0.46 |
-| TQL Export | Panel menu > Save to tql | Exports chart as TQL |
+| 대시보드 생성 | 홈 화면에서 "DASHBOARD" 클릭 | 새 대시보드를 만듭니다 |
+| 차트 추가 | [+] 버튼 클릭 | 차트 설정을 엽니다 |
+| 패널 크기 조절 | 오른쪽 아래 모서리 드래그 | 차트 크기를 조절합니다 |
+| 패널 이동 | 패널 헤더 드래그 | 위치를 변경합니다 |
+| 대시보드 저장 | 저장 버튼 사용 | 확장자: .dsh |
+| 시간 범위 | 제어 영역에서 설정 | 'now', 'last' 지원 |
+| 변수 | 대시보드 제어에서 설정 | v8.0.46부터 사용 가능 |
+| TQL 내보내기 | 패널 메뉴 > Save to tql | 차트를 TQL로 내보냅니다 |

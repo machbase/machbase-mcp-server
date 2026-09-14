@@ -1,22 +1,22 @@
 # Machbase Neo MQTT Python Client
 
-## Setup
+## 준비
 
-### Install paho
+### paho 설치
 
 ```sh
 pip install paho-mqtt
 ```
 
-### Create project directory
+### 프로젝트 디렉터리 생성
 
 ```sh
 mkdir python-mqtt && cd python-mqtt
 ```
 
-## Publisher
+## 발행자
 
-### Client
+### 클라이언트
 
 ```python
 import paho.mqtt.client as mqtt
@@ -24,7 +24,7 @@ import paho.mqtt.client as mqtt
 mqttClient = mqtt.Client("python_pub") # name of publisher
 ```
 
-### Connect Callback
+### 접속 콜백
 
 ```python
 def on_connect(client, userdata, flags, rc):
@@ -34,9 +34,9 @@ def on_connect(client, userdata, flags, rc):
         print("CONNACK KO code=", rc)
 ```
 
-### Connect (non-TLS)
+### 접속 (비 TLS)
 
-Connect to machbase-neo via MQTT plain socket.
+MQTT 일반 소켓으로 machbase-neo에 접속합니다.
 
 ```python
 mqttClient = mqtt.Client("python_pub", clean_session=True)
@@ -45,14 +45,14 @@ mqttClient.connect("127.0.0.1", port=5653, keepalive=10, clean_session=True)
 mqttClient.loop_start()
 ```
 
-### Disconnect
+### 접속 종료
 
 ```python
 mqttClient.disconnect()
 mqttClient.loop_stop()
 ```
 
-### Publish Callback
+### 발행 콜백
 
 ```python
 def on_publish(client, userdata, mid):
@@ -70,7 +70,7 @@ mqttClient.publish("db/append/example", """[
 ]""", qos=1)
 ```
 
-## Full source code
+## 전체 소스 코드
 
 ```python
 import paho.mqtt.client as mqtt

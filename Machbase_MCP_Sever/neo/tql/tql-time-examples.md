@@ -1,8 +1,8 @@
 # Machbase Neo TQL Time Examples
 
-## Prerequisites
+## 사전 준비
 
-For smooth practice, the following query should be run to prepare tables and data.
+원활한 실습을 위해 아래 쿼리를 실행해 테이블과 데이터를 준비합니다.
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
@@ -14,20 +14,20 @@ INSERT INTO EXAMPLE VALUES('TAG0', TO_DATE('2021-08-12 12:00:00 123:456:789'), 1
 INSERT INTO EXAMPLE VALUES('TAG0', TO_DATE('2021-08-13 12:00:00 123:456:789'), 11);
 ```
 
-TQL supports several `Time` manipulation functions.
+TQL은 여러 `Time` 조작 함수를 지원합니다.
 
-## Time Functions
+## 시간 함수
 
 ### Now
 
-`time("now")` returns the current time.
+`time("now")`는 현재 시각을 반환합니다.
 
 ```js
 SQL(`select to_char(time), value from example where time < ?`, time('now'))
 CSV()
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,10
 2021-08-13 12:00:00 123:456:789,11
@@ -35,20 +35,20 @@ Result:
 
 ### Timestamp
 
-`time(epoch)` returns time that represents in UNIX epoch in nano-seconds.
+`time(epoch)`은 UNIX epoch를 나노초 단위로 표현한 시각을 반환합니다.
 
 ```js
 SQL(`select to_char(time), value from example where time = ?`, time(1628737200123456789))
 CSV()
 ```
 
-## Time Manipulation
+## 시간 변환
 
-TQL can be used to facilitate conversion between `Timestamp` and `Time format string`.
+TQL로 `Timestamp`와 `시간 포맷 문자열` 사이의 변환을 손쉽게 처리할 수 있습니다.
 
-### Timestamp to Time Format String
+### Timestamp → 시간 포맷 문자열
 
-Copy the code below into TQL editor and save `time_to_format.tql`.
+아래 코드를 TQL 에디터에 붙여넣고 `time_to_format.tql`로 저장합니다.
 
 ```js
 STRING(param("format_time") ?? "808210800", separator('\n'))
@@ -62,9 +62,9 @@ CSV()
 
 URL: http://127.0.0.1:5654/db/tql/time_to_format.tql?format_time=808210800000000001
 
-### Time Format String to Timestamp
+### 시간 포맷 문자열 → Timestamp
 
-Copy the code below into TQL editor and save `format_to_time.tql`.
+아래 코드를 TQL 에디터에 붙여넣고 `format_to_time.tql`로 저장합니다.
 
 ```js
 STRING(param("timestamp") ?? "1995-08-12T00:00:00.000Z", separator('\n'))
@@ -78,18 +78,18 @@ CSV()
 
 URL: http://127.0.0.1:5654/db/tql/format_to_time.tql?timestamp=1995-08-12T00:00:00.000Z
 
-## Time Format
+## 시간 포맷
 
-It specifies how to represents time in output.
+출력에서 시간을 어떻게 표현할지 지정합니다.
 
-### None
+### 지정 없음
 
 ```js
 SQL(`select to_char(time), time from example`)
 CSV()
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,1628737200123456789
 2021-08-13 12:00:00 123:456:789,1628823600123456789
@@ -102,15 +102,15 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('DEFAULT'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-12 03:00:00.123
 2021-08-13 12:00:00 123:456:789,2021-08-13 03:00:00.123
 ```
 
-#### Additional Default Types
+#### 추가 Default 유형
 
-| Type | Description |
+| 유형 | 설명 |
 |:-----|:------------|
 | DEFAULT_MS | 2006-01-02 15:04:05.999 |
 | DEFAULT_US | 2006-01-02 15:04:05.999999 |
@@ -126,7 +126,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('NUMERIC'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,08/12 03:00:00AM '21 +0000
 2021-08-13 12:00:00 123:456:789,08/13 03:00:00AM '21 +0000
@@ -139,7 +139,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('ANSIC'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,Thu Aug 12 03:00:00 2021
 2021-08-13 12:00:00 123:456:789,Fri Aug 13 03:00:00 2021
@@ -152,7 +152,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('UNIX'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,Thu Aug 12 03:00:00 UTC 2021
 2021-08-13 12:00:00 123:456:789,Fri Aug 13 03:00:00 UTC 2021
@@ -165,7 +165,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('RFC822'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,12 Aug 21 03:00 UTC
 2021-08-13 12:00:00 123:456:789,13 Aug 21 03:00 UTC
@@ -178,15 +178,15 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('RFC3339'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-12T03:00:00Z
 2021-08-13 12:00:00 123:456:789,2021-08-13T03:00:00Z
 ```
 
-## Timezone
+## 시간대(Timezone)
 
-The `tz` function specifies time zone.
+`tz` 함수로 시간대를 지정합니다.
 
 ### Local
 
@@ -195,7 +195,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('DEFAULT'), tz('local'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-12 12:00:00.123
 2021-08-13 12:00:00 123:456:789,2021-08-13 12:00:00.123
@@ -208,7 +208,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('DEFAULT'), tz('UTC'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-12 03:00:00.123
 2021-08-13 12:00:00 123:456:789,2021-08-13 03:00:00.123
@@ -221,7 +221,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('DEFAULT'), tz('Asia/Seoul'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-12 12:00:00.123
 2021-08-13 12:00:00 123:456:789,2021-08-13 12:00:00.123
@@ -234,7 +234,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('DEFAULT'), tz('EST'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-11 22:00:00.123
 2021-08-13 12:00:00 123:456:789,2021-08-12 22:00:00.123
@@ -247,7 +247,7 @@ SQL(`select to_char(time), time from example`)
 CSV(timeformat('DEFAULT'), tz('Europe/Paris'))
 ```
 
-Result:
+결과:
 ```
 2021-08-12 12:00:00 123:456:789,2021-08-12 05:00:00.123
 2021-08-13 12:00:00 123:456:789,2021-08-13 05:00:00.123

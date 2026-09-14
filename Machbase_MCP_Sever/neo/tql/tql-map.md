@@ -1,17 +1,17 @@
 # Machbase Neo TQL MAP Functions
 
-*MAP* functions are the core of the transforming data.
+*MAP* 함수는 데이터 변환의 핵심입니다.
 
 ## TAKE()
 
-*Syntax*: `TAKE( [offset,] n )`
+**문법**: `TAKE( [offset,] n )`
 
-Takes first *n* records and stop the stream.
+앞의 *n*개 레코드를 취하고 스트림을 멈춥니다.
 
-- `offset` *number* optional, take records from the offset. (default 0 when omitted) (since v8.0.6)
-- `n` *number* specify how many records to be taken.
+- `offset` *숫자* 선택. 해당 위치부터 레코드를 취합니다. (생략 시 기본값 0) (v8.0.6부터)
+- `n` *숫자* 취할 레코드 수를 지정합니다.
 
-**Example: TAKE(n)**
+**예제: TAKE(n)**
 
 ```js
 FAKE( json({
@@ -31,7 +31,7 @@ TAG0,1628694000000000000,10
 TAG0,1628780400000000000,11
 ```
 
-**Example: TAKE(offset, n)**
+**예제: TAKE(offset, n)**
 
 ```js
 FAKE( json({
@@ -53,14 +53,14 @@ TAG0,1629039600000000000,14
 
 ## DROP()
 
-*Syntax*: `DROP( [offset,] n  )`
+**문법**: `DROP( [offset,] n  )`
 
-Ignore first *n* records, it simply drops the *n* records.
+앞의 *n*개 레코드를 무시합니다. 즉 *n*개를 버립니다.
 
-- `offset` *number* optional, drop records from the offset. (default 0 when omitted) (since v8.0.6)
-- `n` *number* specify how many records to be dropped.
+- `offset` *숫자* 선택. 해당 위치부터 레코드를 버립니다. (생략 시 기본값 0) (v8.0.6부터)
+- `n` *숫자* 버릴 레코드 수를 지정합니다.
 
-**Example: DROP(n)**
+**예제: DROP(n)**
 
 ```js
 FAKE( json({
@@ -81,7 +81,7 @@ TAG0,1629039600000000000,14
 TAG0,1629126000000000000,15
 ```
 
-**Example: DROP(offset, n)**
+**예제: DROP(offset, n)**
 
 ```js
 FAKE( json({
@@ -104,11 +104,11 @@ TAG0,1629126000000000000,15
 
 ## FILTER()
 
-*Syntax*: `FILTER( condition )`
+**문법**: `FILTER( condition )`
 
-Apply the condition statement on the incoming record, then it pass the record only if the *condition* is *true*.
+들어온 레코드에 조건문을 적용해, *condition*이 *true*일 때만 레코드를 통과시킵니다.
 
-For example, if an original record was `{key: k1, value[v1, v2]}` and apply `FILTER(count(V) > 2)`, it simply drop the record. If the condition was `FILTER(count(V) >= 2)`, it pass the record to the next function.
+예를 들어 원래 레코드가 `{key: k1, value[v1, v2]}` 일 때 `FILTER(count(V) > 2)`를 적용하면 레코드가 버려집니다. 조건이 `FILTER(count(V) >= 2)` 였다면 레코드를 다음 함수로 넘깁니다.
 
 ```js
 FAKE( json({
@@ -130,17 +130,17 @@ TAG0,1628780400000000000,11
 
 ## FILTER_CHANGED()
 
-*Syntax*: `FILTER_CHANGED( value [, retain(time, duration)] [, useFirstWithLast()] )` (since v8.0.15)
+**문법**: `FILTER_CHANGED( value [, retain(time, duration)] [, useFirstWithLast()] )` (since v8.0.15)
 
 - `retain(time, duration)`
 - `useFirstWithLast(boolean)`
 
-It passes only the `value` has been changed from the previous.
-The first record is always passed, use `DROP(1)` after `FILTER_CHANGED()` to discard the first record.
+이전과 값이 달라진 `value`만 통과시킵니다.
+첫 레코드는 항상 통과합니다. 첫 레코드를 버리려면 `FILTER_CHANGED()` 뒤에 `DROP(1)`을 사용하세요.
 
-If `retain()` option is specified, the records that keep the changed `value` for the given `duration` based `time`, are passed.
+`retain()` 옵션을 지정하면, 바뀐 `value`를 `time` 기준으로 주어진 `duration` 동안 유지한 레코드만 통과합니다.
 
-**Example: Basic usage**
+**예제: 기본 사용법**
 
 ```js
 FAKE(json({
@@ -167,7 +167,7 @@ C,1692329346,9
 D,1692329347,9.1
 ```
 
-**Example: With retain()**
+**예제: retain() 사용**
 
 ```js
 FAKE(json({
@@ -192,7 +192,7 @@ A,1692329338,1
 B,1692329342,5
 ```
 
-**Example: With retain() and useFirstWithLast(false)**
+**예제: retain()과 useFirstWithLast(false) 사용**
 
 ```js
 FAKE(json({
@@ -217,7 +217,7 @@ A,1692329338,1
 B,1692329340,3
 ```
 
-**Example: With useFirstWithLast(true)**
+**예제: useFirstWithLast(true) 사용**
 
 ```js
 FAKE(json({
@@ -250,12 +250,12 @@ D,1692329347,9.1
 
 ## SET()
 
-*Syntax*: `SET(name, expression)` (since v8.0.12)
+**문법**: `SET(name, expression)` (since v8.0.12)
 
-- `name` *keyword* variable name
-- `expression` *expression* value
+- `name` *keyword* 변수 이름
+- `expression` *표현식* 값
 
-*SET* defines a record-scoped variable with given name and value. If a new variable `var` is defined as `SET(var, 10)`, it can be referred as `$var`. Because the variables are not a part of the values, it is not included in the final result of SINK.
+*SET*은 주어진 이름과 값으로 레코드 범위의 변수를 정의합니다. `SET(var, 10)`으로 변수 `var`를 정의하면 `$var`로 참조할 수 있습니다. 변수는 값의 일부가 아니므로 SINK의 최종 결과에는 포함되지 않습니다.
 
 ```js
 FAKE( linspace(0, 1, 3))
@@ -273,25 +273,25 @@ CSV()
 
 ## GROUP()
 
-*Syntax*: `GROUP( [lazy(boolean),] by [, aggregators...] )` (since v8.0.7)
+**문법**: `GROUP( [lazy(boolean),] by [, aggregators...] )` (since v8.0.7)
 
-- `lazy(boolean)` If it set `false` which is default, *GROUP()* yields new aggregated record when the value of `by()` has changed from previous record. If it set `true`, *GROUP()* waits the end of the input stream before yield any record.
+- `lazy(boolean)` 기본값인 `false`이면 `by()`의 값이 이전 레코드와 달라질 때마다 *GROUP()* 이 새 집계 레코드를 내보냅니다. `true`이면 *GROUP()* 은 입력 스트림이 끝날 때까지 기다렸다가 레코드를 내보냅니다.
 
-- `by(value [, label])` The value how to group the values.
+- `by(value [, label])` 값을 어떻게 묶을지 지정하는 값.
 
-- `aggregators` *array of aggregator* Aggregate functions
+- `aggregators` *집계 함수 배열* 집계 함수들
 
-Group aggregation function, please refer to the GROUP() section for the detail description.
+그룹 집계 함수입니다. 자세한 설명은 GROUP() 항목을 참고하세요.
 
 ## PUSHVALUE()
 
-*Syntax*: `PUSHVALUE( idx, value [, name] )` (since v8.0.5)
+**문법**: `PUSHVALUE( idx, value [, name] )` (since v8.0.5)
 
-- `idx` *number* Index where newValue insert at. (0 based)
-- `value` *expression* New value
-- `name` *string* column's name (default 'column')
+- `idx` *number* newValue를 삽입할 위치의 인덱스입니다. (0부터 시작)
+- `value` *표현식* 새 값
+- `name` *string* 컬럼 이름입니다. (기본값 'column')
 
-Insert the given value (new column) into the current values.
+주어진 값(새 컬럼)을 현재 값들에 삽입합니다.
 
 ```js
 FAKE( linspace(0, 1, 3))
@@ -307,11 +307,11 @@ CSV()
 
 ## POPVALUE()
 
-*Syntax*: `POPVALUE( idx [, idx2, idx3, ...] )` (since v8.0.5)
+**문법**: `POPVALUE( idx [, idx2, idx3, ...] )` (since v8.0.5)
 
-- `idx` *number* array of indexes that will removed from values
+- `idx` *number* 값에서 제거할 인덱스들의 배열입니다
 
-It removes column of values that specified by `idx`es from value array.
+값 배열에서 `idx`로 지정한 컬럼을 제거합니다.
 
 ```js
 FAKE( linspace(0, 1, 3))
@@ -328,15 +328,15 @@ CSV()
 
 ## MAPVALUE()
 
-*Syntax*: `MAPVALUE( idx, newValue [, newName] )`
+**문법**: `MAPVALUE( idx, newValue [, newName] )`
 
-- `idx` *number*  Index of the value tuple. (0 based)
-- `newValue` *expression* New value
-- `newName` *string* change column's name with given string
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
+- `newValue` *expression* 새 값입니다
+- `newName` *string* 컬럼 이름을 주어진 문자열로 바꿉니다
 
-`MAPVALUE()` replaces the value of the element at the given index. For example, `MAPVALUE(0, value(0)*10)` replaces a new value that is 10 times of the first element of value tuple.
+`MAPVALUE()`는 주어진 인덱스 위치의 값을 바꿉니다. 예를 들어 `MAPVALUE(0, value(0)*10)`은 값 튜플의 첫 요소를 10배한 값으로 바꿉니다.
 
-If the `idx` is out of range, it works as `PUSHVALUE()` does. `MAPVALUE(-1, value(1)+'_suffix')` inserts a new string value that concatenates '_suffix' with the 2nd element of value.
+`idx`가 범위를 벗어나면 `PUSHVALUE()`처럼 동작합니다. `MAPVALUE(-1, value(1)+'_suffix')`는 값의 두 번째 요소에 '_suffix'를 붙인 새 문자열 값을 삽입합니다.
 
 ```js
 FAKE( linspace(0, 1, 3))
@@ -350,7 +350,7 @@ CSV()
 10
 ```
 
-An example use of mathematic operation with `MAPVALUE`.
+`MAPVALUE`로 수학 연산을 사용하는 예제입니다.
 
 ```js
 FAKE(
@@ -377,13 +377,13 @@ CHART(
 
 ## MAP_DIFF()
 
-*Syntax*: `MAP_DIFF( idx, value [, newName] )` (since v8.0.8)
+**문법**: `MAP_DIFF( idx, value [, newName] )` (since v8.0.8)
 
-- `idx` *number*  Index of the value tuple. (0 based)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `newName` *string* change column's name with given string
+- `newName` *string* 컬럼 이름을 주어진 문자열로 바꿉니다
 
-`MAP_DIFF()` replaces the value of the element at the given index with difference between current and previous values (*current - previous*). 
+`MAP_DIFF()`는 주어진 인덱스 위치의 값을 현재와 이전 값의 차이(*현재 - 이전*)로 바꿉니다. 
 
 ```js
 FAKE( linspace(0.5, 3, 10) )
@@ -408,36 +408,36 @@ VALUE,DIFF
 
 ## MAP_ABSDIFF()
 
-*Syntax*: `MAP_ABSDIFF( idx, value [, label]  )` (since v8.0.8)
+**문법**: `MAP_ABSDIFF( idx, value [, label]  )` (since v8.0.8)
 
-- `idx` *number*  Index of the value tuple. (0 based)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `label` *string* change column's label with given string
+- `label` *string* 컬럼 라벨을 주어진 문자열로 바꿉니다
 
-`MAP_ABSDIFF()` replaces the value of the element at the given index with absolute difference between current and previous value abs(*current - previous*).
+`MAP_ABSDIFF()`는 주어진 인덱스 위치의 값을 현재와 이전 값의 절대 차이 abs(*현재 - 이전*)로 바꿉니다.
 
 ## MAP_NONEGDIFF()
 
-*Syntax*: `MAP_NONEGDIFF( idx, value [, label]  )` (since v8.0.8)
+**문법**: `MAP_NONEGDIFF( idx, value [, label]  )` (since v8.0.8)
 
-- `idx` *number*  Index of the value tuple. (0 based)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `label` *string* change column's label with given string
+- `label` *string* 컬럼 라벨을 주어진 문자열로 바꿉니다
 
-`MAP_NONEGDIFF()` replaces the value of the element at the given index with difference between current and previous value (*current - previous*). 
-If the difference is less than zero it applies zero instead of a negative value.
+`MAP_NONEGDIFF()`는 주어진 인덱스 위치의 값을 현재와 이전 값의 차이(*현재 - 이전*)로 바꿉니다. 
+차이가 0보다 작으면 음수 대신 0을 적용합니다.
 
 ## MAP_AVG()
 
-*Syntax*: `MAP_AVG(idx, value [, label] )`  (since v8.0.15)
+**문법**: `MAP_AVG(idx, value [, label] )`  (since v8.0.15)
 
-- `idx` *number*  Index of the value tuple. (0 based)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `label` *string* change column's label with given string
+- `label` *string* 컬럼 라벨을 주어진 문자열로 바꿉니다
 
-`MAP_AVG` sets the value of the element at the given index with a average of values which is the averaging filter.
+`MAP_AVG`는 주어진 인덱스 위치의 값을 값들의 평균(평균 필터)으로 설정합니다.
 
-When $k$ is number of data.
+$k$는 데이터의 개수입니다.
 
 Let $\alpha = \frac{1}{k}$
 
@@ -462,17 +462,17 @@ CHART(
 
 ## MAP_MOVAVG()
 
-*Syntax*: `MAP_MOVAVG(idx, value, window [, label] )`  (since v8.0.8)
+**문법**: `MAP_MOVAVG(idx, value, window [, label] )`  (since v8.0.8)
 
-- `idx` *number*  Index of the value tuple. (0 based)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `window` *number* specifies how many records it accumulates.
-- `label` *string* change column's label with given string
+- `window` *숫자* 몇 개의 레코드를 누적할지 지정합니다.
+- `label` *string* 컬럼 라벨을 주어진 문자열로 바꿉니다
 
-`MAP_MOVAVG` sets the value of the element at the given index with a moving average of values by given window count.
-If values are not accumulated enough to the `window`, it applies `sum/count_of_values` instead.
-If all incoming values are `NULL` (or not a number) for the last `window` count, it applies `NULL`.
-If some accumulated values are `NULL` (or not a number), it makes average value from only valid values excluding the `NULL`s.
+`MAP_MOVAVG`는 주어진 인덱스 위치의 값을 지정한 window 개수만큼의 이동평균으로 설정합니다.
+값이 `window`만큼 누적되지 않았으면 대신 `sum/값의개수`를 적용합니다.
+최근 `window` 개수만큼의 값이 모두 `NULL`(또는 숫자가 아님)이면 `NULL`을 적용합니다.
+누적된 값 중 일부가 `NULL`(또는 숫자가 아님)이면 `NULL`을 제외한 유효한 값들로만 평균을 계산합니다.
 
 ```js
 FAKE(arrange(1,5,0.03))
@@ -496,14 +496,14 @@ CHART(
 
 ## MAP_LOWPASS()
 
-*Syntax*: `MAP_LOWPATH(idx, value, alpha [, label] )` (since v8.0.15)
+**문법**: `MAP_LOWPASS(idx, value, alpha [, label] )` (since v8.0.15)
 
-- `idx` *number*  Index of the value tuple. (0 based)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `alpha` *number*, 0 < alpha < 1
-- `label` *string* change column's label with given string
+- `alpha` *숫자*, 0 < alpha < 1
+- `label` *string* 컬럼 라벨을 주어진 문자열로 바꿉니다
 
-`MAP_LOWPASS` sets the value of the elment at the given index with exponentially weighted moving average.
+`MAP_LOWPASS`는 주어진 인덱스 위치의 값을 지수 가중 이동평균으로 설정합니다.
 
 When $ 0 < \alpha < 1$
 
@@ -531,11 +531,11 @@ CHART(
 
 ## MAP_KALMAN()
 
-*Syntax*: `MAP_KALMAN(idx, value, model() [, label])` (since v8.0.15)
-- `idx` *number*  Index of the value tuple. (0 based)
+**문법**: `MAP_KALMAN(idx, value, model() [, label])` (since v8.0.15)
+- `idx` *number*  값 튜플의 인덱스입니다. (0부터 시작)
 - `value` *number*
-- `model` *model(initial, progress, observation)* Set system matrices
-- `label` *string* change column's label with given string
+- `model` *model(initial, progress, observation)* 시스템 행렬을 설정합니다
+- `label` *string* 컬럼 라벨을 주어진 문자열로 바꿉니다
 
 ```js
 FAKE(arrange(0, 10, 0.1))
@@ -567,21 +567,21 @@ CHART(
 
 ## HISTOGRAM()
 
-There are two types of `HISTOGRAM()`. The first type is "fixed bins" which is useful when the input value range (min to max) is predictable or fixed. The second type is "dynamic bins" which is useful when the value ranges are unknown.
+`HISTOGRAM()`에는 두 종류가 있습니다. 첫째는 "고정 구간"으로 입력 값 범위(min~max)가 예측 가능하거나 고정일 때 유용합니다. 둘째는 "동적 구간"으로 값 범위를 모를 때 유용합니다.
 
 ### Fixed Bins
 
-*Syntax*: `HISTOGRAM(value, bins [, category] [, order] )`  (since v8.0.15)
+**문법**: `HISTOGRAM(value, bins [, category] [, order] )`  (since v8.0.15)
 
 - `value` *number*
-- `bins` *bins(min, max, step)* histogram bin configuration.
+- `bins` *bins(min, max, step)* 히스토그램 구간 설정.
 - `category` *category(name_value)*
-- `order` *order(name...string)* category order
+- `order` *order(name...string)* 카테고리 순서
 
-`HISTOGRAM()` takes values and count the distribution of the each bins, the bins are configured by min/max range of the value and the count of bins.
-If the actual value comes in the out of the min/max range, `HISTOGRAM()` adds lower or higher bins automatically.
+`HISTOGRAM()`은 값들을 받아 각 구간의 분포를 셉니다. 구간은 값의 min/max 범위와 구간 개수로 설정합니다.
+실제 값이 min/max 범위를 벗어나면 `HISTOGRAM()`이 더 낮거나 높은 구간을 자동으로 추가합니다.
 
-**Example: CSV output**
+**예제: CSV 출력**
 
 ```js
 FAKE( arrange(1, 100, 1) )
@@ -599,7 +599,7 @@ low,high,count
 160,200,4
 ```
 
-**Example: CHART output**
+**예제: CHART 출력**
 
 ```js
 FAKE( arrange(1, 100, 1) )
@@ -618,7 +618,7 @@ CHART(
 )
 ```
 
-**Example: With CATEGORY**
+**예제: CATEGORY 사용**
 
 ```js
 FAKE( arrange(1, 100, 1) )
@@ -640,18 +640,18 @@ CHART(
 )
 ```
 
-### Dynamic Bins
+### 동적 구간(Dynamic Bins)
 
-*Syntax*: `HISTOGRAM(value [, bins(maxBins)] )`  (since v8.0.46)
+**문법**: `HISTOGRAM(value [, bins(maxBins)] )`  (since v8.0.46)
 
 - `value` *number*
-- `bins` *number* specifies the maximum number of bins. The default is 100 if not specified.
+- `bins` *숫자* 최대 구간 수를 지정합니다. 지정하지 않으면 기본값은 100입니다.
 
-`HISTOGRAM()` takes values and a maximum number of bins.
-The bins are dynamically adjusted based on the input values and can expand up to the specified `bins(maxBins)`.
-The resulting `value` column represents the average value of each bin,
-while the `count` column indicates the number of values within that range.
-Thus, the product of `value` and `count` for a bin equals the sum of the values within that bin.
+`HISTOGRAM()`은 값들과 최대 구간 수를 받습니다.
+구간은 입력 값에 따라 동적으로 조정되며 지정한 `bins(maxBins)`까지 늘어날 수 있습니다.
+결과의 `value` 컬럼은 각 구간의 평균값을 나타내고,
+`count` 컬럼은 그 범위 안의 값 개수를 나타냅니다.
+따라서 한 구간의 `value`와 `count`의 곱은 그 구간에 속한 값들의 합과 같습니다.
 
 ```js
 FAKE( arrange(1, 100, 1) )
@@ -671,26 +671,26 @@ value,count
 
 ## BOXPLOT()
 
-*Syntax*: `BOXPLOT(value, category [, order] [, boxplotInterp] [, boxplotOutput])` (since v8.0.15)
+**문법**: `BOXPLOT(value, category [, order] [, boxplotInterp] [, boxplotOutput])` (since v8.0.15)
 
 - `value` *number*
 - `category` *category(name_value)*
-- `order` *order(name...string)* category order
+- `order` *order(name...string)* 카테고리 순서
 - `boxplotOutput` *boxplotOutput( "" | "chart" | "dict" )*
 - `boxplotInterp` *boxplotInterop(Q1 boolean, Q2 boolean, Q3 boolean)*
 
 ## TRANSPOSE()
 
-*Syntax*: `TRANSPOSE( [fixed(columnIdx...) | columnIdx...] [, header(boolean)] )` (since v8.0.8)
+**문법**: `TRANSPOSE( [fixed(columnIdx...) | columnIdx...] [, header(boolean)] )` (since v8.0.8)
 
-When TQL loads data from CSV or external RDBMS via 'bridge'd SQL query, it may require to transpose columns to fit the record shape to a MACHBASE TAG table.
-`TRANSPOSE` produce multiple records from a record that has multiple columns.
+TQL이 CSV나 'bridge'된 SQL 쿼리로 외부 RDBMS에서 데이터를 불러올 때, 레코드 형태를 MACHBASE TAG 테이블에 맞추기 위해 컬럼 전치가 필요할 수 있습니다.
+`TRANSPOSE`는 여러 컬럼을 가진 레코드로부터 여러 레코드를 만듭니다.
 
-- `fixed(columnIdx...)` specify which columns are "fixed", this can not mix-use with transposed columns.
-- `columnIdx...` specify multiple columns which are "transposed", this can not mix-use with "fixed()".
-- `header(boolean)` if it set `header(true)`, `TRANSPOSE` consider the first record is the header record. And it produce the header of the transposed column records as a new column.
+- `fixed(columnIdx...)` 어떤 컬럼을 "고정"할지 지정합니다. 전치 대상 컬럼과 함께 쓸 수 없습니다.
+- `columnIdx...` "전치"할 여러 컬럼을 지정합니다. "fixed()"와 함께 쓸 수 없습니다.
+- `header(boolean)` `header(true)`로 지정하면 `TRANSPOSE`가 첫 레코드를 헤더 레코드로 간주합니다. 그리고 전치된 컬럼 레코드의 헤더를 새 컬럼으로 만들어 냅니다.
 
-**Example: TRANSPOSE with header**
+**예제: header를 사용한 TRANSPOSE**
 
 ```js
 FAKE(csv(`CITY,DATE,TEMPERATURE,HUMIDITY,NOISE
@@ -705,7 +705,7 @@ POPVALUE(2)
 CSV(timeformat("s"))
 ```
 
-This example is a common use case.
+이 예제는 흔한 사용 사례입니다.
 
 ```csv
 TOKYO-TEMPERATURE,1701907200,23
@@ -716,7 +716,7 @@ BEIJING-HUMIDITY,1701907200,50
 BEIJING-NOISE,1701907200,60
 ```
 
-**Example: TRANSPOSE all columns**
+**예제: 전체 컬럼 TRANSPOSE**
 
 ```js
 FAKE(csv(`CITY,DATE,TEMPERATURE,HUMIDITY,NOISE
@@ -727,7 +727,7 @@ TRANSPOSE()
 CSV()
 ```
 
-It transposes all columns into rows if there is no options.
+옵션이 없으면 모든 컬럼을 행으로 전치합니다.
 
 ```csv
 CITY
@@ -747,7 +747,7 @@ Beijing
 60
 ```
 
-**Example: TRANSPOSE with header()**
+**예제: header()를 사용한 TRANSPOSE**
 
 ```js
 FAKE(csv(`CITY,DATE,TEMPERATURE,HUMIDITY,NOISE
@@ -758,7 +758,7 @@ TRANSPOSE( header(true) )
 CSV()
 ```
 
-It treats the first record as the header and add a new column for each transposed record.
+첫 레코드를 헤더로 취급하고 전치된 각 레코드에 새 컬럼을 추가합니다.
 
 ```csv
 CITY,Tokyo
@@ -773,7 +773,7 @@ HUMIDITY,50
 NOISE,60
 ```
 
-**Example: TRANSPOSE with fixed()**
+**예제: fixed()를 사용한 TRANSPOSE**
 
 ```js
 FAKE(csv(`CITY,DATE,TEMPERATURE,HUMIDITY,NOISE
@@ -786,7 +786,7 @@ TRANSPOSE( header(true), fixed(0, 1) )
 CSV()
 ```
 
-It keeps the "fixed" columns for the new records.
+새 레코드에 "fixed" 컬럼을 유지합니다.
 
 ```csv
 Tokyo,2023/12/07,TEMPERATURE,23
@@ -799,13 +799,13 @@ Beijing,2023/12/07,NOISE,60
 
 ## FFT()
 
-*Syntax*: `FFT([minHz(value), maxHz(value)])`
-- `minHz(value`) *minimum Hz for analysis*
-- `maxHz(value`) *maximum Hz for analysis*
+**문법**: `FFT([minHz(value), maxHz(value)])`
+- `minHz(value`) *분석에 사용할 최소 Hz*
+- `maxHz(value`) *분석에 사용할 최대 Hz*
 
-It assumes value of the incoming record is an array of *time,amplitude* tuples, then applies *Fast Fourier Transform* on the array and replaces the value with an array of *frequency,amplitude* tuples. The key remains same.
+들어온 레코드의 값이 *시간,진폭* 튜플 배열이라고 보고 *고속 푸리에 변환*을 적용해 값을 *주파수,진폭* 튜플 배열로 바꿉니다. 키는 그대로입니다.
 
-For example, if the incoming record was `{key: k, value[ [t1,a1],[t2,a2],...[tn,an] ]}`, it transforms the value to `{key:k, value[ [F1,A1], [F2,A2],...[Fm,Am] ]}`.
+예를 들어 들어온 레코드가 `{key: k, value[ [t1,a1],[t2,a2],...[tn,an] ]}` 이면 값을 `{key:k, value[ [F1,A1], [F2,A2],...[Fm,Am] ]}` 로 변환합니다.
 
 ```js
 FAKE(
@@ -824,23 +824,23 @@ CHART_LINE(
 )
 ```
 
-Please refer to the FFT() section for the more information including 3D sample codes
+3D 샘플 코드를 포함한 자세한 내용은 FFT() 항목을 참고하세요
 
 ## WHEN()
 
-*Syntax*: `WHEN(condition, doer)` (since v8.0.7)
+**문법**: `WHEN(condition, doer)` (since v8.0.7)
 
 - `condition` *boolean*
 - `doer` *doer*
 
-`WHEN` runs `doer` action if the given condition is `true`.
-This function does not affects the flow of records, it just executes the defined *side effect* work.
+`WHEN`은 주어진 조건이 `true`이면 `doer` 동작을 실행합니다.
+이 함수는 레코드의 흐름에 영향을 주지 않고 정의된 *부수 작업*만 실행합니다.
 
 ### doLog()
 
-*Syntax*: `doLog(args...)` (since v8.0.7)
+**문법**: `doLog(args...)` (since v8.0.7)
 
-Prints out log message on the web console.
+웹 콘솔에 로그 메시지를 출력합니다.
 
 ```js
 FAKE( linspace(1, 2, 2))
@@ -850,18 +850,18 @@ CSV()
 
 ### doHttp()
 
-*Syntax*: `doHttp(method, url, body [, header...])` (since v8.0.7)
+**문법**: `doHttp(method, url, body [, header...])` (since v8.0.7)
 
 - `method` *string*
 - `url` *string*
 - `body` *string*
 - `header` *string* optional
 
-`doHttp` requests the http endpoints with given method, url, body and headers.
+`doHttp`는 주어진 메서드, URL, 본문, 헤더로 http 엔드포인트에 요청합니다.
 
-**Use cases**
+**활용 사례**
 
-- Notify an event to the specific HTTP endpoint.
+- 특정 HTTP 엔드포인트로 이벤트를 알립니다.
 
 ```js
 FAKE( linspace(1, 4, 4))
@@ -872,7 +872,7 @@ WHEN(
 CSV()
 ```
 
-- Post the current record to the specific HTTP endpoint in CSV which is default format of `doHttp`.
+- `doHttp`의 기본 형식인 CSV로 현재 레코드를 특정 HTTP 엔드포인트에 전송합니다.
 
 ```js
 FAKE( linspace(1, 4, 4))
@@ -883,7 +883,7 @@ WHEN(
 CSV()
 ```
 
-- Post the current record in a custom JSON format to the specific HTTP endpoint.
+- 현재 레코드를 사용자 정의 JSON 형식으로 특정 HTTP 엔드포인트에 전송합니다.
 
 ```js
 FAKE( linspace(1, 4, 4))
@@ -900,14 +900,14 @@ CSV()
 
 ### do()
 
-*Syntax*: `do(args..., { sub-flow-code })` (since v8.0.7)
+**문법**: `do(args..., { sub-flow-code })` (since v8.0.7)
 
-`do` executes the given sub flow code with passing `args...` arguments.
+`do`는 `args...` 인자를 전달하며 주어진 하위 흐름 코드를 실행합니다.
 
-It is important to keep in mind that `WHEN()` is only for executing a side effect job on a certain condition.
-`WHEN-do` sub flow cannot affects to the main flow, which means it cannot use SINKs that produce result on output stream like `CSV`, `JSON`, and `CHART_*`. The output of a sub flow will be ignored silently, any writing attempts from a sink are ignored and showing warning messages.
+`WHEN()`은 특정 조건에서 부수 작업을 실행하기 위한 것일 뿐이라는 점을 기억해야 합니다.
+`WHEN-do` 하위 흐름은 메인 흐름에 영향을 줄 수 없습니다. 즉 `CSV`, `JSON`, `CHART_*`처럼 출력 스트림에 결과를 내는 SINK를 사용할 수 없습니다. 하위 흐름의 출력은 조용히 무시되며, SINK의 쓰기 시도는 무시되고 경고 메시지가 표시됩니다.
 
-Effective SINKs in a sub flow may be `INSERT` and `APPEND` which is not related with output stream, so that it can write the specific values on a different table from main TQL flow. Otherwise use `DISCARD()` sink, it silently discards any records in the sub flow without warning messages.
+하위 흐름에서 유효한 SINK는 출력 스트림과 무관한 `INSERT`와 `APPEND`이며, 메인 TQL 흐름과 다른 테이블에 값을 쓸 수 있습니다. 그 외에는 `DISCARD()` SINK를 사용하세요. 경고 메시지 없이 하위 흐름의 레코드를 조용히 버립니다.
 
 ```js
 FAKE( json({
@@ -927,10 +927,10 @@ WHEN(
 CSV()
 ```
 
-The log messages of the above code shows the two important points.
+위 코드의 로그 메시지는 두 가지 중요한 점을 보여줍니다.
 
-1. The main flow is blocked and waits until its sub flow finishes the job.
-2. The sub flow is executed every time for a record that matches the condition.
+1. 메인 흐름은 하위 흐름이 작업을 마칠 때까지 블록되어 기다립니다.
+2. 하위 흐름은 조건에 맞는 레코드마다 매번 실행됩니다.
 
 ```sh
 2023-12-02 07:54:42.160 TRACE 0xc000bfa580 Task compiled FAKE() → WHEN() → CSV()
@@ -943,11 +943,11 @@ The log messages of the above code shows the two important points.
 2023-12-02 07:54:42.161 DEBUG 0xc000bfa580 Task elapsed 1.102681ms
 ```
 
-**Use cases**
+**활용 사례**
 
-When sub flow retrieves data from other than its arguments, it can access the arguments with `args([idx])` option function.
+하위 흐름이 인자 이외의 데이터를 가져올 때는 `args([idx])` 옵션 함수로 인자에 접근할 수 있습니다.
 
-- Execute query with sub flow's arguments.
+- 하위 흐름의 인자로 쿼리를 실행합니다.
 
 ```js
 // pseudo code
@@ -962,7 +962,7 @@ WHEN( condition,
 // ...
 ```
 
-- Retrieve csv file from external web server
+- 외부 웹 서버에서 csv 파일을 가져옵니다
 
 ```js
 // pseudo code
@@ -979,17 +979,17 @@ WHEN( condition,
 
 ## FLATTEN()
 
-*Syntax*: `FLATTEN()`
+**문법**: `FLATTEN()`
 
-It works the opposite way of *GROUPBYKEY()*. Take a record whose value is multi-dimension tuple, produces multiple records for each elements of the tuple reducing the dimension.
+*GROUPBYKEY()*와 반대로 동작합니다. 값이 다차원 튜플인 레코드를 받아, 튜플의 각 요소마다 레코드를 만들어 차원을 낮춥니다.
 
-For example, if an original record was `{key:k, value:[[v1,v2],[v3,v4],...,[vx,vy]]}`, it produces the new multiple records as `{key:k, value:[v1, v2]}`, `{key:k, value:{v3, v4}}`...`{key:k, value:{vx, vy}}`.
+예를 들어 원래 레코드가 `{key:k, value:[[v1,v2],[v3,v4],...,[vx,vy]]}` 이면, `{key:k, value:[v1, v2]}`, `{key:k, value:{v3, v4}}`...`{key:k, value:{vx, vy}}` 처럼 여러 레코드를 만듭니다.
 
 ## MAPKEY()
 
-*Syntax*: `MAPKEY( newkey )`
+**문법**: `MAPKEY( newkey )`
 
-Replace current key value with the given newkey.
+현재 키 값을 주어진 newkey로 바꿉니다.
 
 ```js
 FAKE( json({
@@ -1016,11 +1016,11 @@ CSV()
 
 ## PUSHKEY()
 
-*Syntax*: `PUSHKEY( newkey )`
+**문법**: `PUSHKEY( newkey )`
 
-Apply new key on each record. The original key is push into value tuple.
+각 레코드에 새 키를 적용합니다. 원래 키는 값 튜플로 밀려 들어갑니다.
 
-For example, if an original record was `{key: 'k1', value: [v1, v2]}` and applied `PUSHKEY(newkey)`, it produces the updated record as `{key: newkey, values: [k1, v1, v1]}`.
+예를 들어 원래 레코드가 `{key: 'k1', value: [v1, v2]}` 이고 `PUSHKEY(newkey)`를 적용하면 `{key: newkey, values: [k1, v1, v1]}` 로 바뀝니다.
 
 ```js
 FAKE( json({
@@ -1047,15 +1047,15 @@ CSV()
 
 ## POPKEY()
 
-*Syntax*: `POPKEY( [idx] )`
+**문법**: `POPKEY( [idx] )`
 
-Drop current key of the record, then promote *idx*th element of *tuple* as a new key.
+레코드의 현재 키를 버리고 *tuple*의 *idx*번째 요소를 새 키로 올립니다.
 
-For example, if an original record was `{key: k, value: [v1, v2, v3]}` and applied `POPKEY(1)`, it produces the updated record as `{key: v2, value:[v1, v3]}`.
+예를 들어 원래 레코드가 `{key: k, value: [v1, v2, v3]}` 이고 `POPKEY(1)`을 적용하면 `{key: v2, value:[v1, v3]}` 로 바뀝니다.
 
-if use `POPKEY()` without argument it is equivalent with `POPKEY(0)` which is promoting the first element of the value tuple as the key.
+인자 없이 `POPKEY()`를 쓰면 `POPKEY(0)`과 같으며, 값 튜플의 첫 요소를 키로 올립니다.
 
-**Example: POPKEY()**
+**예제: POPKEY()**
 
 ```js
 FAKE( json({
@@ -1079,7 +1079,7 @@ CSV()
 1629126000000000000,15
 ```
 
-**Example: POPKEY(idx)**
+**예제: POPKEY(idx)**
 
 ```js
 FAKE( json({
@@ -1105,21 +1105,21 @@ TAG0,15
 
 ## GROUPBYKEY()
 
-*Syntax*: `GROUPBYKEY( [lazy(boolean)] )`
+**문법**: `GROUPBYKEY( [lazy(boolean)] )`
 
-- `lazy(boolean)` If it set `false` which is default, *GROUPBYKEY()* yields new grouped record when the key of incoming record has changed from previous record. If it set `true`, *GROUPBYKEY()* waits the end of the input stream before yield any record. 
+- `lazy(boolean)` 기본값인 `false`이면 들어오는 레코드의 키가 이전 레코드와 달라질 때마다 *GROUPBYKEY()* 가 새 그룹 레코드를 내보냅니다. `true`이면 *GROUPBYKEY()* 는 입력 스트림이 끝날 때까지 기다렸다가 레코드를 내보냅니다. 
 
-`GROUPBYKEY` is equivalent expression with `GROUP( by( key() ) )`.
+`GROUPBYKEY`는 `GROUP( by( key() ) )`와 같은 표현입니다.
 
 ## THROTTLE()
 
-*Syntax*: `THROTTLE(tps)` (since v8.0.8)
+**문법**: `THROTTLE(tps)` (since v8.0.8)
 
-- `tps` *number* specify in number of records per a second.
+- `tps` *숫자* 초당 레코드 수로 지정합니다.
 
-`THROTTLE` relays a record to the next step with delay to fit to the specified *tps*.
-It makes data flow which has a certain period from stored data (e.g a CSV file), 
-so that *simulates* a sensor device that sends measurements by periods.
+`THROTTLE`은 지정한 *tps*에 맞추어 지연을 두고 레코드를 다음 단계로 전달합니다.
+저장된 데이터(예: CSV 파일)로부터 일정 주기를 갖는 데이터 흐름을 만들어, 
+주기적으로 측정값을 보내는 센서 장치를 *시뮬레이션*합니다.
 
 ```js
 FAKE(linspace(1,5,5))
@@ -1128,7 +1128,7 @@ WHEN(true, doLog("===>tick", value(0)))
 CSV()
 ```
 
-- At console log, each log time of "tick" message has *200ms.* difference (5 per a second).
+- 콘솔 로그에서 "tick" 메시지의 각 로그 시각은 *200ms* 차이가 납니다(초당 5회).
 
 ```
 2023-12-07 09:33:30.131 TRACE 0x14000f88b00 Task compiled FAKE() → THROTTLE() → WHEN() → CSV()
@@ -1143,6 +1143,6 @@ Task elapsed 1.005070167s
 
 ## SCRIPT()
 
-Supporting user defined script language.
+사용자 정의 스크립트 언어를 지원합니다.
 
-See SCRIPT section for the details with examples.
+자세한 내용과 예제는 SCRIPT 항목을 참고하세요.

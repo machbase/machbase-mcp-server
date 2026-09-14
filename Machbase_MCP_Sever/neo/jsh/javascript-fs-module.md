@@ -1,18 +1,18 @@
 # Machbase Neo JavaScript FS Module
 
-The `fs` module provides synchronous, Node.js-compatible file system APIs for JSH applications.
+`fs` 모듈은 JSH 애플리케이션을 위한 동기식 Node.js 호환 파일 시스템 API를 제공합니다.
 
 ## readFile()
 
-Reads a file and returns its content as a string (default: `utf8`) or as bytes.
+파일을 읽어 내용을 문자열(기본값 `utf8`) 또는 바이트로 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 readFile(path[, options])
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const fs = require('fs');
@@ -22,15 +22,15 @@ console.println(content.length);
 
 ## writeFile()
 
-Writes data to a file. Creates the file or overwrites existing content.
+파일에 데이터를 씁니다. 파일을 만들거나 기존 내용을 덮어씁니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 writeFile(path, data[, options])
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const fs = require('fs');
@@ -39,9 +39,9 @@ fs.writeFile('/work/test.txt', 'Hello', 'utf8');
 
 ## appendFile()
 
-Appends data to a file. Creates the file when it does not exist.
+파일에 데이터를 덧붙입니다. 파일이 없으면 만듭니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 appendFile(path, data[, options])
@@ -49,9 +49,9 @@ appendFile(path, data[, options])
 
 ## countLines()
 
-Counts newline-separated lines in a file.
+파일에서 개행으로 구분된 줄 수를 셉니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 countLines(path)
@@ -59,9 +59,9 @@ countLines(path)
 
 ## exists()
 
-Returns `true` if a file or directory exists.
+파일이나 디렉터리가 있으면 `true`를 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 exists(path)
@@ -69,21 +69,21 @@ exists(path)
 
 ## stat()
 
-Returns file or directory metadata.
+파일 또는 디렉터리의 메타데이터를 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 stat(path)
 ```
 
-<h6>Returned fields</h6>
+<h6>반환 필드</h6>
 
 - `name`, `size`, `mode`, `mtime`, `atime`, `ctime`, `birthtime`
 - `isFile()`, `isDirectory()`, `isSymbolicLink()`
 - `isBlockDevice()`, `isCharacterDevice()`, `isFIFO()`, `isSocket()`
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const fs = require('fs');
@@ -94,23 +94,23 @@ console.println(st.name);
 
 ## lstat()
 
-Returns file metadata. Current implementation behaves the same as `stat()`.
+파일 메타데이터를 반환합니다. 현재 구현은 `stat()`과 동일하게 동작합니다.
 
 ## readdir()
 
-Reads directory entries.
+디렉터리 항목을 읽습니다.
 
-- Default: returns `string[]`
-- `withFileTypes: true`: returns entry objects with `name` and type methods
-- `recursive: true`: returns recursive entries
+- 기본: `string[]`을 반환합니다
+- `withFileTypes: true`: `name`과 타입 메서드를 가진 항목 객체를 반환합니다
+- `recursive: true`: 하위까지 재귀적으로 항목을 반환합니다
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 readdir(path[, options])
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const fs = require('fs');
@@ -121,15 +121,15 @@ console.println(names.length, entries.length);
 
 ## mkdir()
 
-Creates a directory. Supports recursive creation.
+디렉터리를 만듭니다. 재귀 생성을 지원합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 mkdir(path[, options])
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const fs = require('fs');
@@ -138,60 +138,60 @@ fs.mkdir('/work/a/b/c', { recursive: true });
 
 ## rmdir()
 
-Removes a directory. With `{ recursive: true }`, removes children first.
+디렉터리를 삭제합니다. `{ recursive: true }`이면 하위 항목부터 삭제합니다.
 
 ## rm()
 
-Removes a file or directory. `force: true` suppresses errors.
+파일 또는 디렉터리를 삭제합니다. `force: true`이면 오류를 무시합니다.
 
 ## unlink()
 
-Removes a file.
+파일을 삭제합니다.
 
 ## rename()
 
-Renames or moves a file/directory in the same mounted filesystem.
+같은 마운트 파일시스템 안에서 파일·디렉터리의 이름을 바꾸거나 이동합니다.
 
 ## copyFile()
 
-Copies a single file. `COPYFILE_EXCL` fails when destination exists.
+파일 하나를 복사합니다. `COPYFILE_EXCL`은 대상이 이미 있으면 실패합니다.
 
 ## cp()
 
-Copies a file or directory. Directory copy requires `{ recursive: true }`.
+파일 또는 디렉터리를 복사합니다. 디렉터리 복사에는 `{ recursive: true }`가 필요합니다.
 
 ## symlink()
 
-Creates a symbolic link.
+심볼릭 링크를 만듭니다.
 
 ## readlink()
 
-Reads a symbolic link target.
+심볼릭 링크의 대상을 읽습니다.
 
 ## realpath()
 
-Returns a resolved path with symlink resolution behavior.
+심볼릭 링크를 따라 해석된 경로를 반환합니다.
 
 ## access()
 
-Checks path accessibility. Supports mode constants: `F_OK`, `R_OK`, `W_OK`, `X_OK`.
+경로 접근 가능 여부를 확인합니다. 모드 상수 `F_OK`, `R_OK`, `W_OK`, `X_OK`를 지원합니다.
 
 ## truncate()
 
-Truncates file content.
+파일 내용을 잘라냅니다.
 
 ## open()
 
-Opens a file and returns a numeric file descriptor.
-Supports string flags such as `r`, `r+`, `w`, `w+`, `a`, `a+`, `wx`, `wx+`, `ax`, `ax+`.
+파일을 열고 숫자형 파일 디스크립터를 반환합니다.
+`r`, `r+`, `w`, `w+`, `a`, `a+`, `wx`, `wx+`, `ax`, `ax+` 같은 문자열 플래그를 지원합니다.
 
 ## close()
 
-Closes a file descriptor.
+파일 디스크립터를 닫습니다.
 
 ## read()
 
-Reads from a file descriptor into a buffer.
+파일 디스크립터에서 버퍼로 읽습니다.
 
 ```js
 read(fd, buffer, offset, length[, position])
@@ -199,7 +199,7 @@ read(fd, buffer, offset, length[, position])
 
 ## write()
 
-Writes string or buffer data to a file descriptor.
+파일 디스크립터에 문자열 또는 버퍼 데이터를 씁니다.
 
 ```js
 write(fd, buffer, offset, length[, position])
@@ -207,25 +207,25 @@ write(fd, buffer, offset, length[, position])
 
 ## fstat()
 
-Returns metadata from a file descriptor.
+파일 디스크립터에서 메타데이터를 반환합니다.
 
 ## fchmod(), fchown()
 
-Changes mode/owner via file descriptor.
+파일 디스크립터로 모드·소유자를 변경합니다.
 
 ## fsync(), fdatasync()
 
-Flushes pending file data to storage.
+대기 중인 파일 데이터를 저장소에 플러시합니다.
 
 ## chmod(), chown()
 
-Changes mode/owner by path. On Windows, these are no-op compatible behaviors.
+경로로 모드·소유자를 변경합니다. Windows에서는 아무 동작도 하지 않는 호환 동작입니다.
 
 ## createReadStream(), createWriteStream()
 
-Creates stream objects compatible with EventEmitter-based usage.
+EventEmitter 기반 사용과 호환되는 스트림 객체를 만듭니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const fs = require('fs');
@@ -236,11 +236,11 @@ rs.pipe(ws);
 
 ## platform(), arch()
 
-Returns runtime platform and architecture strings.
+런타임 플랫폼과 아키텍처 문자열을 반환합니다.
 
 ## constants
 
-Constant object for access, copy, and open flags.
+접근·복사·열기 플래그를 위한 상수 객체입니다.
 
 - Access: `F_OK`, `R_OK`, `W_OK`, `X_OK`
 - Copy: `COPYFILE_EXCL`, `COPYFILE_FICLONE`, `COPYFILE_FICLONE_FORCE`
@@ -248,12 +248,12 @@ Constant object for access, copy, and open flags.
 
 ## Aliases
 
-For Node.js compatibility, the module also exports `Sync`-suffixed aliases:
+Node.js 호환을 위해 이 모듈은 `Sync` 접미가 붙은 별칭도 내보냅니다:
 `readFileSync`, `writeFileSync`, `appendFileSync`, `readdirSync`, `mkdirSync`, `rmSync`, `statSync`, `openSync`, `closeSync`, `readSync`, `writeSync`, `fstatSync`, `fsyncSync`, `fdatasyncSync`.
 
-## Examples
+## 예제
 
-### Read and Parse JSON File
+### JSON 파일 읽고 파싱하기
 
 ```js
 const fs = require('fs');
@@ -267,7 +267,7 @@ try {
 }
 ```
 
-### Directory Tree Walker
+### 디렉터리 트리 순회
 
 ```js
 const fs = require('fs');
@@ -288,7 +288,7 @@ function walkDir(dir, callback, indent) {
 }
 ```
 
-### Safe File Write
+### 안전한 파일 쓰기
 
 ```js
 const fs = require('fs');

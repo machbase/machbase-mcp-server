@@ -1,121 +1,121 @@
 # Machbase Neo Other Charts
 
-## Quick Reference
+## 빠른 참조
 
-### TQL Pipeline Structure
+### TQL 파이프라인 구조
 
-TQL operates in a **data flow (pipeline)** manner:
+TQL은 **데이터 흐름(파이프라인)** 방식으로 동작합니다:
 
 ```
-SRC (Data Source) → MAP (Transform) → SINK (Output)
+SRC (데이터 소스) → MAP (변환) → SINK (출력)
 ```
 
 ---
 
-### SRC - Data Sources
+### SRC - 데이터 소스
 
-Functions that **generate or fetch data** (pipeline start)
+**데이터를 생성하거나 가져오는** 함수 (파이프라인 시작)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `FAKE()` | Generate test data | `FAKE(linspace(0, 100, 10))` |
-| `SQL()` | Database query | `SQL('SELECT time, value FROM example')` |
-| `CSV()` | Read CSV file | `CSV(file('/path/to/data.csv'))` |
-| `SCRIPT()` | JavaScript code | `SCRIPT({ $.yield(1, 2, 3) })` |
+| `FAKE()` | 테스트 데이터 생성 | `FAKE(linspace(0, 100, 10))` |
+| `SQL()` | 데이터베이스 쿼리 | `SQL('SELECT time, value FROM example')` |
+| `CSV()` | CSV 파일 읽기 | `CSV(file('/path/to/data.csv'))` |
+| `SCRIPT()` | JavaScript 코드 | `SCRIPT({ $.yield(1, 2, 3) })` |
 
 ---
 
-### MAP - Data Transformation
+### MAP - 데이터 변환
 
-Functions that **process and transform data** (pipeline middle)
+**데이터를 가공하고 변환하는** 함수 (파이프라인 중간)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `MAPVALUE()` | Add/modify column | `MAPVALUE(1, value(0) * 2)` |
-| `MAPKEY()` | Modify key | `MAPKEY(strUpper(key()))` |
-| `PUSHVALUE()` | Insert column at front | `PUSHVALUE(0, "new_value")` |
-| `POPVALUE()` | Remove column | `POPVALUE(2)` |
-| `GROUP()` | Group/aggregate | `GROUP(by(value(0)), avg(value(1)))` |
-| `SCRIPT()` | JavaScript processing | `SCRIPT({}, { /* process */ }, {})` |
+| `MAPVALUE()` | 컬럼 추가/수정 | `MAPVALUE(1, value(0) * 2)` |
+| `MAPKEY()` | 키 수정 | `MAPKEY(strUpper(key()))` |
+| `PUSHVALUE()` | 앞쪽에 컬럼 삽입 | `PUSHVALUE(0, "new_value")` |
+| `POPVALUE()` | 컬럼 제거 | `POPVALUE(2)` |
+| `GROUP()` | 그룹화/집계 | `GROUP(by(value(0)), avg(value(1)))` |
+| `SCRIPT()` | JavaScript 처리 | `SCRIPT({}, { /* process */ }, {})` |
 
 ---
 
-### SINK - Data Output
+### SINK - 데이터 출력
 
-Functions that **output or save data** (pipeline end)
+**데이터를 출력하거나 저장하는** 함수 (파이프라인 끝)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `CHART()` | Create chart | `CHART(chartOption({...}))` |
-| `CSV()` | CSV output | `CSV()` |
-| `JSON()` | JSON output | `JSON()` |
-| `INSERT()` | DB insert | `INSERT(...)` |
+| `CHART()` | 차트 생성 | `CHART(chartOption({...}))` |
+| `CSV()` | CSV 출력 | `CSV()` |
+| `JSON()` | JSON 출력 | `JSON()` |
+| `INSERT()` | DB 입력 | `INSERT(...)` |
 | `APPEND()` | DB append | `APPEND(table('example'))` |
 
 ---
 
-### CHART() Function Basic Usage
+### CHART() 함수 기본 사용법
 
-**Syntax**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
+**문법**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
 
-*Available since version 8.0.8*
+*버전 8.0.8부터 사용 가능*
 
-#### Main Options
+#### 주요 옵션
 
 **chartOption()**
 - `chartOption( { json in apache echarts options } )`
-- Pass Apache ECharts options in JSON format.
+- Apache ECharts 옵션을 JSON 형식으로 전달합니다.
 
 **size()**
 - `size(width, height)`
-- `width` *string* Chart width in HTML syntax e.g., `'800px'`
-- `height` *string* Chart height in HTML syntax e.g., `'800px'`
+- `width` *string* HTML 문법의 차트 너비, 예: `'800px'`
+- `height` *string* HTML 문법의 차트 높이, 예: `'800px'`
 
 **theme()**
 - `theme(name)`
-- `name` *string* Theme name
-- Available themes: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
+- `name` *string* 테마 이름
+- 사용 가능한 테마: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
 
 **chartJSCode()**
 - `chartJSCode( { user javascript code } )`
-- Execute custom JavaScript code.
+- 사용자 정의 JavaScript 코드를 실행합니다.
 
 **plugins()**
 - `plugins(plugin...)`
-- `plugin` *string* Pre-defined plugin name or URL of plugin module
+- `plugin` *string* 미리 정의된 플러그인 이름 또는 플러그인 모듈의 URL
 
 ---
 
-### Key Functions
+### 핵심 함수
 
 #### value(index)
-Access values of the **current record** (used in pipeline middle)
+**현재 레코드**의 값에 접근합니다 (파이프라인 중간에서 사용)
 
-- `value(0)` = First value of current record
-- `value(1)` = Second value of current record
-- `value()` = Entire value array
+- `value(0)` = 현재 레코드의 첫 번째 값
+- `value(1)` = 현재 레코드의 두 번째 값
+- `value()` = 값 배열 전체
 
 ---
 
 #### column(index)
-Collect specific column from **all records** as array (CHART() only)
+**모든 레코드**에서 특정 컬럼을 배열로 모읍니다 (CHART() 전용)
 
-- `column(0)` = First values from all records → array
-- `column(1)` = Second values from all records → array
-- **⚠️ Only usable inside CHART()**
+- `column(0)` = 모든 레코드의 첫 번째 값 → 배열
+- `column(1)` = 모든 레코드의 두 번째 값 → 배열
+- **⚠️ CHART() 안에서만 사용 가능**
 
-**Comparison**:
+**비교**:
 
-| Function | Location | Returns | Example |
+| 함수 | 사용 위치 | 반환 | 예시 |
 |----------|----------|---------|---------|
-| `value(0)` | Pipeline middle | Single value | `10` |
-| `column(0)` | Inside CHART() | Array | `[1,2,3]` |
+| `value(0)` | 파이프라인 중간 | 단일 값 | `10` |
+| `column(0)` | CHART() 내부 | 배열 | `[1,2,3]` |
 
 ---
 
-## 1. Sankey Diagram
+## 1. 생키 다이어그램
 
-Flow diagram showing connections and quantities between nodes.
+노드 간 연결과 흐름의 양을 보여주는 다이어그램입니다.
 
 ```js
 FAKE(csv(
@@ -148,41 +148,41 @@ SCRIPT({
 CHART()
 ```
 
-**Description**: Sankey diagram visualizing flows between nodes. Width of connecting lines represents flow quantity.
+**설명**: 노드 간 흐름을 시각화하는 생키 다이어그램입니다. 연결선의 두께가 흐름의 양을 나타냅니다.
 
-**Key Points**:
+**핵심 포인트**:
 
 **Data Format**:
 - CSV: `source,target,value`
-- Converted to objects: `{source: "a", target: "a1", value: 5}`
-- Links array defines all connections
+- 객체로 변환: `{source: "a", target: "a1", value: 5}`
+- links 배열이 모든 연결을 정의합니다
 
-**Node Definition**:
-- `data: [{name: "a"}, {name: "b"}, ...]` defines all nodes
-- Must include all sources and targets
-- Node positions auto-calculated
+**노드 정의**:
+- `data: [{name: "a"}, {name: "b"}, ...]`가 모든 노드를 정의합니다
+- 모든 source와 target을 포함해야 합니다
+- 노드 위치는 자동 계산됩니다
 
-**Configuration**:
-- `type: "sankey"` creates Sankey diagram
-- `layout: "none"` uses default layout algorithm
-- `emphasis.focus: "adjacency"` highlights connected nodes on hover
-- `links` contains connection data
-- `value` determines link width
+**설정**:
+- `type: "sankey"`가 생키 다이어그램을 만듭니다
+- `layout: "none"`은 기본 레이아웃 알고리즘을 사용합니다
+- `emphasis.focus: "adjacency"`가 마우스오버 시 연결된 노드를 강조합니다
+- `links`에 연결 데이터가 들어갑니다
+- `value`가 연결선 두께를 결정합니다
 
-**Use Cases**:
-- Energy flow diagrams
-- Material flow analysis
-- Budget allocation
-- User journey visualization
-- Network traffic analysis
+**활용 사례**:
+- 에너지 흐름도
+- 물질 흐름 분석
+- 예산 배분
+- 사용자 여정 시각화
+- 네트워크 트래픽 분석
 
 ---
 
-## 2. Word Cloud
+## 2. 워드클라우드
 
-Visual representation of word frequency with size-based encoding.
+단어 빈도를 크기로 표현하는 시각화입니다.
 
-### From External Text File
+### 외부 텍스트 파일에서
 
 ```js
 SCRIPT({
@@ -250,7 +250,7 @@ CHART(
 )
 ```
 
-### From CSV Data
+### CSV 데이터에서
 
 ```js
 FAKE(csv(
@@ -353,47 +353,47 @@ CHART(
 )
 ```
 
-**Description**: Word cloud visualization where word size represents frequency. Two approaches: counting words from text file, or using pre-counted CSV data.
+**설명**: 단어 크기가 빈도를 나타내는 워드클라우드입니다. 텍스트 파일에서 단어를 세는 방법과, 이미 집계된 CSV 데이터를 쓰는 두 가지 방식을 보여줍니다.
 
-**Key Points**:
+**핵심 포인트**:
 
-**Data Preparation**:
-- **Method 1**: Fetch text, split by whitespace, count occurrences
-- **Method 2**: Load pre-counted data from CSV
-- Result format: `{name: "word", value: count}`
+**데이터 준비**:
+- **방법 1**: 텍스트를 가져와 공백으로 나누고 출현 횟수를 셉니다
+- **방법 2**: 이미 집계된 데이터를 CSV에서 불러옵니다
+- 결과 형식: `{name: "word", value: count}`
 
-**Configuration**:
-- `plugins("wordcloud")` loads word cloud plugin
-- `type: "wordCloud"` creates word cloud
-- `gridSize: 4-8` spacing between words (smaller = tighter)
-- `sizeRange: [12, 50]` min/max font sizes
-- `rotationRange: [-90, 90]` word rotation angles
-- `shape: "circle"` cloud shape (also: "square", "diamond", "pentagon")
+**설정**:
+- `plugins("wordcloud")`가 워드클라우드 플러그인을 로드합니다
+- `type: "wordCloud"`가 워드클라우드를 만듭니다
+- `gridSize: 4-8`은 단어 간 간격입니다(작을수록 촘촘)
+- `sizeRange: [12, 50]`은 최소/최대 글꼴 크기입니다
+- `rotationRange: [-90, 90]`은 단어 회전 각도입니다
+- `shape: "circle"`은 구름 모양입니다(그 외 "square", "diamond", "pentagon")
 
-**Layout**:
+**배치**:
 - `width: 580, height: 580` canvas size
-- `left: "center", top: "center"` positioning
-- `drawOutOfBound: false` prevents words outside boundary
-- `layoutAnimation: true` animates word placement
+- `left: "center", top: "center"`로 위치를 지정합니다
+- `drawOutOfBound: false`가 경계 밖으로 단어가 나가는 것을 막습니다
+- `layoutAnimation: true`가 단어 배치를 애니메이션으로 보여줍니다
 
-**Styling**:
-- Random RGB colors via `chartJSCode`
-- Colors limited to 0-160 (darker colors)
-- Bold sans-serif font
-- Shadow effect on hover
+**스타일**:
+- `chartJSCode`로 무작위 RGB 색상 지정
+- 색상값을 0~160으로 제한(어두운 색 위주)
+- 굵은 산세리프 글꼴
+- 마우스오버 시 그림자 효과
 
-**Use Cases**:
-- Text analysis
+**활용 사례**:
+- 텍스트 분석
 - Tag clouds
-- Survey responses
-- Social media trends
-- Document summarization
+- 설문 응답
+- 소셜 미디어 트렌드
+- 문서 요약
 
 ---
 
-## 3. GEO SVG Lines
+## 3. GEO SVG 경로
 
-Animated path on custom SVG map.
+사용자 정의 SVG 지도 위의 애니메이션 경로입니다.
 
 ```js
 FAKE(json({
@@ -481,45 +481,45 @@ CHART(
 )
 ```
 
-**Description**: Animated path visualization on custom SVG floorplan. Shows moving vehicle icon following a dotted route.
+**설명**: 사용자 정의 SVG 평면도 위에 애니메이션 경로를 표시합니다. 점선 경로를 따라 이동하는 차량 아이콘을 보여줍니다.
 
-**Key Points**:
+**핵심 포인트**:
 
-**Data Preparation**:
-- Array of `[x, y]` coordinates
-- `list(value(0), value(1))` creates coordinate pairs
-- Final format: `[[x1, y1], [x2, y2], ...]`
+**데이터 준비**:
+- `[x, y]` 좌표 배열
+- `list(value(0), value(1))`이 좌표 쌍을 만듭니다
+- 최종 형식: `[[x1, y1], [x2, y2], ...]`
 
-**SVG Map Loading**:
-- `fetch()` loads external SVG file
-- `echarts.registerMap()` registers SVG as map
-- `coordinateSystem: "geo"` uses registered map
-- `roam: true` enables pan/zoom
+**SVG 지도 로딩**:
+- `fetch()`가 외부 SVG 파일을 불러옵니다
+- `echarts.registerMap()`이 SVG를 지도로 등록합니다
+- `coordinateSystem: "geo"`가 등록된 지도를 사용합니다
+- `roam: true`가 이동·확대를 활성화합니다
 
-**Line Configuration**:
-- `type: "lines"` draws polyline
-- `polyline: true` connects all points in sequence
-- `lineStyle`: dotted brown line, 5px width
-- Coordinates map to SVG coordinate system
+**선 설정**:
+- `type: "lines"`가 폴리라인을 그립니다
+- `polyline: true`가 모든 점을 순서대로 연결합니다
+- `lineStyle`: 갈색 점선, 두께 5px
+- 좌표는 SVG 좌표계에 매핑됩니다
 
-**Animation Effect**:
-- `effect.show: true` enables moving symbol
-- `period: 8` animation cycle duration (seconds)
-- `constantSpeed: 80` movement speed
-- `trailLength: 0` no trail behind symbol
-- `symbol: "path://..."` custom SVG vehicle icon
-- Red vehicle (#a10000) moves along brown path
+**애니메이션 효과**:
+- `effect.show: true`가 이동하는 심볼을 활성화합니다
+- `period: 8`은 애니메이션 주기(초)입니다
+- `constantSpeed: 80`은 이동 속도입니다
+- `trailLength: 0`은 심볼 뒤에 잔상을 남기지 않습니다
+- `symbol: "path://..."`는 사용자 정의 SVG 차량 아이콘입니다
+- 빨간 차량(#a10000)이 갈색 경로를 따라 이동합니다
 
-**Use Cases**:
-- Indoor navigation
-- Robot path visualization
+**활용 사례**:
+- 실내 내비게이션
+- 로봇 경로 시각화
 - Tour routes
-- Evacuation plans
-- Asset tracking on floorplans
-- Custom map overlays
+- 대피 계획
+- 평면도상 자산 추적
+- 사용자 정의 지도 오버레이
 
-**Technical Details**:
-- SVG coordinates must match data coordinates
-- Custom SVG shapes via path data
-- Works with any SVG file (maps, floorplans, diagrams)
-- Interactive zoom/pan with `roam: true`
+**기술 세부사항**:
+- SVG 좌표와 데이터 좌표가 일치해야 합니다
+- path 데이터로 사용자 정의 SVG 도형 지정
+- 모든 SVG 파일(지도, 평면도, 다이어그램)에 사용 가능
+- `roam: true`로 대화형 확대·이동 가능

@@ -2,15 +2,15 @@
 
 ## Bridge
 
-### Register a bridge
+### 브리지 등록
 
-register sqlite connection
+sqlite 연결 등록
 
 ```
 bridge add -t sqlite sqlitedb file:/data/sqlite.db;
 ```
 
-### List registered bridges
+### 등록된 브리지 목록
 
 ```
 bridge list
@@ -21,15 +21,15 @@ bridge list
 └──────────┴────────┴────────────────────────┘
 ```
 
-### Execute commands on the bridge
+### 브리지에서 명령 실행
 
 ```
 bridge exec sqlitedb CREATE TABLE IF NOT EXISTS example(id INTEGER NOT NULL PRIMARY KEY, name TEXT, age TEXT, address TEXT, UNIQUE(name));
 ```
 
-### Query command on the bridge
+### 브리지에서 query 명령
 
-`bridge query` command is only works with "SQL" type bridges
+`bridge query` 명령은 "SQL" 타입 브리지에서만 동작합니다
 
 ```
 bridge query sqlitedb select * from example;
@@ -43,20 +43,20 @@ bridge query sqlitedb select * from example;
 └────┴────────┴─────┴───────────────┘
 ```
 
-### Utilize a bridge in *tql* with `SQL()`
+### *tql*의 `SQL()`로 브리지 활용
 
-`SQL()` takes `bridge()` option with "SQL" type bridge and execute the given SQL statement.
+`SQL()`은 "SQL" 타입 브리지와 함께 `bridge()` 옵션을 받아 주어진 SQL 문을 실행합니다.
 
 ```js
 SQL(bridge("sqlitedb"), `select * from example`)
 CSV()
 ```
 
-### Utilize a bridge in *tql* `SCRIPT()`
+### *tql* `SCRIPT()`에서 브리지 활용
 
-You can access database-type bridges from `SCRIPT()` using `$.db({bridge:"name"})`, as shown in the example below.
+아래 예제처럼 `SCRIPT()`에서 `$.db({bridge:"name"})`로 데이터베이스 타입 브리지에 접근할 수 있습니다.
 
-Support for accessing bridged databases in JavaScript using `$.db({bridge:"name"})` has been available since version 8.0.27.
+JavaScript에서 `$.db({bridge:"name"})`로 브리지 데이터베이스에 접근하는 기능은 버전 8.0.27부터 지원됩니다.
 
 ```js
 SCRIPT({
@@ -72,20 +72,20 @@ SCRIPT({
 CSV()
 ```
 
-### Copy data to other database
+### 다른 데이터베이스로 데이터 복사
 
-This example demonstrates how to copy data from Machbase to an SQLite bridge.
+이 예제는 Machbase에서 SQLite 브리지로 데이터를 복사하는 방법을 보여줍니다.
 
 **Bridge**
 
-Define a `sqlite` bridge with the following details:
+다음 내용으로 `sqlite` 브리지를 정의합니다:
 
 - Type: `SQLite`
-- Connection string: `file:///tmp/sqlite.db`
+- 연결 문자열: `file:///tmp/sqlite.db`
 
 **SQL**
 
-Create the `example` table in the SQLite database located at "/tmp/sqlite.db".
+"/tmp/sqlite.db"에 있는 SQLite 데이터베이스에 `example` 테이블을 만듭니다.
 
 ```sql
 --env: bridge=sqlite
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS example (
 
 **TQL**
 
-The TQL script below executes a `SELECT` statement using the `SQL()` function to retrieve the required data, and then writes the data into the SQLite database using the `INSERT()` function with `bridge("sqlite")` as the first argument.
+아래 TQL 스크립트는 `SQL()` 함수로 `SELECT` 문을 실행해 필요한 데이터를 가져온 뒤, 첫 인자로 `bridge("sqlite")`를 준 `INSERT()` 함수로 SQLite 데이터베이스에 씁니다.
 
 ```js
 SQL(`select name, time, value from example where name = 'my-car'`)
@@ -108,11 +108,11 @@ INSERT(bridge("sqlite"), "name", "time", "value", table("example"))
 
 ## Subscriber
 
-The purpose of a *subscriber* is connecting to an external message broker system, receiving streaming messages, ingesting messages by *tql* script.
+*구독자*의 목적은 외부 메시지 브로커 시스템에 접속해 스트리밍 메시지를 받고 *tql* 스크립트로 적재하는 것입니다.
 
-Currently machbase-neo supports connecting to the external MQTT brokers, and it will support also NATS and Kafka with the future releases.
+현재 machbase-neo는 외부 MQTT 브로커 연결을 지원하며, 향후 릴리스에서 NATS와 Kafka도 지원할 예정입니다.
 
-A simple use case is that make a bridge to the external MQTT broker, and define a subscriber with 1) the bridge, 2) a topic of the MQTT broker and 3) *tql* script path. Then machbase-neo works as MQTT client and whenever it receives messages, it passes them to the specified *tql* script.
+간단한 사용 사례는 외부 MQTT 브로커로 브리지를 만들고, 1) 브리지, 2) MQTT 브로커의 토픽, 3) *tql* 스크립트 경로로 구독자를 정의하는 것입니다. 그러면 machbase-neo가 MQTT 클라이언트로 동작하며 메시지를 받을 때마다 지정한 *tql* 스크립트로 전달합니다.
 
 ```mermaid
 flowchart RL
@@ -133,33 +133,33 @@ flowchart RL
     end
 ```
 
-### Register a subscriber
+### 구독자 등록
 
-Register subscribers.
+구독자를 등록합니다.
 
 **Syntax:** `subscriber add [options] <name> <bridge> <topic> <tql-path>`
 
 - options
-    - `--autostart` makes the subscriber will start automatically when machbase-neo starts. If the subscriber is not *autostart* mode, you can make it start and stop manually by `subscriber start <name>` and `subscriber stop <name>` commands.
-    - `--qos <int>` if the bridge is MQTT type, it specifies the QoS level of the subscription to the topic. It supports `0`, `1` and the default is `0` if it is not specified.
-    - `--queue <string>` if the bridge is NATS type, it specifies the Queue Group.
+    - `--autostart`는 machbase-neo가 시작될 때 구독자를 자동으로 시작합니다. *autostart* 모드가 아니면 `subscriber start <name>`, `subscriber stop <name>` 명령으로 수동 시작·중지할 수 있습니다.
+    - `--qos <int>` 브리지가 MQTT 타입이면 토픽 구독의 QoS 수준을 지정합니다. `0`, `1`을 지원하며 지정하지 않으면 기본값은 `0`입니다.
+    - `--queue <string>` 브리지가 NATS 타입이면 Queue Group을 지정합니다.
 
-- `<name>` subscriber's name
-- `<bridge>` specify pre-defined bridge, it should be a type of the broker
-- `<topic>` topic to subscribe
-- `<tql-path>` the *tql* script that handles the received message
+- `<name>` 구독자 이름
+- `<bridge>` 미리 정의된 브리지를 지정합니다. 브로커 타입이어야 합니다
+- `<topic>` 구독할 토픽
+- `<tql-path>` 수신 메시지를 처리할 *tql* 스크립트
 
-### Subscriber Status
+### 구독자 상태
 
 **Syntax:** `subscriber list`
 
 - `STOP`
 - `RUNNING`
 
-### Subscriber Start/Stop
+### 구독자 시작/중지
 
 **Syntax:** `subscriber [start | stop] <name>`
 
-### Remove subscriber
+### 구독자 제거
 
 **Syntax:** `subscriber del <name>`

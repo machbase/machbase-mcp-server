@@ -1,22 +1,22 @@
 # Machbase Neo MQTT Go Client
 
-## Setup
+## 준비
 
-### Import paho mqtt for Go
+### Go용 paho mqtt 임포트
 
 ```go
 import paho "github.com/eclipse/paho.mqtt.golang"
 ```
 
-### Create project directory
+### 프로젝트 디렉터리 생성
 
 ```sh
 mkdir mqtt_client && cd mqtt_client
 ```
 
-## Publisher
+## 발행자
 
-### Client
+### 클라이언트
 
 ```go
 	opts := paho.NewClientOptions()
@@ -31,9 +31,9 @@ mkdir mqtt_client && cd mqtt_client
 	client := paho.NewClient(opts)
 ```
 
-### Connect (non-TLS)
+### 접속 (비 TLS)
 
-Connect to machbase-neo via MQTT plain socket.
+MQTT 일반 소켓으로 machbase-neo에 접속합니다.
 
 ```go
 	connectToken := client.Connect()
@@ -43,7 +43,7 @@ Connect to machbase-neo via MQTT plain socket.
 	}
 ```
 
-### Disconnect
+### 접속 종료
 
 ```go
 client.Disconnect(100)
@@ -55,7 +55,7 @@ client.Disconnect(100)
 	client.Publish("db/append/TAGDATA", 1, false, []byte(jsonStr))
 ```
 
-## Full source code
+## 전체 소스 코드
 
 ```go
 package main

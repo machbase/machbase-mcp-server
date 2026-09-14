@@ -1,16 +1,16 @@
 # Machbase Neo HTTP Go Client
 
-## Query
+## 조회
 
 ### GET
 
-Make a SQL query with URL escaping.
+URL 이스케이프를 적용해 SQL 쿼리를 만듭니다.
 
 ```go
 q := url.QueryEscape("select count(*) from M$SYS_TABLES where name = 'TAGDATA'")
 ```
 
-Call HTTP GET method.
+HTTP GET 메서드를 호출합니다.
 
 ```go
 import (
@@ -45,21 +45,21 @@ func main() {
 
 ### POST JSON
 
-A client can request a JSON message containing a SQL query.
+클라이언트는 SQL 쿼리가 담긴 JSON 메시지를 요청할 수 있습니다.
 
-Make JSON content with a SQL query.
+SQL 쿼리로 JSON 내용을 만듭니다.
 
 ```go
 queryJson := `{"q":"select count(*) from M$SYS_TABLES where name = 'TAGDATA'"}`
 ```
 
-Call HTTP POST method with the Content-type.
+Content-type을 지정해 HTTP POST 메서드를 호출합니다.
 
 ```go
 rsp, err := client.Post(addr, "application/json", bytes.NewBufferString(queryJson))
 ```
 
-**Full source code**
+**전체 소스 코드**
 
 ```go
 package main
@@ -97,14 +97,14 @@ func main() {
 
 ### POST FormData
 
-It is possible to send SQL query from HTML form data.
+HTML 폼 데이터로 SQL 쿼리를 보낼 수 있습니다.
 
 ```go
 data := url.Values{"q": {"select count(*) from M$SYS_TABLES where name = 'TAGDATA'"}}
 rsp, err := client.Post(addr, "application/x-www-form-urlencoded", bytes.NewBufferString(data.Encode()))
 ```
 
-**Full source code**
+**전체 소스 코드**
 
 ```go
 package main
@@ -141,7 +141,7 @@ func main() {
 }
 ```
 
-## Write
+## 쓰기
 
 ### POST JSON
 
@@ -261,9 +261,9 @@ func main() {
 }
 ```
 
-## Example
+## 예제
 
-**This example assumes the table below exists.**
+**이 예제는 아래 테이블이 존재한다고 가정합니다.**
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
@@ -273,11 +273,11 @@ CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
 );
 ```
 
-If you are a Go programmer and prefer to write RESTful API client, this is the way to go.
+Go 개발자이면서 RESTful API 클라이언트를 직접 작성하고 싶다면 이 방식이 적합합니다.
 
-### Code explains
+### 코드 설명
 
-Define data structure that represents the payload of write API.
+쓰기 API의 페이로드를 나타내는 데이터 구조를 정의합니다.
 
 ```go
 type WriteReq struct {
@@ -291,11 +291,11 @@ type WriteReqData struct {
 }
 ```
 
-The API for writing data via HTTP is explained in [here](/neo/api-http/write) 
-and it expects to receive JSON payload.
+HTTP로 데이터를 쓰는 API는 여기에서 설명합니다 
+이 API는 JSON 페이로드를 받습니다.
 
-We can prepare payload like below code, so that write multiple records within a payload.
-Assume `sin`, `cos` variables are properly initialized `float64` values.
+아래 코드처럼 페이로드를 준비하면 한 번에 여러 레코드를 쓸 수 있습니다.
+`sin`, `cos` 변수가 적절히 초기화된 `float64` 값이라고 가정합니다.
 
 ```go
 content, _ := json.Marshal(&WriteReq{
@@ -309,7 +309,7 @@ content, _ := json.Marshal(&WriteReq{
 })
 ```
 
-It will be encoded as JSON for writing API like below.
+아래와 같이 쓰기 API용 JSON으로 인코딩됩니다.
 
 
 ```json
@@ -324,7 +324,7 @@ It will be encoded as JSON for writing API like below.
 }
 ```
 
-Send it to server via http POST request.
+http POST 요청으로 서버에 전송합니다.
 
 ```go
 client := http.Client{}
@@ -332,9 +332,9 @@ rsp, err := client.Post("http://127.0.0.1:5654/db/write/EXAMPLE",
     "application/json", bytes.NewBuffer(content))
 ```
 
-Server replies `HTTP 200 OK` if it successfully writes data.
+데이터를 정상적으로 쓰면 서버가 `HTTP 200 OK`로 응답합니다.
 
-### Full source code
+### 전체 소스 코드
 
 ```go
 package main

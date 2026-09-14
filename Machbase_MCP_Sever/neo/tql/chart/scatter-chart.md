@@ -1,124 +1,124 @@
 # Machbase Neo Scatter Chart
 
-## Quick Reference
+## 빠른 참조
 
-### TQL Pipeline Structure
+### TQL 파이프라인 구조
 
-TQL operates in a **data flow (pipeline)** manner:
+TQL은 **데이터 흐름(파이프라인)** 방식으로 동작합니다:
 
 ```
-SRC (Data Source) → MAP (Transform) → SINK (Output)
+SRC (데이터 소스) → MAP (변환) → SINK (출력)
 ```
 
 ---
 
-### SRC - Data Sources
+### SRC - 데이터 소스
 
-Functions that **generate or fetch data** (pipeline start)
+**데이터를 생성하거나 가져오는** 함수 (파이프라인 시작)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `FAKE()` | Generate test data | `FAKE(linspace(0, 100, 10))` |
-| `SQL()` | Database query | `SQL('SELECT time, value FROM example')` |
-| `CSV()` | Read CSV file | `CSV(file('/path/to/data.csv'))` |
-| `SCRIPT()` | JavaScript code | `SCRIPT({ $.yield(1, 2, 3) })` |
+| `FAKE()` | 테스트 데이터 생성 | `FAKE(linspace(0, 100, 10))` |
+| `SQL()` | 데이터베이스 쿼리 | `SQL('SELECT time, value FROM example')` |
+| `CSV()` | CSV 파일 읽기 | `CSV(file('/path/to/data.csv'))` |
+| `SCRIPT()` | JavaScript 코드 | `SCRIPT({ $.yield(1, 2, 3) })` |
 
 ---
 
-### MAP - Data Transformation
+### MAP - 데이터 변환
 
-Functions that **process and transform data** (pipeline middle)
+**데이터를 가공하고 변환하는** 함수 (파이프라인 중간)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `MAPVALUE()` | Add/modify column | `MAPVALUE(1, value(0) * 2)` |
-| `MAPKEY()` | Modify key | `MAPKEY(strUpper(key()))` |
-| `PUSHVALUE()` | Insert column at front | `PUSHVALUE(0, "new_value")` |
-| `POPVALUE()` | Remove column | `POPVALUE(2)` |
-| `GROUP()` | Group/aggregate | `GROUP(by(value(0)), avg(value(1)))` |
+| `MAPVALUE()` | 컬럼 추가/수정 | `MAPVALUE(1, value(0) * 2)` |
+| `MAPKEY()` | 키 수정 | `MAPKEY(strUpper(key()))` |
+| `PUSHVALUE()` | 앞쪽에 컬럼 삽입 | `PUSHVALUE(0, "new_value")` |
+| `POPVALUE()` | 컬럼 제거 | `POPVALUE(2)` |
+| `GROUP()` | 그룹화/집계 | `GROUP(by(value(0)), avg(value(1)))` |
 
 ---
 
-### SINK - Data Output
+### SINK - 데이터 출력
 
-Functions that **output or save data** (pipeline end)
+**데이터를 출력하거나 저장하는** 함수 (파이프라인 끝)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `CHART()` | Create chart | `CHART(chartOption({...}))` |
-| `CSV()` | CSV output | `CSV()` |
-| `JSON()` | JSON output | `JSON()` |
-| `INSERT()` | DB insert | `INSERT(...)` |
+| `CHART()` | 차트 생성 | `CHART(chartOption({...}))` |
+| `CSV()` | CSV 출력 | `CSV()` |
+| `JSON()` | JSON 출력 | `JSON()` |
+| `INSERT()` | DB 입력 | `INSERT(...)` |
 | `APPEND()` | DB append | `APPEND(table('example'))` |
 
 ---
 
-### CHART() Function Basic Usage
+### CHART() 함수 기본 사용법
 
-**Syntax**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
+**문법**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
 
-*Available since version 8.0.8*
+*버전 8.0.8부터 사용 가능*
 
-#### Main Options
+#### 주요 옵션
 
 **chartOption()**
 - `chartOption( { json in apache echarts options } )`
-- Pass Apache ECharts options in JSON format.
+- Apache ECharts 옵션을 JSON 형식으로 전달합니다.
 
 **size()**
 - `size(width, height)`
-- `width` *string* Chart width in HTML syntax e.g., `'800px'`
-- `height` *string* Chart height in HTML syntax e.g., `'800px'`
+- `width` *string* HTML 문법의 차트 너비, 예: `'800px'`
+- `height` *string* HTML 문법의 차트 높이, 예: `'800px'`
 
 **theme()**
 - `theme(name)`
-- `name` *string* Theme name
-- Available themes: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
+- `name` *string* 테마 이름
+- 사용 가능한 테마: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
 
 **chartJSCode()**
 - `chartJSCode( { user javascript code } )`
-- Execute custom JavaScript code.
+- 사용자 정의 JavaScript 코드를 실행합니다.
 
 ---
 
-### Key Functions
+### 핵심 함수
 
 #### value(index)
-Access values of the **current record** (used in pipeline middle)
+**현재 레코드**의 값에 접근합니다 (파이프라인 중간에서 사용)
 
-- `value(0)` = First value of current record
-- `value(1)` = Second value of current record
-- `value()` = Entire value array
+- `value(0)` = 현재 레코드의 첫 번째 값
+- `value(1)` = 현재 레코드의 두 번째 값
+- `value()` = 값 배열 전체
 
 ---
 
 #### column(index)
-Collect specific column from **all records** as array (CHART() only)
+**모든 레코드**에서 특정 컬럼을 배열로 모읍니다 (CHART() 전용)
 
-- `column(0)` = First values from all records → array
-- `column(1)` = Second values from all records → array
-- **⚠️ Only usable inside CHART()**
+- `column(0)` = 모든 레코드의 첫 번째 값 → 배열
+- `column(1)` = 모든 레코드의 두 번째 값 → 배열
+- **⚠️ CHART() 안에서만 사용 가능**
 
-**Comparison**:
+**비교**:
 
-| Function | Location | Returns | Example |
+| 함수 | 사용 위치 | 반환 | 예시 |
 |----------|----------|---------|---------|
-| `value(0)` | Pipeline middle | Single value | `10` |
-| `column(0)` | Inside CHART() | Array | `[1,2,3]` |
+| `value(0)` | 파이프라인 중간 | 단일 값 | `10` |
+| `column(0)` | CHART() 내부 | 배열 | `[1,2,3]` |
 
 ---
 
-### Scatter Chart Data Format
+### 산점도 데이터 형식
 
-Scatter charts typically use:
-- Single values: `[y1, y2, y3, ...]` with x from xAxis.data
-- Coordinate pairs: `[[x1, y1], [x2, y2], ...]`
+산점도는 보통 다음 형식을 사용합니다:
+- 단일 값: `[y1, y2, y3, ...]` (x는 xAxis.data에서)
+- 좌표 쌍: `[[x1, y1], [x2, y2], ...]`
 
 ---
 
-## 1. Basic Scatter Chart
+## 1. 기본 산점도
 
-Simple scatter plot showing sine wave pattern.
+사인파 패턴을 보여주는 단순한 산점도입니다.
 
 ```js
 FAKE( linspace(0, 360, 100) )
@@ -134,20 +134,20 @@ CHART(
 )
 ```
 
-**Description**: Basic scatter chart plotting 100 points following a sine wave pattern. Uses category x-axis with single y values.
+**설명**: 사인파를 따르는 100개 점을 찍는 기본 산점도입니다. 카테고리 x축과 단일 y값을 사용합니다.
 
-**Key Points**:
-- `linspace(0, 360, 100)` generates 100 evenly spaced x values
-- `sin((value(0)/180)*PI)` calculates sine for each x
-- X values provided via `xAxis.data`
-- Y values provided as single array `column(1)`
-- Default scatter symbol size and color
+**핵심 포인트**:
+- `linspace(0, 360, 100)`이 균등 간격의 x값 100개를 생성합니다
+- `sin((value(0)/180)*PI)`가 각 x의 사인값을 계산합니다
+- x값은 `xAxis.data`로 전달합니다
+- y값은 단일 배열 `column(1)`로 전달합니다
+- 산점 심볼 크기와 색상은 기본값 사용
 
 ---
 
-## 2. Anscombe's Quartet
+## 2. 앤스컴 콰르텟
 
-Four scatter plots with identical statistics but different patterns.
+통계값은 같지만 패턴이 전혀 다른 네 개의 산점도입니다.
 
 ```js
 FAKE( json({
@@ -248,54 +248,54 @@ CHART(
 )
 ```
 
-**Description**: Classic Anscombe's quartet visualization showing four datasets with identical statistical properties (mean, variance, correlation) but vastly different distributions. Demonstrates why visualization matters beyond statistics.
+**설명**: 평균·분산·상관계수가 동일하지만 분포는 완전히 다른 네 데이터셋을 보여주는 고전적인 앤스컴 콰르텟 시각화입니다. 통계값만으로는 알 수 없는 것을 시각화가 드러낸다는 점을 보여줍니다.
 
-**Key Points**:
+**핵심 포인트**:
 
-**Data Preparation**:
+**데이터 준비**:
 - Raw data: `[timestamp, y1, y2, y3, y4]`
-- Convert timestamp to time object
-- Create coordinate pairs: `[time, y_value]` for each series
-- Four columns for four scatter plots
+- 타임스탬프를 time 객체로 변환
+- 시리즈마다 `[time, y_value]` 좌표 쌍 생성
+- 산점도 4개를 위한 4개 컬럼
 
-**Multi-Grid Layout**:
-- `grid: [...]` creates 4 chart areas
-- 2×2 layout: top-left, top-right, bottom-left, bottom-right
-- Each grid: 38% width × 38% height
-- Positioned with left/right/top/bottom properties
+**멀티 그리드 배치**:
+- `grid: [...]`가 4개의 차트 영역을 만듭니다
+- 2×2 배치: 좌상, 우상, 좌하, 우하
+- 각 그리드: 너비 38% × 높이 38%
+- left/right/top/bottom 속성으로 위치 지정
 
-**Axis Configuration**:
-- 4 x-axes, one per grid (`gridIndex: 0-3`)
-- 4 y-axes, one per grid (`gridIndex: 0-3`)
-- All use same time range and y-range
-- `xAxisIndex` and `yAxisIndex` link series to correct axes
+**축 설정**:
+- 그리드마다 x축 하나씩 총 4개 (`gridIndex: 0-3`)
+- 그리드마다 y축 하나씩 총 4개 (`gridIndex: 0-3`)
+- 모두 같은 시간 범위와 y 범위를 사용
+- `xAxisIndex`와 `yAxisIndex`가 시리즈를 해당 축에 연결
 
-**MarkLine (Regression)**:
-- Each series has identical regression line
-- Coordinates: `(1701059598000, 3)` to `(1701059614000, 13)`
-- `symbol: "none"` removes endpoint markers
-- `animation: false` for static lines
-- All four have same slope and intercept
+**MarkLine (회귀선)**:
+- 모든 시리즈가 동일한 회귀선을 가집니다
+- 좌표: `(1701059598000, 3)` → `(1701059614000, 13)`
+- `symbol: "none"`이 끝점 표식을 제거합니다
+- `animation: false`로 선을 정적으로 유지
+- 네 개 모두 기울기와 절편이 같습니다
 
-**Statistical Insight**:
-- All four datasets have:
-  - Same mean x and y
-  - Same variance
-  - Same correlation coefficient
-  - Same regression line
-- But completely different patterns:
-  - I: Linear relationship
-  - II: Non-linear (curved) relationship
-  - III: Linear with outlier
-  - IV: Vertical line with outlier
+**통계적 시사점**:
+- 네 데이터셋 모두 다음이 같습니다:
+  - x와 y의 평균
+  - 분산
+  - 상관계수
+  - 회귀선
+- 그러나 패턴은 완전히 다릅니다:
+  - I: 선형 관계
+  - II: 비선형(곡선) 관계
+  - III: 이상치가 있는 선형
+  - IV: 이상치가 있는 수직선
 
-**Lesson**: Statistics alone can be misleading - visualization reveals true patterns.
+**교훈**: 통계값만으로는 오도될 수 있습니다 — 시각화가 실제 패턴을 드러냅니다.
 
 ---
 
-## 3. 1 Million Points
+## 3. 100만 개 포인트
 
-Large-scale scatter chart with 1 million data points and zoom functionality.
+100만 개 데이터 포인트와 줌 기능을 갖춘 대규모 산점도입니다.
 
 ```js
 FAKE( linspace(0, 10, 500000) )
@@ -343,38 +343,38 @@ CHART(
 )
 ```
 
-**Description**: High-performance scatter chart with 1 million points (500k per series). Demonstrates efficient rendering with zoom capabilities.
+**설명**: 100만 개 포인트(시리즈당 50만 개)를 그리는 고성능 산점도입니다. 줌 기능과 함께 효율적인 렌더링을 보여줍니다.
 
-**Key Points**:
+**핵심 포인트**:
 
-**Data Generation**:
-- `linspace(0, 10, 500000)` creates 500k x values
-- Series A (green): `sin(x)` with downward drift and noise
-- Series B (blue): `cos(x)` with downward drift and noise
-- Total: 1,000,000 data points
+**데이터 생성**:
+- `linspace(0, 10, 500000)`이 50만 개 x값을 만듭니다
+- 시리즈 A(초록): 하향 드리프트와 노이즈가 더해진 `sin(x)`
+- 시리즈 B(파랑): 하향 드리프트와 노이즈가 더해진 `cos(x)`
+- 합계: 1,000,000개 데이터 포인트
 
-**Performance Optimization**:
-- `large: true` enables large dataset mode
-  - Uses WebGL rendering
-  - Simplified drawing algorithms
-  - No individual hover/select
-- `animation: false` disables animations
-- Small `symbolSize: 3` reduces visual clutter
-- Semi-transparent (`opacity: 0.5`) shows density
+**성능 최적화**:
+- `large: true`가 대용량 데이터셋 모드를 활성화합니다
+  - WebGL 렌더링 사용
+  - 단순화된 드로잉 알고리즘
+  - 개별 포인트 마우스오버·선택 불가
+- `animation: false`로 애니메이션을 끕니다
+- 작은 `symbolSize: 3`이 시각적 혼잡을 줄입니다
+- 반투명(`opacity: 0.5`)이 밀도를 드러냅니다
 
-**Data Zoom**:
-- `type: "inside"` mouse wheel/trackpad zoom
-- `type: "slider"` visual slider control
-- Enables exploration of dense regions
-- Essential for large datasets
+**데이터 줌**:
+- `type: "inside"`는 마우스 휠·트랙패드 줌
+- `type: "slider"`는 슬라이더 컨트롤
+- 밀집 구간을 탐색할 수 있게 합니다
+- 대용량 데이터에는 필수입니다
 
-**Visual Design**:
-- Green (#9ECB7F) for upper pattern
-- Blue (#5872C0) for lower pattern
-- Semi-transparency reveals overlapping regions
-- Small symbols prevent over-plotting
+**시각 디자인**:
+- 위쪽 패턴은 초록(#9ECB7F)
+- 아래쪽 패턴은 파랑(#5872C0)
+- 반투명이 겹치는 영역을 드러냅니다
+- 작은 심볼이 과밀 표시를 막습니다
 
-**Performance Tips**:
+**활용 분야**:
 ```js
 large: true              // WebGL acceleration
 animation: false         // Disable transitions
@@ -383,15 +383,15 @@ opacity: 0.3-0.6        // See through overlaps
 progressive: 1000       // Progressive rendering
 ```
 
-**Use Cases**:
-- Sensor data visualization
-- Scientific datasets
-- Time-series analysis
-- Pattern detection in large data
-- IoT device data
+**활용 사례**:
+- 센서 데이터 시각화
+- 과학 데이터셋
+- 시계열 분석
+- 대용량 데이터의 패턴 탐지
+- IoT 장비 데이터
 
-**Technical Limits**:
-- With `large: true`: millions of points
-- Without: ~10,000 points comfortably
-- Browser memory dependent
-- Performance degrades with complexity
+**기술적 한계**:
+- `large: true` 사용 시: 수백만 개 포인트
+- 미사용 시: 약 1만 개 포인트까지 무난
+- 브라우저 메모리에 좌우됨
+- 복잡도가 올라가면 성능이 떨어짐

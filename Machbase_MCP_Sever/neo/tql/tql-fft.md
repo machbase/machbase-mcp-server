@@ -1,10 +1,10 @@
 # Machbase Neo TQL FFT
 
-## Fast Fourier Transform
+## 고속 푸리에 변환(Fast Fourier Transform)
 
-### Prerequisites
+### 사전 준비
 
-For smooth practice, the following query should be run to prepare tables and data.
+원활한 실습을 위해 아래 쿼리를 실행해 테이블과 데이터를 준비합니다.
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
@@ -14,11 +14,11 @@ CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
 );
 ```
 
-## Generate Sample Data
+## 샘플 데이터 생성
 
-Open a new tql editor on the web ui and copy the code below and run it.
+웹 UI에서 새 TQL 에디터를 열고 아래 코드를 붙여넣어 실행합니다.
 
-In this example, `oscillator()` generates a composite wave of 15Hz 1.0 + 24Hz 1.5. And `CHART_SCATTER()` has `dataZoom()` option function that provides a slider under the x-Axis.
+이 예제에서 `oscillator()`는 15Hz 1.0과 24Hz 1.5가 합성된 파형을 생성합니다. 그리고 `CHART_SCATTER()`의 `dataZoom()` 옵션 함수는 x축 아래에 슬라이더를 제공합니다.
 
 ```js
 FAKE( 
@@ -30,9 +30,9 @@ FAKE(
 CHART_SCATTER( size("600px", "350px"), dataZoom('slider', 95, 100) )
 ```
 
-## Store Data into Database
+## 데이터베이스에 저장
 
-Store the generated data into the database with the tag name 'signal'.
+생성한 데이터를 'signal'이라는 태그 이름으로 데이터베이스에 저장합니다.
 
 ```js
 FAKE(
@@ -47,9 +47,9 @@ FAKE(
 INSERT( 'time', 'value', table('example'), tag('signal') )
 ```
 
-It will show "10000 rows inserted." message in the "Result" pane.
+"Result" 창에 "10000 rows inserted." 메시지가 표시됩니다.
 
-For a comment, it took about 270ms in a test machine (Apple mac mini M1), but using `APPEND()` method in the example below, took 65ms (x4 faster).
+참고로 테스트 장비(Apple mac mini M1)에서 약 270ms가 걸렸는데, 아래 예제처럼 `APPEND()` 방식을 쓰면 65ms로 **4배 빨랐습니다**.
 
 ```js
 FAKE(
@@ -68,22 +68,22 @@ PUSHVALUE(0,'signal')
 APPEND( table('example') )
 ```
 
-**Warning:** The 'APPEND' works only when fields of input records exactly match with columns of the table in order and types.
+**주의:** `APPEND`는 입력 레코드의 필드가 테이블 컬럼과 **순서와 타입까지 정확히 일치**할 때만 동작합니다.
 
-## Read Data from Database
+## 데이터베이스에서 읽기
 
-The code below reads the stored data from the 'example' table.
+아래 코드는 'example' 테이블에 저장된 데이터를 읽습니다.
 
 ```js
 SQL_SELECT('time', 'value', from('example', 'signal'), between('last-10s', 'last'))
 CHART_LINE( size("600px", "350px"), dataZoom('slider', 95, 100))
 ```
 
-## Fast Fourier Transform
+## 고속 푸리에 변환
 
-Add few data manipulation function between `SQL_SELECT()` source and `CHART_LINE()` sink.
+`SQL_SELECT()` 소스와 `CHART_LINE()` 싱크 사이에 데이터 변환 함수 몇 개를 추가합니다.
 
-### Using GROUPBYKEY
+### GROUPBYKEY 사용
 
 ```js
 SQL_SELECT('time', 'value', from('example', 'signal'), between('last-10s', 'last'))
@@ -98,7 +98,7 @@ CHART_LINE(
 )
 ```
 
-### Using SCRIPT
+### SCRIPT 사용
 
 ```js
 SQL_SELECT('time', 'value', from('example', 'signal'), between('last-10s', 'last'))
@@ -125,25 +125,25 @@ CHART_LINE(
 )
 ```
 
-## How It Works
+## 동작 원리
 
-### Step 1: SQL_SELECT()
+### 1단계: SQL_SELECT()
 
-`SQL_SELECT(...)` yields records from the query result in the form of `{key: rownum, value: (time, value) }`
+`SQL_SELECT(...)`는 쿼리 결과를 `{key: rownum, value: (time, value) }` 형태의 레코드로 내보냅니다.
 
-### Step 2: MAPKEY('sample')
+### 2단계: MAPKEY('sample')
 
-`MAPKEY('sample')` sets the constant string 'sample' as a new key for all records. As result all records have same key `'sample'` and `(time, value)` as value. `{key: 'sample', value:(time, value)}`
+`MAPKEY('sample')`은 모든 레코드에 'sample'이라는 상수 문자열을 새 키로 지정합니다. 그 결과 모든 레코드가 같은 키 `'sample'`과 값 `(time, value)`를 갖습니다. `{key: 'sample', value:(time, value)}`
 
-### Step 3: GROUPBYKEY()
+### 3단계: GROUPBYKEY()
 
-`GROUPBYKEY()` merge all records that has the same key. In this example, all query results are combined into a record that has same key 'sample' and value is an array of tuples which formed `{key: 'sample', value:[ (time1, value1), (time2, value2), ..., (timeN, valueN) ]}`.
+`GROUPBYKEY()`는 같은 키를 가진 레코드를 병합합니다. 이 예제에서는 모든 쿼리 결과가 'sample'이라는 같은 키를 가진 하나의 레코드로 합쳐지고, 값은 튜플 배열이 됩니다. `{key: 'sample', value:[ (time1, value1), (time2, value2), ..., (timeN, valueN) ]}`
 
-### Step 4: FFT()
+### 4단계: FFT()
 
-`FFT()` applies Fast Fourier Transform on the value of the record and transform the value (time-value) into an array of tuples (frequency-amplitude). `{key: 'sample', value:[ (Hz1, Ampl1), (Hz2, Ampl2), ... ]}`.
+`FFT()`는 레코드의 값에 고속 푸리에 변환을 적용해 (시간-값)을 (주파수-진폭) 튜플 배열로 변환합니다. `{key: 'sample', value:[ (Hz1, Ampl1), (Hz2, Ampl2), ... ]}`
 
-## Adding Time Axis
+## 시간축 추가하기
 
 ```js
 SQL_SELECT( 'time', 'value', from('example', 'signal'), between('last-10s', 'last'))
@@ -161,28 +161,28 @@ CHART_BAR3D(
 )
 ```
 
-## How It Works with Time Axis
+## 시간축이 있을 때의 동작 원리
 
-### Step 1: SQL_SELECT()
+### 1단계: SQL_SELECT()
 
-`SQL_SELECT(...)` yields records from the query result. `{key: time, value: (value) }`
+`SQL_SELECT(...)`는 쿼리 결과를 레코드로 내보냅니다. `{key: time, value: (value) }`
 
-### Step 2: MAPKEY()
+### 2단계: MAPKEY()
 
-`MAPKEY( roundTime(value(0), '500ms'))` sets the new key with the result of roundTime `value(0)` by 500 milliseconds. As result the records are transformed into `{key: (time/500ms)*500ms, value:(time, value)}`
+`MAPKEY( roundTime(value(0), '500ms'))`는 `value(0)`을 500밀리초 단위로 반올림한 결과를 새 키로 지정합니다. 그 결과 레코드는 `{key: (time/500ms)*500ms, value:(time, value)}` 형태로 변환됩니다.
 
-### Step 3: GROUPBYKEY()
+### 3단계: GROUPBYKEY()
 
-`GROUPBYKEY()` makes records grouped in every 500ms. `{key: time1In500ms, value:[(time1, value1), (time2, value2)...]}`
+`GROUPBYKEY()`는 레코드를 500ms 단위로 묶습니다. `{key: time1In500ms, value:[(time1, value1), (time2, value2)...]}`
 
-### Step 4: FFT()
+### 4단계: FFT()
 
-`FFT()` applies Fast Fourier Transform for each record. The optional functions `minHz(0)` and `maxHz(100)` limits the scope of the output just for the better visualization. `{key:time1In500ms, value:[(Hz1, Ampl1), ...]}`, `{key:'time2In500ms', value:[(Hz1, Ampl1), ...]}`, ...
+`FFT()`는 각 레코드에 고속 푸리에 변환을 적용합니다. 선택 함수인 `minHz(0)`과 `maxHz(100)`은 시각화를 개선하기 위해 출력 범위를 제한합니다. `{key:time1In500ms, value:[(Hz1, Ampl1), ...]}`, `{key:'time2In500ms', value:[(Hz1, Ampl1), ...]}`, ...
 
-### Step 5: FLATTEN()
+### 5단계: FLATTEN()
 
-`FLATTEN()` reduces the dimension of the value array by splitting into multiple records. As result it yields.
+`FLATTEN()`은 값 배열을 여러 레코드로 나눠 차원을 낮춥니다.
 
-### Step 6: PUSHKEY()
+### 6단계: PUSHKEY()
 
-`PUSHKEY('fft')` sets the constant string 'fft' as new key for all records. and the previous key will be "pushed" into the first place of value array. `{key:'fft', value:(time1In500ms, Hz1, Ampl1)}`, `{key:'fft', value:(time1In500ms, Hz2, Ampl2)}`...
+`PUSHKEY('fft')`는 모든 레코드에 'fft'라는 상수 문자열을 새 키로 지정하고, 이전 키는 값 배열의 맨 앞으로 "밀어 넣습니다". `{key:'fft', value:(time1In500ms, Hz1, Ampl1)}`, `{key:'fft', value:(time1In500ms, Hz2, Ampl2)}`...

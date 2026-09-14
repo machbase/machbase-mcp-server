@@ -1,10 +1,10 @@
 # Machbase Neo TQL Utility Functions
 
-Utility functions can be commonly used as parameters of any functions.
+유틸리티 함수는 어떤 함수의 파라미터로도 공통으로 사용할 수 있습니다.
 
 ## Constants
 
-| Constants | Description |
+| 상수 | 설명 |
 |:----------|:------------|
 | `NULL` | null value |
 | `PI` | 3.141592.... https://oeis.org/A000796 |
@@ -13,55 +13,55 @@ Utility functions can be commonly used as parameters of any functions.
 
 ### key()
 
-**Syntax**: `key()`
+**문법**: `key()`
 
-Returns the key of the current record.
+현재 레코드의 키를 반환합니다.
 
 ### value()
 
-**Syntax**: `value( [index] )`
+**문법**: `value( [index] )`
 
 **Parameters:**
-- `index` - Integer (optional), index of the value array
+- `index` - 정수 (선택), 값 배열의 인덱스
 
-Returns the whole value of the current records in array. If the index is given, it returns the element of the values.
+현재 레코드의 전체 값을 배열로 반환합니다. 인덱스를 주면 해당 위치의 값을 반환합니다.
 
-For example, If the current value is `[0, true, "hello", "world"]`
+예를 들어 현재 값이 `[0, true, "hello", "world"]` 라면
 
-- `value()` returns the whole value array `[0, true, "hello", "world"]`
-- `value(0)` returns the first element of the value `0`
-- `value(3)` returns the last element of the value `"world"`
+- `value()`는 전체 값 배열 `[0, true, "hello", "world"]` 를 반환합니다
+- `value(0)`은 값의 첫 번째 요소 `0` 을 반환합니다
+- `value(3)`은 값의 마지막 요소 `"world"` 를 반환합니다
 
 ### payload()
 
-**Syntax**: `payload()`
+**문법**: `payload()`
 
-Returns the current input stream that sent from caller of the TQL script. If the TQL script is called via HTTP, the result of `payload()` is the stream of the body content of POST request. If the TQL script is called via MQTT, the `payload()` returns the payload of the PUBLISH message.
+TQL 스크립트 호출자가 보낸 현재 입력 스트림을 반환합니다. HTTP로 호출되면 `payload()`는 POST 요청 본문의 스트림이고, MQTT로 호출되면 PUBLISH 메시지의 페이로드를 반환합니다.
 
 ### param()
 
-**Syntax**: `param( name )`
+**문법**: `param( name )`
 
 **Parameters:**
-- `name` - String, name of the query parameter
+- `name` - 문자열, 쿼리 파라미터 이름
 
-When the TQL script is called via HTTP, the requested query parameters can be accessed by `param()` function.
+TQL 스크립트가 HTTP로 호출되면 `param()` 함수로 요청의 쿼리 파라미터에 접근할 수 있습니다.
 
 ### context()
 
-**Syntax**: `context()`
+**문법**: `context()`
 
-Returns context object of the script runtime.
+스크립트 런타임의 컨텍스트 객체를 반환합니다.
 
 ## String
 
 ### escapeParam()
 
-**Syntax**: `escapeParam( str ) : string` 
+**문법**: `escapeParam( str ) : string` 
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`escapeParam()` escapes the string so it can be safely placed inside a URL query.
+`escapeParam()`은 문자열을 URL 쿼리 안에 안전하게 넣을 수 있도록 이스케이프합니다.
 
 ```js
 CSV(
@@ -74,57 +74,57 @@ CSV()
 
 ### strTrimSpace()
 
-**Syntax**: `strTrimSpace(str) : string`
+**문법**: `strTrimSpace(str) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strTrimSpace` returns a slice of the string str, with all leading and trailing white space removed.
+`strTrimSpace`는 문자열 str의 앞뒤 공백을 모두 제거한 결과를 반환합니다.
 
 ### strTrimPrefix()
 
-**Syntax**: `strTrimPrefix(str, prefix) : string`
+**문법**: `strTrimPrefix(str, prefix) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strTrimPrefix` returns str without the provided leading prefix string. If str doesn't start with prefix, str is returned unchanged.
+`strTrimPrefix`는 주어진 접두 문자열을 제거한 str을 반환합니다. str이 해당 접두로 시작하지 않으면 str을 그대로 반환합니다.
 
 ### strTrimSuffix()
 
-**Syntax**: `strTrimSuffix(str, suffix) : string`
+**문법**: `strTrimSuffix(str, suffix) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strTrimSuffix` returns str without the provided trailing suffix string. If str doesn't end with suffix, str is returned unchanged.
+`strTrimSuffix`는 주어진 접미 문자열을 제거한 str을 반환합니다. str이 해당 접미로 끝나지 않으면 str을 그대로 반환합니다.
 
 ### strHasPrefix()
 
-**Syntax**: `strHasPrefix(str, prefix) : boolean`
+**문법**: `strHasPrefix(str, prefix) : boolean`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strHasPrefix` tests whether the string str begins with prefix.
+`strHasPrefix`는 문자열 str이 주어진 접두로 시작하는지 검사합니다.
 
 ### strHasSuffix()
 
-**Syntax**: `strHasSuffix(str, suffix) : boolean`
+**문법**: `strHasSuffix(str, suffix) : boolean`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strHasSuffix` tests whether the string s ends with suffix.
+`strHasSuffix`는 문자열 s가 주어진 접미로 끝나는지 검사합니다.
 
 ### strReplaceAll()
 
-**Syntax**: `strReplaceAll(str, old, new) : string`
+**문법**: `strReplaceAll(str, old, new) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strReplaceAll` returns a copy of the string s with all non-overlapping instances of old replaced by new. If old is empty, it matches at the beginning of the string and after each UTF-8 sequence, yielding up to k+1 replacements for a k-rune string.
+`strReplaceAll`은 문자열 s에서 겹치지 않는 old를 모두 new로 바꾼 사본을 반환합니다. old가 비어 있으면 문자열 시작과 각 UTF-8 시퀀스 뒤에서 매칭되어, k개 문자 문자열에 대해 최대 k+1번 치환됩니다.
 
 ### strReplace()
 
-**Syntax**: `strReplace(str, old, new, n) : string`
+**문법**: `strReplace(str, old, new, n) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
 **Parameters:**
 - `str` - String
@@ -132,72 +132,72 @@ CSV()
 - `new` - String
 - `n` - Integer
 
-`strReplace` returns a copy of the string s with the first n non-overlapping instances of old replaced by new. If old is empty, it matches at the beginning of the string and after each UTF-8 sequence, yielding up to k+1 replacements for a k-rune string. If n < 0, there is no limit on the number of replacements.
+`strReplace`는 문자열 s에서 겹치지 않는 old를 앞에서부터 n개까지 new로 바꾼 사본을 반환합니다. old가 비어 있으면 문자열 시작과 각 UTF-8 시퀀스 뒤에서 매칭되어, k개 문자 문자열에 대해 최대 k+1번 치환됩니다. n이 0보다 작으면 치환 횟수에 제한이 없습니다.
 
 ### strSub()
 
-**Syntax**: `strSub(str, offset [, count]) : string`
+**문법**: `strSub(str, offset [, count]) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strSub` returns substring of str.
+`strSub`는 str의 부분 문자열을 반환합니다.
 
 ### strIndex()
 
-**Syntax**: `strIndex(str, substr) : number`
+**문법**: `strIndex(str, substr) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-Returns the index of the first instance of substr in str, or -1 if substr is not present in str.
+str에서 substr이 처음 나타나는 인덱스를 반환하며, 없으면 -1을 반환합니다.
 
 ### strLastIndex()
 
-**Syntax**: `strLastIndex(str, substr) : number`
+**문법**: `strLastIndex(str, substr) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-Returns the index of the last instance of substr in str, or -1 if substr is not present in str.
+str에서 substr이 마지막으로 나타나는 인덱스를 반환하며, 없으면 -1을 반환합니다.
 
 ### strToUpper()
 
-**Syntax**: `strToUpper(str) : string`
+**문법**: `strToUpper(str) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strToUpper` returns str with all Unicode letters mapped to their upper case.
+`strToUpper`는 str의 모든 유니코드 문자를 대문자로 바꿔 반환합니다.
 
 ### strToLower()
 
-**Syntax**: `strToLower(str, suffix) : string`
+**문법**: `strToLower(str, suffix) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strToLower` returns str with all Unicode letters mapped to their lower case.
+`strToLower`는 str의 모든 유니코드 문자를 소문자로 바꿔 반환합니다.
 
 ### strSprintf()
 
-**Syntax**: `strSprintf(fmt, args...) : string`
+**문법**: `strSprintf(fmt, args...) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`strSprintf()` formats according to a format specifier and returns the resulting string.
+`strSprintf()`는 형식 지정자에 따라 서식을 적용한 문자열을 반환합니다.
 
-The syntax of `fmt` format string is `%[flags][width][.precision]verb`.
+`fmt` 형식 문자열의 문법은 `%[flags][width][.precision]verb` 입니다.
 
-The verb at the end defines the type and the interpretation of its corresponding argument.
+끝의 verb가 대응 인자의 타입과 해석 방식을 정의합니다.
 
-| Verb | Description |
+| Verb | 설명 |
 | :--- | :---------- |
-| f | decimal floating point, lowercase |
-| F | decimal floating point, uppercase |
-| e | scientific notation (mantissa/exponent), lowercase |
-| E | scientific notation (mantissa/exponent), uppercase |
-| g | the shortest representation of %e or %f |
-| G | the shortest representation of %E or %F |
-| q | a quoted string |
-| t | the word true or false |
+| f | 10진 부동소수점, 소문자 |
+| F | 10진 부동소수점, 대문자 |
+| e | 지수 표기(가수/지수), 소문자 |
+| E | 지수 표기(가수/지수), 대문자 |
+| g | %e 또는 %f 중 더 짧은 표현 |
+| G | %E 또는 %F 중 더 짧은 표현 |
+| q | 따옴표로 감싼 문자열 |
+| t | true 또는 false |
 | s | a string |
-| v | default format |
+| v | 기본 형식 |
 | %% | a single % |
 
 **Example:**
@@ -217,18 +217,18 @@ world,3.141792,hello world? 3.14
 
 ### strTime()
 
-**Syntax**: `strTime(time, format [, tz]) : string`
+**문법**: `strTime(time, format [, tz]) : string`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
 **Parameters:**
 - `time` - Time
-- `format` - String or sqlTimeformat()
-- `tz` - Time zone (optional), use `tz()` to get the demand location, if omitted default is `tz('UTC')`.
+- `format` - 문자열 또는 sqlTimeformat()
+- `tz` - 시간대 (선택). 원하는 지역은 `tz()`로 지정하며, 생략하면 기본값은 `tz('UTC')` 입니다.
 
-`strTime()` formats time value to string according to the given format and time zone.
+`strTime()`은 주어진 형식과 시간대에 따라 시간 값을 문자열로 변환합니다.
 
-#### Numeric Timeformat
+#### 숫자 시간 형식
 
 ```js
 FAKE( linspace(0, 1, 1))
@@ -236,7 +236,7 @@ MAPVALUE(0, strTime(time("now"), "2006/01/02 15:04:05.999", tz("UTC")), "result"
 MARKDOWN(rownum(true))
 ```
 
-#### SQL Timeformat
+#### SQL 시간 형식
 
 ```js
 FAKE( linspace(0, 1, 1))
@@ -244,13 +244,13 @@ MAPVALUE(0, strTime(time("now"), sqlTimeformat("YYYY/MM/DD HH24:MI:SS.nnn"), tz(
 MARKDOWN(rownum(true))
 ```
 
-| ROWNUM | result |
+| ROWNUM | 결과 |
 |:-------|:-------|
 | 1 | 2024/01/10 07:27:29.667 |
 
-#### Named Timeformat
+#### 이름 있는 시간 형식
 
-*Version 8.0.12 or later*
+*버전 8.0.12 이상*
 
 ```js
 FAKE( linspace(0, 1, 1))
@@ -264,14 +264,14 @@ MARKDOWN(rownum(true))
 
 ### parseFloat()
 
-**Syntax**: `parseFloat( str ) : number`
+**문법**: `parseFloat( str ) : number`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
 **Parameters:**
 - `str` - String
 
-Parsing `str` into float number.
+`str`을 실수로 파싱합니다.
 
 **Example:**
 
@@ -298,14 +298,14 @@ JSON()
 
 ### parseBool()
 
-**Syntax**: `parseBool( str ) : boolean`
+**문법**: `parseBool( str ) : boolean`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
 **Parameters:**
 - `str` - String
 
-It takes one of the accepted string values: "1", "t", "T", "TRUE", "true", "True", "0", "f", "F", "FALSE", "false", "False" and converts it to the equivalent boolean value: true or false. For any other string, the function returns an error.
+"1", "t", "T", "TRUE", "true", "True", "0", "f", "F", "FALSE", "false", "False" 중 하나를 받아 true 또는 false로 변환합니다. 그 밖의 문자열에 대해서는 오류를 반환합니다.
 
 **Example:**
 
@@ -330,15 +330,15 @@ JSON()
 }
 ```
 
-## String Match
+## 문자열 매칭
 
 ### glob()
 
-**Syntax**: `glob(pattern, text) : boolean`
+**문법**: `glob(pattern, text) : boolean`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`glob` returns true if the `text` does match with `pattern`.
+`glob`은 `text`가 `pattern`과 일치하면 true를 반환합니다.
 
 ```js
 FAKE( linspace(1, 4, 4))
@@ -349,11 +349,11 @@ CSV()
 
 ### regexp()
 
-**Syntax**: `regexp(expression, text) : boolean`
+**문법**: `regexp(expression, text) : boolean`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`regexp` returns true if the `text` does match with `expression`.
+`regexp`는 `text`가 `expression`과 일치하면 true를 반환합니다.
 
 ```js
 FAKE( linspace(1, 4, 4))
@@ -366,21 +366,21 @@ CSV()
 
 ### time()
 
-**Syntax**: `time( number|string ) : time`
+**문법**: `time( number|string ) : time`
 
 **Examples:**
-- `time('now')` returns current time.
-- `time('now -10s50ms')` returns the time 10.05 seconds before from now.
-- `time(1672531200*1000000000)` returns the time of Jan-1-2023 AM 12:00:00
+- `time('now')`는 현재 시각을 반환합니다.
+- `time('now -10s50ms')`는 현재로부터 10.05초 전의 시각을 반환합니다.
+- `time(1672531200*1000000000)`는 2023년 1월 1일 오전 12:00:00을 반환합니다
 
-#### Using time('now')
+#### time('now') 사용
 
 ```js
 SQL(`select to_char(time), value from example where time < ?`, time('now'))
 CSV()
 ```
 
-#### Using time(epoch)
+#### time(epoch) 사용
 
 ```js
 SQL(`select to_char(time), value from example where time = ?`, time(1628737200123456789))
@@ -389,93 +389,93 @@ CSV()
 
 ### timeYear()
 
-**Syntax**: `timeYear( time [, timezone] ) : number`
+**문법**: `timeYear( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeYear() returns the year in which time occurs.
+timeYear()는 해당 시간이 속한 연도를 반환합니다.
 
 ### timeMonth()
 
-**Syntax**: `timeMonth( time [, timezone] ) : number`
+**문법**: `timeMonth( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeMonth() returns the month of the year specified by time.
+timeMonth()는 해당 시간의 월을 반환합니다.
 
 ### timeDay()
 
-**Syntax**: `timeDay( time [, timezone] ) : number`
+**문법**: `timeDay( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeDay() returns the day of the month specified by time.
+timeDay()는 해당 시간의 일(날짜)을 반환합니다.
 
 ### timeHour()
 
-**Syntax**: `timeHour( time [, timezone] ) : number`
+**문법**: `timeHour( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeHour() returns the hour within the day specified by time, in the range [0, 23].
+timeHour()는 해당 시간의 시(0~23)를 반환합니다.
 
 ### timeMinute()
 
-**Syntax**: `timeMinute( time [, timezone] ) : number`
+**문법**: `timeMinute( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeMinute() returns the minute offset within the hour specified by time, in the range [0, 59].
+timeMinute()는 해당 시간의 분(0~59)을 반환합니다.
 
 ### timeSecond()
 
-**Syntax**: `timeSecond( time ) : number`
+**문법**: `timeSecond( time ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeSecond() returns the second offset within the minute specified by time, in the range [0, 59].
+timeSecond()는 해당 시간의 초(0~59)를 반환합니다.
 
 ### timeNanosecond()
 
-**Syntax**: `timeNanosecond( time ) : number`
+**문법**: `timeNanosecond( time ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeNanosecond() returns the nanosecond offset within the second specified by time, in the range [0, 999999999].
+timeNanosecond()는 해당 시간의 나노초(0~999999999)를 반환합니다.
 
 ### timeISOYear()
 
-**Syntax**: `timeISOYear( time [, timezone] ) : number`
+**문법**: `timeISOYear( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeISOYear() returns the ISO 8601 year number in which ts occurs.
+timeISOYear()는 ts가 속한 ISO 8601 연도를 반환합니다.
 
 ### timeISOWeek()
 
-**Syntax**: `timeISOWeek( time [, timezone] ) : number`
+**문법**: `timeISOWeek( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeISOWeek() returns the ISO 8601 week number in which time occurs. Week ranges from 1 to 53. Jan 01 to Jan 03 of year n might belong to week 52 or 53 of year n-1, and Dec 29 to Dec 31 might belong to week 1 of year n+1.
+timeISOWeek()는 해당 시간이 속한 ISO 8601 주차를 반환합니다. 주차는 1~53입니다. n년 1월 1일~3일은 n-1년의 52 또는 53주차에, 12월 29일~31일은 n+1년의 1주차에 속할 수 있습니다.
 
-According to the rule that the first calendar week of a calendar year is the week including the first Thursday of that year, and that the last one is the week immediately preceding the first calendar week of the next calendar year. See https://www.iso.org/obp/ui#iso:std:iso:8601:-1:ed-1:v1:en:term:3.1.1.23 for details.
+한 해의 첫 주는 그해 첫 목요일이 포함된 주이고, 마지막 주는 다음 해 첫 주 바로 앞의 주라는 규칙을 따릅니다. 자세한 내용은 https://www.iso.org/obp/ui#iso:std:iso:8601:-1:ed-1:v1:en:term:3.1.1.23 를 참고하세요.
 
 ### timeYearDay()
 
-**Syntax**: `timeYearDay( time [, timezone] ) : number`
+**문법**: `timeYearDay( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeYearDay() returns the day of the year specified by time, in the range [1,365] for non-leap years, and [1,366] in leap years.
+timeYearDay()는 해당 시간의 연중 일자를 반환합니다. 평년은 [1,365], 윤년은 [1,366] 범위입니다.
 
 ### timeWeekDay()
 
-**Syntax**: `timeWeekDay( time [, timezone] ) : number`
+**문법**: `timeWeekDay( time [, timezone] ) : number`
 
-*Version 8.0.15 or later*
+*버전 8.0.15 이상*
 
-timeWeekDay() returns the day of the week specified by time. (Sunday = 0, ...).
+timeWeekDay()는 해당 시간의 요일을 반환합니다. (일요일 = 0, ...)
 
 ```js
 FAKE(arrange(1, 7, 1))
@@ -486,53 +486,53 @@ CSV()
 
 ### timeUnix()
 
-**Syntax**: `timeUnix( time ) : number`
+**문법**: `timeUnix( time ) : number`
 
-*Version 8.0.13 or later*
+*버전 8.0.13 이상*
 
-timeUnix returns `time` as a Unix time, the number of seconds elapsed since January 1, 1970 UTC. The result does not depend on the location associated with `time`.
+timeUnix는 `time`을 Unix 시간, 즉 1970년 1월 1일 UTC 이후 경과한 초 수로 반환합니다. 결과는 `time`에 연결된 지역과 무관합니다.
 
 ### timeUnixMilli()
 
-**Syntax**: `timeUnixMilli( time ) : number`
+**문법**: `timeUnixMilli( time ) : number`
 
-*Version 8.0.13 or later*
+*버전 8.0.13 이상*
 
-timeUnixMilli returns `time` as a Unix time, the number of milliseconds elapsed ssince January 1, 1970 UTC. The result does not depend on the location associated with `time`.
+timeUnixMilli는 `time`을 Unix 시간, 즉 1970년 1월 1일 UTC 이후 경과한 밀리초 수로 반환합니다. 결과는 `time`에 연결된 지역과 무관합니다.
 
 ### timeUnixMicro()
 
-**Syntax**: `timeUnixMicro( time ) : number`
+**문법**: `timeUnixMicro( time ) : number`
 
-*Version 8.0.13 or later*
+*버전 8.0.13 이상*
 
-timeUnixMicro returns `time` as a Unix time, the number of microseconds elapsed since January 1, 1970 UTC. The result does not depend on the location associated with `time`.
+timeUnixMicro는 `time`을 Unix 시간, 즉 1970년 1월 1일 UTC 이후 경과한 마이크로초 수로 반환합니다. 결과는 `time`에 연결된 지역과 무관합니다.
 
 ### timeUnixNano()
 
-**Syntax**: `timeUnixNano( time ) : number`
+**문법**: `timeUnixNano( time ) : number`
 
-*Version 8.0.13 or later*
+*버전 8.0.13 이상*
 
-timeUnixNano returns `time` as a Unix time, the number of nanoseconds elapsed since January 1, 1970 UTC. The result does not depend on the location associated with `time`.
+timeUnixNano는 `time`을 Unix 시간, 즉 1970년 1월 1일 UTC 이후 경과한 나노초 수로 반환합니다. 결과는 `time`에 연결된 지역과 무관합니다.
 
 ### timeAdd()
 
-**Syntax**: `timeAdd( number|string|time [, timeExpression] ) : time`
+**문법**: `timeAdd( number|string|time [, timeExpression] ) : time`
 
 **Examples:**
-- `timeAdd('now', 0)` returns current time.
-- `timeAdd('now', '-10s50ms')` returns the time 10.05 seconds before from now.
-- `timeAdd(value(0), '1m')` if value(0) is time, it returns the time of 1 minute later from value(0).
+- `timeAdd('now', 0)`은 현재 시각을 반환합니다.
+- `timeAdd('now', '-10s50ms')`는 현재로부터 10.05초 전의 시각을 반환합니다.
+- `timeAdd(value(0), '1m')`은 value(0)이 시간일 때 value(0)으로부터 1분 뒤의 시각을 반환합니다.
 
-#### Using timeAdd('now')
+#### timeAdd('now') 사용
 
 ```js
 SQL(`select to_char(time), value from example where time < ?`, timeAdd('now', '-10s'))
 CSV()
 ```
 
-#### Using timeAdd(epoch)
+#### timeAdd(epoch) 사용
 
 ```js
 SQL(`select to_char(time), value from example where time = ?`, timeAdd(1628737200123456789, '-5s'))
@@ -541,9 +541,9 @@ CSV()
 
 ### roundTime()
 
-**Syntax**: `roundTime( time, duration ) : time`
+**문법**: `roundTime( time, duration ) : time`
 
-Returns rounded time.
+반올림된 시간을 반환합니다.
 
 **Examples:**
 - `roundTime(time('now'), '1h')`
@@ -551,12 +551,12 @@ Returns rounded time.
 
 ### parseTime()
 
-**Syntax**: `parseTime( time, format [, timezone] ) : time`
+**문법**: `parseTime( time, format [, timezone] ) : time`
 
 **Parameters:**
-- `time` - String, time expression
-- `format` - String, time format expression
-- `timezone` - Time zone, use `tz()` to get the demand location, if omitted default is `tz("UTC")`.
+- `time` - 문자열, 시간 표현
+- `format` - 문자열, 시간 형식 표현
+- `timezone` - 시간대. 원하는 지역은 `tz()`로 지정하며, 생략하면 기본값은 `tz("UTC")` 입니다.
 
 **Examples:**
 - `parseTime("2023-03-01 14:01:02", "DEFAULT", tz("Asia/Tokyo"))`
@@ -564,9 +564,9 @@ Returns rounded time.
 
 ### tz()
 
-**Syntax**: `tz( name ) : timeZone`
+**문법**: `tz( name ) : timeZone`
 
-Returns time zone that matched with the given name.
+주어진 이름에 해당하는 시간대를 반환합니다.
 
 **Examples:**
 - `tz('local')`
@@ -576,7 +576,7 @@ Returns time zone that matched with the given name.
 
 ### timeformat()
 
-**Syntax**: `timeformat( format )`
+**문법**: `timeformat( format )`
 
 **Parameters:**
 - `format` - String
@@ -599,9 +599,9 @@ CSV(timeformat("DEFAULT"), tz("Asia/Seoul"))
 2023-11-30 20:50:43.219,11
 ```
 
-**Available Formats:**
+**사용 가능한 형식:**
 
-| Format | Result of Timeformatting |
+| 형식 | 시간 서식 결과 |
 |:-------|:-------------------------|
 | DEFAULT | 2006-01-02 15:04:05.999 |
 | NUMERIC | 01/02 03:04:05PM '06 -0700 |
@@ -620,40 +620,40 @@ CSV(timeformat("DEFAULT"), tz("Asia/Seoul"))
 | STAMPMILLI | Jan _2 15:04:05.000 |
 | STAMPMICRO | Jan _2 15:04:05.000000 |
 | STAMPNANO | Jan _2 15:04:05.000000000 |
-| s | unix epoch time in seconds |
-| ms | unix epoch time in milliseconds |
-| us | unix epoch time in microseconds |
-| ns | unix epoch time in nanoseconds |
-| s_ms | seconds and millisec (05.999) |
-| s_us | seconds and microsec (05.999999) |
-| s_ns | seconds and nanosec (05.999999999) |
-| s.ms | seconds and millisec, zero padding (05.000) |
-| s.us | seconds and microsec, zero padding (05.000000) |
-| s.ns | seconds and nanosec, zero padding (05.000000000) |
+| s | 초 단위 unix epoch 시간 |
+| ms | 밀리초 단위 unix epoch 시간 |
+| us | 마이크로초 단위 unix epoch 시간 |
+| ns | 나노초 단위 unix epoch 시간 |
+| s_ms | 초와 밀리초 (05.999) |
+| s_us | 초와 마이크로초 (05.999999) |
+| s_ns | 초와 나노초 (05.999999999) |
+| s.ms | 초와 밀리초, 0 채움 (05.000) |
+| s.us | 초와 마이크로초, 0 채움 (05.000000) |
+| s.ns | 초와 나노초, 0 채움 (05.000000000) |
 
 ### sqlTimeformat()
 
-**Syntax**: `sqlTimeformat( format )`
+**문법**: `sqlTimeformat( format )`
 
 **Parameters:**
 - `format` - String
 
-**Available Formats:**
+**사용 가능한 형식:**
 
-| Format | Result of Timeformatting |
+| 형식 | 시간 서식 결과 |
 |:-------|:-------------------------|
-| YYYY | four-digit year value |
-| YY | two-digit year value |
-| MM | two-digit month value between 01 to 12 |
-| MMM | day of week |
-| DD | two-digit day of month between 01 to 31 |
-| HH24 | two-digit hour value between 00 to 23 |
-| HH12 | two-digit hour value between 0 to 12 |
-| HH | two-digit hour value between 0 to 12 |
-| MI | two-digit minute value between 00 to 59 |
-| SS | two-digit seconds value between 0 and 59 |
+| YYYY | 네 자리 연도 |
+| YY | 두 자리 연도 |
+| MM | 01~12의 두 자리 월 |
+| MMM | 요일 |
+| DD | 01~31의 두 자리 일 |
+| HH24 | 00~23의 두 자리 시 |
+| HH12 | 0~12의 두 자리 시 |
+| HH | 0~12의 두 자리 시 |
+| MI | 00~59의 두 자리 분 |
+| SS | 0~59의 두 자리 초 |
 | AM | AM/PM |
-| nnn... | 1 to 9 digits fractions of a second |
+| nnn... | 1~9자리 소수점 이하 초 |
 
 **Example:**
 
@@ -675,7 +675,7 @@ CSV( sqlTimeformat("YYYY-MM-DD HH24:MI:SS.nnnnnn"), tz("Asia/Seoul") )
 
 ### ansiTimeformat()
 
-**Syntax**: `ansiTimeformat( format )`
+**문법**: `ansiTimeformat( format )`
 
 **Parameters:**
 - `format` - String
@@ -698,59 +698,59 @@ CSV( ansiTimeformat("yyyy-mm-dd hh:nn:ss.ffffff"), tz("UTC"))
 2023-11-30 11:50:43.219876,11
 ```
 
-**Available Formats:**
+**사용 가능한 형식:**
 
-| Format | Result of Timeformatting |
+| 형식 | 시간 서식 결과 |
 |:-------|:-------------------------|
-| yyyy | four-digit year value |
-| mm | two-digit month value between 01 to 12 |
-| dd | two-digit day value between 01 to 31 |
-| hh | two-digit hour value between 00 to 23 |
-| nn | two-digit minute value between 00 to 59 |
-| ss | two-digit seconds value between 0 and 59 |
-| fff... | 1 to 9 digits fractions of a second |
+| yyyy | 네 자리 연도 |
+| mm | 01~12의 두 자리 월 |
+| dd | 01~31의 두 자리 일 |
+| hh | 00~23의 두 자리 시 |
+| nn | 00~59의 두 자리 분 |
+| ss | 0~59의 두 자리 초 |
+| fff... | 1~9자리 소수점 이하 초 |
 
 ## Math
 
-Mathematical functions.
+수학 함수입니다.
 
-*Version 8.0.6 or later*
+*버전 8.0.6 이상*
 
-> This functions does not guarantee bit-identical results across system architectures.
+> 이 함수는 시스템 아키텍처가 달라도 비트 단위로 동일한 결과를 보장하지는 않습니다.
 
-| Function | Description |
+| 함수 | 설명 |
 |:---------|:------------|
-| `abs(x)` | the absolute value of x. |
-| `acos(x)` | the arccosine, in radians, of x. |
-| `acosh(x)` | the inverse hyperbolic cosine of x. |
-| `asin(x)` | the arcsine, in radians, of x. |
-| `asinh(x)` | the inverse hyperbolic sine of x. |
-| `atan(x)` | the arctangent, in radians, of x. |
-| `atanh(x)` | the inverse hyperbolic tangent of x. |
-| `ceil(x)` | the least integer value greater than or equal to x. |
-| `cos(x)` | the cosine of the radian argument x. |
-| `cosh(x)` | the hyperbolic cosine of x. |
-| `exp(x)` | e**x, the base-e exponential of x. |
-| `exp2(x)` | 2**x, the base-2 exponential of x. |
-| `floor(x)` | the greatest integer value less than or equal to x. |
-| `log(x)` | the natural logarithm of x. |
-| `log2(x)` | the binary logarithm of x. The special cases are the same as for log. |
-| `log10(x)` | the decimal logarithm of x. The special cases are the same as for log. |
-| `max(x,y)` | the larger of x or y. |
-| `min(x,y)` | the smaller of x or y. |
-| `mod(x,y)` | the floating-point remainder of x/y. The magnitude of the result is less than y and its sign agrees with that of x. |
-| `pow(x, y)` | x**y, the base-x exponential of y. |
-| `pow10(x)` | 10**x, the base-10 exponential of n. |
-| `remainder(x,y)` | the IEEE 754 floating-point remainder of x/y. |
-| `round(x)` | the nearest integer, rounding half away from zero. |
-| `sin(x)` | the sine of the radian argument x. |
-| `sinh(x)` | the hyperbolic sine of x. |
-| `sqrt(x)` | the square root of x. |
-| `tan(x)` | the tangent of the radian argument x. |
-| `tanh(x)` | the hyperbolic tangent of x. |
-| `trunc(x)` | the integer value of x. |
+| `abs(x)` | x의 절댓값. |
+| `acos(x)` | x의 아크코사인(라디안). |
+| `acosh(x)` | x의 역쌍곡코사인. |
+| `asin(x)` | x의 아크사인(라디안). |
+| `asinh(x)` | x의 역쌍곡사인. |
+| `atan(x)` | x의 아크탄젠트(라디안). |
+| `atanh(x)` | x의 역쌍곡탄젠트. |
+| `ceil(x)` | x 이상인 가장 작은 정수. |
+| `cos(x)` | 라디안 인자 x의 코사인. |
+| `cosh(x)` | x의 쌍곡코사인. |
+| `exp(x)` | e**x, x의 자연지수. |
+| `exp2(x)` | 2**x, x의 밑 2 지수. |
+| `floor(x)` | x 이하인 가장 큰 정수. |
+| `log(x)` | x의 자연로그. |
+| `log2(x)` | x의 이진로그. 특수 경우는 log와 같습니다. |
+| `log10(x)` | x의 상용로그. 특수 경우는 log와 같습니다. |
+| `max(x,y)` | x와 y 중 큰 값. |
+| `min(x,y)` | x와 y 중 작은 값. |
+| `mod(x,y)` | x/y의 부동소수점 나머지. 결과의 크기는 y보다 작고 부호는 x와 같습니다. |
+| `pow(x, y)` | x**y, 밑이 x인 y 제곱. |
+| `pow10(x)` | 10**x, 밑이 10인 x 제곱. |
+| `remainder(x,y)` | x/y의 IEEE 754 부동소수점 나머지. |
+| `round(x)` | 가장 가까운 정수. 0.5는 0에서 먼 쪽으로 반올림. |
+| `sin(x)` | 라디안 인자 x의 사인. |
+| `sinh(x)` | x의 쌍곡사인. |
+| `sqrt(x)` | x의 제곱근. |
+| `tan(x)` | 라디안 인자 x의 탄젠트. |
+| `tanh(x)` | x의 쌍곡탄젠트. |
+| `trunc(x)` | x의 정수부. |
 
-An example usage of math functions with `MAPVALUE`.
+`MAPVALUE`와 함께 수학 함수를 사용하는 예제입니다.
 
 **Example:**
 
@@ -778,23 +778,23 @@ CHART(
 
 ### random()
 
-**Syntax**: `random() : number`
+**문법**: `random() : number`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`random()` returns a float, a pseudo-random number in the half-open interval [0.0,1.0).
+`random()`은 반열린 구간 [0.0,1.0)의 의사난수 실수를 반환합니다.
 
 ### simplex()
 
-**Syntax**: `simplex(seed, dim1 [, dim2 [, dim3 [, dim4]]]) : number`
+**문법**: `simplex(seed, dim1 [, dim2 [, dim3 [, dim4]]]) : number`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
 **Parameters:**
-- `seed` - Int, seed number
-- `dim1` ~ `dim4` - Float number
+- `seed` - 정수, 시드 번호
+- `dim1` ~ `dim4` - 실수
 
-`simplex()` returns SimpleX noise ([wikipedia](https://en.wikipedia.org/wiki/Simplex_noise)) by given seed and dimension values.
+`simplex()`는 주어진 시드와 차원 값으로 SimpleX 노이즈를 반환합니다.
 
 **Example:**
 
@@ -829,22 +829,22 @@ CHART(
 
 ### count()
 
-**Syntax**: `count( array|tuple ) : number`
+**문법**: `count( array|tuple ) : number`
 
-Returns the number of the elements.
+요소의 개수를 반환합니다.
 
 ### list()
 
-**Syntax**: `list(args...) : list`
+**문법**: `list(args...) : list`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`list()` returns a new tuple that contains the `args` as its elements.
+`list()`는 `args`를 요소로 갖는 새 튜플을 반환합니다.
 
 ### dict()
 
-**Syntax**: `dict( name1, value1 [, name2, value2 ...]) : dictionary`
+**문법**: `dict( name1, value1 [, name2, value2 ...]) : dictionary`
 
-*Version 8.0.8 or later*
+*버전 8.0.8 이상*
 
-`dict()` returns a new dictionary that contains pairs of name*n*:value*n*.
+`dict()`는 name*n*:value*n* 쌍을 담은 새 딕셔너리를 반환합니다.

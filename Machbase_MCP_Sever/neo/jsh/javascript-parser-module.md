@@ -1,13 +1,13 @@
 # Machbase Neo JavaScript Parser Module
 
-The `parser` module provides streaming decoders for CSV and NDJSON data.
-It is designed for use with JSH streams and emits parsed objects through events.
+`parser` 모듈은 CSV와 NDJSON 데이터를 위한 스트리밍 디코더를 제공합니다.
+JSH 스트림과 함께 쓰도록 설계되었으며 파싱된 객체를 이벤트로 내보냅니다.
 
 ```js
 const parser = require('parser');
 ```
 
-## Exported members
+## 내보내는 멤버
 
 - `csv(options)`
 - `ndjson(options)`
@@ -16,79 +16,79 @@ const parser = require('parser');
 
 ## csv()
 
-Creates a CSV parser stream.
+CSV 파서 스트림을 만듭니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 parser.csv([options])
 ```
 
-<h6>Options</h6>
+<h6>옵션</h6>
 
-| Option | Type | Default | Description |
+| 옵션 | 타입 | 기본값 | 설명 |
 |:-------|:-----|:--------|:------------|
-| `separator` | String | `,` | Field separator |
-| `quote` | String | `"` | Quote character |
-| `escape` | String | same as `quote` | Escape character used for escaped quotes |
-| `headers` | `true` / `false` / `String[]` | `true` | Header handling mode |
-| `skipLines` | Number | `0` | Number of initial lines to ignore |
-| `skipComments` | Boolean \| String | `false` | Skip comment lines |
-| `strict` | Boolean | `false` | Fail when a row has a different column count |
-| `mapHeaders` | Function | | Maps header names |
-| `mapValues` | Function | | Maps field values before row emission |
-| `trimLeadingSpace` | Boolean | `true` | Trim leading spaces from each field |
+| `separator` | String | `,` | 필드 구분자 |
+| `quote` | String | `"` | 인용 문자 |
+| `escape` | String | `quote`와 동일 | 이스케이프된 따옴표에 쓰는 이스케이프 문자 |
+| `headers` | `true` / `false` / `String[]` | `true` | 헤더 처리 방식 |
+| `skipLines` | Number | `0` | 무시할 앞부분 줄 수 |
+| `skipComments` | Boolean \| String | `false` | 주석 줄 건너뛰기 |
+| `strict` | Boolean | `false` | 행의 컬럼 수가 다르면 실패 |
+| `mapHeaders` | Function | | 헤더 이름을 매핑합니다 |
+| `mapValues` | Function | | 행을 내보내기 전에 필드 값을 매핑합니다 |
+| `trimLeadingSpace` | Boolean | `true` | 각 필드의 앞 공백을 제거합니다 |
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-Returns a `CSVParser` instance.
+`CSVParser` 인스턴스를 반환합니다.
 
 ## CSVParser
 
-<h6>Events</h6>
+<h6>이벤트</h6>
 
-- `headers`: emitted once after the header row is parsed
-- `data`: emitted for each parsed row object
-- `error`: emitted when strict parsing fails
-- `end`: emitted when the upstream stream finishes
+- `headers`: 헤더 행이 파싱된 뒤 한 번 발생합니다
+- `data`: 파싱된 행 객체마다 발생합니다
+- `error`: 엄격 파싱이 실패할 때 발생합니다
+- `end`: 상위 스트림이 끝날 때 발생합니다
 
-<h6>Properties</h6>
+<h6>속성</h6>
 
-- `bytesWritten`: number of input bytes received
-- `bytesRead`: number of bytes consumed by the parser
+- `bytesWritten`: 받은 입력 바이트 수
+- `bytesRead`: 파서가 소비한 바이트 수
 
-<h6>Row shape</h6>
+<h6>행 구조</h6>
 
-- When `headers` is omitted or `true`, the first non-skipped line becomes the header row.
-- When `headers` is `false`, fields are exposed as `"0"`, `"1"`, `"2"`, ...
-- When `headers` is an array, those names are used and the first line is treated as data.
+- `headers`를 생략하거나 `true`로 두면 건너뛰지 않은 첫 줄이 헤더 행이 됩니다.
+- `headers`가 `false`이면 필드가 `"0"`, `"1"`, `"2"`, ... 로 노출됩니다.
+- `headers`가 배열이면 그 이름들을 사용하고 첫 줄은 데이터로 취급합니다.
 
 ## ndjson()
 
-Creates an NDJSON parser stream.
+NDJSON 파서 스트림을 만듭니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 parser.ndjson([options])
 ```
 
-<h6>Options</h6>
+<h6>옵션</h6>
 
-| Option | Type | Default | Description |
+| 옵션 | 타입 | 기본값 | 설명 |
 |:-------|:-----|:--------|:------------|
-| `strict` | Boolean | `true` | Fail on invalid JSON lines instead of skipping them |
+| `strict` | Boolean | `true` | 잘못된 JSON 줄을 건너뛰지 않고 실패 처리합니다 |
 
 ## NDJSONParser
 
-<h6>Events</h6>
+<h6>이벤트</h6>
 
-- `data`: emitted for each parsed JSON object
-- `warning`: emitted for invalid lines when `strict: false`
-- `error`: emitted when strict parsing fails
-- `end`: emitted when the upstream stream finishes
+- `data`: 파싱된 JSON 객체마다 발생합니다
+- `warning`: `strict: false`일 때 잘못된 줄마다 발생합니다
+- `error`: 엄격 파싱이 실패할 때 발생합니다
+- `end`: 상위 스트림이 끝날 때 발생합니다
 
-`warning` event objects contain `line`, `data`, and `error`.
+`warning` 이벤트 객체는 `line`, `data`, `error`를 포함합니다.
 
 ## CSV example
 
@@ -109,7 +109,7 @@ fs.createReadStream('/work/sample.csv')
     });
 ```
 
-## NDJSON example
+## NDJSON 예제
 
 ```js
 const fs = require('fs');
@@ -125,10 +125,10 @@ fs.createReadStream('/work/sample.ndjson')
     });
 ```
 
-## Behavior notes
+## 동작 참고사항
 
-- Both parser classes extend the JSH `stream.Transform` implementation.
-- Parsed rows and objects are emitted through `data` events.
-- Empty lines are ignored by both parsers.
-- `NDJSONParser` trims each line before parsing.
-- `CSVParser` removes a trailing `\r` so `\r\n` input is handled correctly.
+- 두 파서 클래스 모두 JSH `stream.Transform` 구현을 상속합니다.
+- 파싱된 행과 객체는 `data` 이벤트로 전달됩니다.
+- 두 파서 모두 빈 줄을 무시합니다.
+- `NDJSONParser`는 파싱 전에 각 줄의 공백을 제거합니다.
+- `CSVParser`는 끝의 `\r`을 제거해 `\r\n` 입력을 올바르게 처리합니다.

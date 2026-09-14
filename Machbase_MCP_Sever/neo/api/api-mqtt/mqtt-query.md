@@ -1,33 +1,33 @@
 # Machbase Neo MQTT Query
 
-The database query topic for MQTT is `db/query`. Send a query request to this topic, and the server will respond with the result to the `db/reply` topic or the topic specified in the `reply` field of the request.
+MQTT의 데이터베이스 조회 토픽은 `db/query`입니다. 이 토픽으로 조회 요청을 보내면 서버가 `db/reply` 토픽 또는 요청의 `reply` 필드에 지정된 토픽으로 결과를 응답합니다.
 
-## Query JSON
+## 조회 JSON
 
-| param       | default | description                   |
+| 파라미터       | 기본값 | 설명                   |
 |:----------- |---------|:----------------------------- |
-| **q**       | _n/a_   | SQL query string              |
-| p           |         | JSON array of parameters for `?` bind placeholders in the SQL query. Example: `"p": [2]`. Use `?` in the SQL as placeholder: `SELECT * FROM EXAMPLE WHERE name = ? LIMIT ?` |
-| reply       | db/reply| The topic where to receive the result of query |
-| format      | json    | Result data format: json, csv, box |
-| timeformat  | ns      | Time format: s, ms, us, ns    |
-| tz          | UTC     | Time Zone: UTC, Local and location spec |
-| compress    | _no compression_   | compression method: gzip      |
-| rownum      | false   | including rownum: true, false |
-| heading     | true    | showing heading: true, false  |
-| precision   | -1      | precision of float value, -1 for no round, 0 for int |s
+| **q**       | _해당 없음_   | SQL 쿼리 문자열              |
+| p           |         | SQL 쿼리의 `?` 바인드 자리표시자에 넣을 파라미터 JSON 배열. 예: `"p": [2]`. SQL에서는 `?`를 자리표시자로 사용합니다: `SELECT * FROM EXAMPLE WHERE name = ? LIMIT ?` |
+| reply       | db/reply| 쿼리 결과를 받을 토픽 |
+| format      | json    | 결과 데이터 형식: json, csv, box |
+| timeformat  | ns      | 시간 형식: s, ms, us, ns    |
+| tz          | UTC     | 시간대: UTC, Local, 지역 지정 |
+| compress    | _압축 안 함_   | 압축 방식: gzip      |
+| rownum      | false   | rownum 포함: true, false |
+| heading     | true    | 헤더 표시: true, false  |
+| precision   | -1      | 실수 값의 정밀도. -1은 반올림 없음, 0은 정수 |s
 
-**More Parameters in `format=json`**
+**`format=json`의 추가 파라미터**
 
-Those options are available only when `format=json`
+이 옵션들은 `format=json`일 때만 사용할 수 있습니다
 
-| param       | default | description                   |
+| 파라미터       | 기본값 | 설명                   |
 |:----------- |---------|:----------------------------- |
-| transpose   | false   | produce cols array instead of rows. |
-| rowsFlatten | false   | reduce the array dimension of the *rows* field in the JSON object. |
-| rowsArray   | false   | produce JSON that contains only array of object for each record.  |
+| transpose   | false   | rows 대신 cols 배열을 생성합니다. |
+| rowsFlatten | false   | JSON 객체의 *rows* 필드 배열 차원을 낮춥니다. |
+| rowsArray   | false   | 레코드마다 객체 배열만 담은 JSON을 생성합니다.  |
 
-A basic query example shows the client subscribe to `db/reply/#` and publish a query request to `db/query` with *reply* field `db/reply/my_query` so that it can identify the individual reply from multiple messages.
+기본 조회 예제는 클라이언트가 `db/reply/#`을 구독하고, *reply* 필드에 `db/reply/my_query`를 지정해 `db/query`로 조회 요청을 발행함으로써 여러 메시지 중 자신의 응답을 구분하는 방법을 보여줍니다.
 
 ```json
 {
@@ -37,31 +37,31 @@ A basic query example shows the client subscribe to `db/reply/#` and publish a q
 }
 ```
 
-## Client Examples
+## 클라이언트 예제
 
 ### JSH app
 
-> Since machbase-neo v8.5.0, JSH apps use standard Node.js-style `process` and `mqtt` modules (event-driven `.on()` handlers) instead of the older `@jsh/process` / `@jsh/mqtt` callback API.
+> machbase-neo v8.5.0부터 JSH 앱은 기존의 `@jsh/process` / `@jsh/mqtt` 콜백 API 대신 표준 Node.js 방식의 `process`, `mqtt` 모듈(이벤트 기반 `.on()` 핸들러)을 사용합니다.
 
-In this example, you will learn how to subscribe to a reply topic,
-send an SQL query request, and receive the result over MQTT.
+이 예제에서는 응답 토픽을 구독하고,
+SQL 쿼리 요청을 보내 MQTT로 결과를 받는 방법을 배웁니다.
 
-1. **Subscribe to the Reply Topic**  
-   The client first subscribes to a specific reply topic, such as `db/reply/my_query`.
-   This topic is where the server will send the query result.
+1. **응답 토픽 구독**  
+   클라이언트가 먼저 `db/reply/my_query` 같은 응답 토픽을 구독합니다.
+   서버는 이 토픽으로 쿼리 결과를 보냅니다.
 
-2. **Publish the SQL Query Request**  
-   The client then publishes a message to the `db/query` topic.
-   The message includes the SQL query (`q`),
-   the desired result format (`format`),
-   and the reply topic (`reply`) where the result should be sent.
+2. **SQL 쿼리 요청 발행**  
+   그다음 클라이언트가 `db/query` 토픽으로 메시지를 발행합니다.
+   메시지에는 SQL 쿼리(`q`),
+   원하는 결과 형식(`format`),
+   결과를 받을 응답 토픽(`reply`)이 포함됩니다.
 
-3. **Receive and Process the Response**  
-   When the server processes the query,
-   it sends the result to the specified reply topic.
-   The client receives this message and prints the result.
+3. **응답 수신 및 처리**  
+   서버가 쿼리를 처리하면
+   지정된 응답 토픽으로 결과를 보냅니다.
+   클라이언트는 이 메시지를 받아 결과를 출력합니다.
 
-Below is the complete code example:
+전체 코드 예제는 다음과 같습니다:
 
 ```js
 const process = require("process");
@@ -106,7 +106,7 @@ client.on('unsubscribed', (topic, reason) => {
 });
 ```
 
-The Execution and result:
+실행과 결과:
 
 ```sh
 /work > ./mqtt_query.js
@@ -123,7 +123,7 @@ my-car,1782260474839257291,1.60485
 ---- disconnected ----
 ```
 
-### Node.js Client
+### Node.js 클라이언트
 
 ```sh
 npm install mqtt --save
@@ -176,7 +176,7 @@ $ node main.js
 
 ### Go client
 
-**Define data structure for response**
+**응답용 데이터 구조 정의**
 
 ```go
 type Result struct {
@@ -193,7 +193,7 @@ type ResultData struct {
 }
 ```
 
-**Subscribe 'db/reply'**
+**'db/reply' 구독**
 
 ```go
 client.Subscribe("db/reply", 1, func(_ paho.Client, msg paho.Message) {
@@ -220,7 +220,7 @@ client.Subscribe("db/reply", 1, func(_ paho.Client, msg paho.Message) {
 })
 ```
 
-**Publish 'db/query'**
+**'db/query' 발행**
 
 ```go
 jsonStr := `{ "q": "select * from EXAMPLE order by time desc limit 5" }`

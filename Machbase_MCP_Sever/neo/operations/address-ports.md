@@ -1,35 +1,35 @@
 # Machbase Neo IP Address and ports
 
-## Bind Address
+## 바인드 주소
 
-machbase-neo runs and listens to only localhost by default for the security reason. If clients on the remote hosts need to read/write data from/to machbase-neo through network, it requires that machbase-neo starts with bind address option `--host <bind address>`.
+machbase-neo는 보안을 위해 기본적으로 localhost에서만 수신합니다. 원격 호스트의 클라이언트가 네트워크로 데이터를 읽고 쓰려면 바인드 주소 옵션 `--host <bind address>`와 함께 machbase-neo를 시작해야 합니다.
 
-To allow listening from all addresses, use `0.0.0.0`
+모든 주소에서 수신하려면 `0.0.0.0`을 사용합니다
 
 ```sh
 machbase-neo serve --host 0.0.0.0
 ```
 
-To allow listening from specific address, set the IP address of the host.
+특정 주소에서만 수신하려면 호스트의 IP 주소를 설정합니다.
 
 ```sh
 machbase-neo serve --host 192.168.1.10
 ```
 
-## Listening Ports
+## 수신 포트
 
-There are more flag options for the protocol ports.
+프로토콜 포트를 위한 플래그 옵션이 더 있습니다.
 
-| flag             | default          | desc                            |
+| 플래그             | 기본값          | 설명                            |
 |:-----------------|:----------------:|-------------------------------- |
-| `--shell-port`   | `5652`           | ssh listen port                 |
-| `--mqtt-port`    | `5653`           | mqtt listen port                |
-| `--http-port`    | `5654`           | http listen port                |
-| `--mach-port`    | `5656`           | machbase native listen port for JDBC/ODBC drivers |
+| `--shell-port`   | `5652`           | ssh 수신 포트                 |
+| `--mqtt-port`    | `5653`           | mqtt 수신 포트                |
+| `--http-port`    | `5654`           | http 수신 포트                |
+| `--mach-port`    | `5656`           | JDBC/ODBC 드라이버용 machbase 네이티브 수신 포트 |
 
-If a listener requires to listen different network interface, use listen host and port flags.
+리스너가 다른 네트워크 인터페이스에서 수신해야 한다면 listen host와 port 플래그를 사용하세요.
 
-| flag                   | default                | desc                            |
+| 플래그                   | 기본값                | 설명                            |
 |:-----------------------|:-----------------------|-------------------------------- |
 | `--mach-listen-host`   | value of `--host`      |                                 |
 | `--mach-listen-port`   | value of `--mach-port` |                                 |

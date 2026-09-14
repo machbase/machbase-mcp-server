@@ -1,7 +1,7 @@
 # Machbase Neo JavaScript Tar Module
 
-The `archive/tar` module creates and extracts TAR archives in JSH.
-It supports simple in-memory helpers, stream-style APIs, and a file-based `Tar` class.
+`archive/tar` 모듈은 JSH에서 TAR 아카이브를 만들고 풉니다.
+간단한 메모리 기반 도우미, 스트림 방식 API, 파일 기반 `Tar` 클래스를 지원합니다.
 
 ```js
 const tar = require('archive/tar');
@@ -9,25 +9,25 @@ const tar = require('archive/tar');
 
 ## tarSync()
 
-Creates a TAR archive synchronously.
+TAR 아카이브를 동기적으로 만듭니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 tarSync(data)
 ```
 
-<h6>Parameters</h6>
+<h6>파라미터</h6>
 
 - `data` `String | ArrayBuffer | Uint8Array | Number[] | Object[]`
 
-If `data` is an array, each item should be an entry object such as `{ name, data }`.
+`data`가 배열이면 각 항목은 `{ name, data }` 같은 항목 객체여야 합니다.
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-Returns an `ArrayBuffer` that contains TAR archive bytes.
+TAR 아카이브 바이트를 담은 `ArrayBuffer`를 반환합니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const tar = require('archive/tar');
@@ -39,29 +39,29 @@ const archive = tar.tarSync([
 
 ## untarSync()
 
-Extracts TAR archive bytes synchronously and returns entry objects.
+TAR 아카이브 바이트를 동기적으로 풀어 항목 객체를 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 untarSync(buffer)
 ```
 
-Each entry can include `name`, `data`, `mode`, `size`, `isDir`, `modified`, `typeflag`, `type`, and `linkname`.
+각 항목은 `name`, `data`, `mode`, `size`, `isDir`, `modified`, `typeflag`, `type`, `linkname`을 포함할 수 있습니다.
 
 ## tar() / untar()
 
-Callback-style asynchronous wrappers. Callback signature: `(err, result) => {}`.
+콜백 방식의 비동기 래퍼입니다. 콜백 시그니처: `(err, result) => {}`.
 
 ## createTar()
 
-Creates a stream-style TAR writer. Accepts entry objects through `write()` and emits archive bytes through the `data` event when `end()` is called.
+스트림 방식 TAR writer를 만듭니다. `write()`로 항목 객체를 받고 `end()` 호출 시 `data` 이벤트로 아카이브 바이트를 내보냅니다.
 
 ## createUntar()
 
-Creates a stream-style TAR reader. Write archive bytes with `write()`, then call `end()` to emit one `entry` event per extracted item.
+스트림 방식 TAR reader를 만듭니다. `write()`로 아카이브 바이트를 쓰고 `end()`를 호출하면 추출된 항목마다 `entry` 이벤트를 내보냅니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const tar = require('archive/tar');
@@ -86,19 +86,19 @@ writer.end();
 
 ## Tar
 
-File-oriented helper class for building, saving, loading, and extracting TAR archives.
+TAR 아카이브를 만들고 저장·로드·추출하는 파일 중심 도우미 클래스입니다.
 
-<h6>Constructor</h6>
+<h6>생성자</h6>
 
 ```js
 new tar.Tar(filePath?)
 ```
 
-If `filePath` is provided, the archive is loaded from that file.
+`filePath`를 주면 해당 파일에서 아카이브를 불러옵니다.
 
 ### addFile()
 
-Reads a file from the filesystem and appends it as an archive entry.
+파일 시스템에서 파일을 읽어 아카이브 항목으로 추가합니다.
 
 ```js
 addFile(filePath[, entryName])
@@ -106,7 +106,7 @@ addFile(filePath[, entryName])
 
 ### addBuffer()
 
-Appends a string or byte buffer as an archive entry.
+문자열 또는 바이트 버퍼를 아카이브 항목으로 추가합니다.
 
 ```js
 addBuffer(data, entryName[, options])
@@ -114,15 +114,15 @@ addBuffer(data, entryName[, options])
 
 ### addEntry()
 
-Appends an archive entry object directly. Supported fields: `name`, `data`, `mode`, `modified`, `type` (`file`, `dir`, `symlink`, `link`), `typeflag`, `linkname`, `isDir`.
+아카이브 항목 객체를 직접 추가합니다. 지원 필드: `name`, `data`, `mode`, `modified`, `type`(`file`, `dir`, `symlink`, `link`), `typeflag`, `linkname`, `isDir`.
 
 ### getEntries()
 
-Returns a shallow copy of the current archive entries.
+현재 아카이브 항목들의 얕은 복사본을 반환합니다.
 
 ### writeTo()
 
-Writes the archive to a file.
+아카이브를 파일에 씁니다.
 
 ```js
 writeTo(filePath)
@@ -130,16 +130,16 @@ writeTo(filePath)
 
 ### extractAllTo()
 
-Extracts entries to a directory.
+항목들을 디렉터리에 풉니다.
 
 ```js
 extractAllTo(outputDir[, overwrite])
 extractAllTo(outputDir, options)
 ```
 
-`options` supports `overwrite` (Boolean) and `filter` (Function | RegExp | String | String[]).
+`options`는 `overwrite`(Boolean)와 `filter`(Function | RegExp | String | String[])를 지원합니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const tar = require('archive/tar');

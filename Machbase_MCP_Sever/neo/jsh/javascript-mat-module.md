@@ -2,21 +2,21 @@
 
 ## Dense()
 
-Dense Matrix
+밀집 행렬(Dense Matrix)
 
-**Creation**
+**생성**
 
 ```js
 new Dense(r, c, data)
 ```
 
-**Parameters**
+**파라미터**
 
 - `r` `Number` rows
 - `c` `Number` cols
 - `data` `Number[]`
 
-creates a new dense matrix with r rows and c columns.
+r개 행과 c개 열을 가진 새 밀집 행렬을 만듭니다.
 
 ### dims()
 
@@ -26,7 +26,7 @@ creates a new dense matrix with r rows and c columns.
 
 ### T()
 
-creates a new dense matrix of transposed.
+전치된 새 밀집 행렬을 만듭니다.
 
 ```js
 const mat = require("@jsh/mat");
@@ -155,16 +155,16 @@ console.log(mat.format(C, {format:"C=%.f", prefix:"  "}))
 
 Vector
 
-**Creation**
+**생성**
 
 ```js
 new VecDense(n, data)
 ```
 
-**Parameters**
+**파라미터**
 
-- `n` `Number` Creates a new VecDense of length n. It should be larger than 0.
-- `data` `Number[]` Array of elements. If data is omit, blank array is assigned.
+- `n` `Number` 길이 n의 새 VecDense를 만듭니다. 0보다 커야 합니다.
+- `data` `Number[]` 요소 배열. 생략하면 빈 배열이 할당됩니다.
 
 ### cap()
 ### len()
@@ -179,19 +179,19 @@ new VecDense(n, data)
 
 ## QR
 
-**QR factorization** is a decomposition of a matrix *A* into a product `A = QR` of an orthonormal matrix *Q* and a upper triangular matrix *R*.
-QR decomposition is often used to solve the linear least squares (LLS) problem and is the basis for a particular eigenvalue algorithm, the QR algorithm.
+**QR 분해**는 행렬 *A*를 직교행렬 *Q*와 상삼각행렬 *R*의 곱 `A = QR`로 분해하는 것입니다.
+QR 분해는 선형 최소제곱(LLS) 문제를 푸는 데 자주 쓰이며, 고유값 알고리즘의 하나인 QR 알고리즘의 기초가 됩니다.
 
-Any real square matrix *A* may be decomposed as
+임의의 실수 정사각행렬 *A*는 다음과 같이 분해할 수 있습니다
 
 ```
 A = QR
 ```
 
-where *Q* is an orthogonal matrix and *R* is an upper triangular matrix.
-If *A* is invertible, then the factorization is unique if we require the diagonal elements of *R* to be positive.
+여기서 *Q*는 직교행렬, *R*은 상삼각행렬입니다.
+*A*가 가역이면, *R*의 대각 원소를 양수로 제한할 때 분해가 유일합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const m = require("@jsh/mat")

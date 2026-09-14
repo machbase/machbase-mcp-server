@@ -2,23 +2,23 @@
 
 ## now()
 
-Get the process id of the current process.
+현재 프로세스의 프로세스 id를 가져옵니다.
 
-**Syntax**
+**문법**
 
 ```js
 now()
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
-Current time in native object.
+현재 시각을 네이티브 객체로 반환합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const m = require("@jsh/system")
@@ -27,7 +27,7 @@ console.log("now =", m.now())
 
 ## parseTime()
 
-**Syntax**
+**문법**
 
 ```js
 parseTime(epoch, epoch_format)
@@ -35,19 +35,19 @@ parseTime(datetime, format)
 parseTime(datetime, format, location)
 ```
 
-**Parameters**
+**파라미터**
 
 - `epoch` `Number`
 - `epoch_format` `String` "s", "ms", "us", "ns"
 - `datetime` `String`
 - `format` `String`
-- `location` `Location` timezone, default is 'Local' if omitted., e.g. system.location('EST'), system.location('America/New_York')
+- `location` `Location` 시간대. 생략하면 기본값은 'Local'입니다. 예: system.location('EST'), system.location('America/New_York')
 
-**Return value**
+**반환값**
 
-Time in native object
+시각을 네이티브 객체로 반환
 
-**Usage example**
+**사용 예제**
 
 ```js
 const {println} = require("@jsh/process");
@@ -63,21 +63,21 @@ println(ts.In(system.location("UTC")).Format("2006-01-02 15:04:05"));
 
 ## location()
 
-**Syntax**
+**문법**
 
 ```js
 location(timezone)
 ```
 
-**Parameters**
+**파라미터**
 
 - `timezone` `String` time zone, e.g. `"UTC"`, `"Local"`, `"GMT"`, `"ETS"`, `"America/New_York"`...
 
-**Return value**
+**반환값**
 
-Location in native object
+위치를 네이티브 객체로 반환
 
-**Usage example**
+**사용 예제**
 
 ```js
 const {println} = require("@jsh/process");
@@ -90,17 +90,17 @@ println(ts.Format("2006-01-02 15:04:05"));
 
 ## Log
 
-**Creation**
+**생성**
 
-| Constructor             | Description                          |
+| 생성자             | 설명                          |
 |:------------------------|:----------------------------------------------|
-| new Log(*name*)         | Instantiates a logger with the given name     |
+| new Log(*name*)         | 주어진 이름으로 로거를 생성합니다     |
 
-**Options**
+**옵션**
 
 - `name` `String` logger name
 
-**Usage example**
+**사용 예제**
 
 ```js
 const system = require("@jsh/system");
@@ -115,80 +115,80 @@ log.info("hello", "world");
 
 ### trace()
 
-**Syntax**
+**문법**
 
 ```js
 trace(...args)
 ```
 
-**Parameters**
+**파라미터**
 
-- `args` `any` variable length of arguments for writing log message.
+- `args` `any` 로그 메시지를 쓰기 위한 가변 길이 인자.
 
-**Return value**
+**반환값**
 
 None.
 
 ### debug()
 
-**Syntax**
+**문법**
 
 ```js
 debug(...args)
 ```
 
-**Parameters**
+**파라미터**
 
-- `args` `any` variable length of arguments for writing log message.
+- `args` `any` 로그 메시지를 쓰기 위한 가변 길이 인자.
 
-**Return value**
+**반환값**
 
 None.
 
 ### info()
 
-**Syntax**
+**문법**
 
 ```js
 info(...args)
 ```
 
-**Parameters**
+**파라미터**
 
-- `args` `any` variable length of arguments for writing log message.
+- `args` `any` 로그 메시지를 쓰기 위한 가변 길이 인자.
 
-**Return value**
+**반환값**
 
 None.
 
 ### warn()
 
-**Syntax**
+**문법**
 
 ```js
 warn(...args)
 ```
 
-**Parameters**
+**파라미터**
 
-- `args` `any` variable length of arguments for writing log message.
+- `args` `any` 로그 메시지를 쓰기 위한 가변 길이 인자.
 
-**Return value**
+**반환값**
 
 None.
 
 ### error()
 
-**Syntax**
+**문법**
 
 ```js
 error(...args)
 ```
 
-**Parameters**
+**파라미터**
 
-- `args` `any` variable length of arguments for writing log message.
+- `args` `any` 로그 메시지를 쓰기 위한 가변 길이 인자.
 
-**Return value**
+**반환값**
 
 None.

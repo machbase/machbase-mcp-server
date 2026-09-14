@@ -1,18 +1,18 @@
 # Machbase Neo JavaScript MachCLI Module
 
-The `machcli` module provides a Machbase client API for JSH applications.
+`machcli` 모듈은 JSH 애플리케이션에 Machbase 클라이언트 API를 제공합니다.
 
 ## Client
 
-Creates a database client.
+데이터베이스 클라이언트를 만듭니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new Client(config)
 ```
 
-<h6>Configuration fields</h6>
+<h6>설정 필드</h6>
 
 - `host` (default: `127.0.0.1`)
 - `port` (default: `5656`)
@@ -21,7 +21,7 @@ new Client(config)
 - `alternativeHost` (optional)
 - `alternativePort` (optional)
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const { Client } = require('machcli');
@@ -30,35 +30,35 @@ const db = new Client({ host: '127.0.0.1', port: 5656, user: 'sys', password: 'm
 
 **Client.connect()**
 
-Opens a connection and returns a `Connection` object.
+연결을 열고 `Connection` 객체를 반환합니다.
 
 **Client.close()**
 
-Closes the underlying database client.
+내부 데이터베이스 클라이언트를 닫습니다.
 
 **Client.user()**
 
-Returns the configured user name (uppercase).
+설정된 사용자 이름을 대문자로 반환합니다.
 
 **Client.normalizeTableName()**
 
-Normalizes a table name into `[database, user, table]` format.
+테이블 이름을 `[database, user, table]` 형식으로 정규화합니다.
 
 ## Connection
 
-Connection object returned by `Client.connect()`.
+`Client.connect()`가 반환하는 연결 객체입니다.
 
 **Connection.query()**
 
-Executes a SELECT query and returns a `Rows` object.
+SELECT 쿼리를 실행하고 `Rows` 객체를 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 query(sql[, ...params])
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const { Client } = require('machcli');
@@ -86,21 +86,21 @@ db && db.close();
 
 **Connection.queryRow()**
 
-Executes a query and returns a single row object. Returned object includes `_ROWNUM` and each column as a property.
+쿼리를 실행하고 단일 행 객체를 반환합니다. 반환 객체는 `_ROWNUM`과 각 컬럼을 속성으로 포함합니다.
 
 **Connection.exec()**
 
-Executes DDL/DML and returns result object with `rowsAffected` and `message`.
+DDL/DML을 실행하고 `rowsAffected`와 `message`를 담은 결과 객체를 반환합니다.
 
 **Connection.explain()**
 
-Returns an execution plan string.
+실행 계획 문자열을 반환합니다.
 
 **Connection.append()**
 
-Creates an appender object for bulk inserts.
+대량 입력을 위한 appender 객체를 만듭니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const { Client } = require('machcli');
@@ -117,53 +117,53 @@ db.close();
 
 **Connection.close()**
 
-Closes the connection.
+연결을 닫습니다.
 
 ## Rows
 
-Result set object returned by `Connection.query()`.
+`Connection.query()`가 반환하는 결과 집합 객체입니다.
 
-- `message` - Message from query execution.
-- `isFetchable()` - Returns whether the result set can fetch rows.
-- `next()` - Returns an iterator result object.
-- `close()` - Closes the result set.
+- `message` - 쿼리 실행 메시지.
+- `isFetchable()` - 결과 집합에서 행을 가져올 수 있는지 반환합니다.
+- `next()` - 반복자 결과 객체를 반환합니다.
+- `close()` - 결과 집합을 닫습니다.
 
 ## Row
 
-Represents a fetched row object. Each column is available as `row.COLUMN_NAME`. `for...of` iteration is supported.
+가져온 행 객체를 나타냅니다. 각 컬럼은 `row.COLUMN_NAME`으로 접근하며 `for...of` 순회를 지원합니다.
 
 ## queryDatabaseId()
 
-Returns backup tablespace ID for a mounted database. Returns `-1` for default database.
+마운트된 데이터베이스의 백업 테이블스페이스 ID를 반환합니다. 기본 데이터베이스는 `-1`을 반환합니다.
 
 ## queryTableType()
 
-Returns table type code by normalized table name tokens.
+정규화된 테이블 이름 토큰으로 테이블 타입 코드를 반환합니다.
 
 ## TableType
 
-Table type constants: `Log`, `Fixed`, `Volatile`, `Lookup`, `KeyValue`, `Tag`.
+테이블 타입 상수: `Log`, `Fixed`, `Volatile`, `Lookup`, `KeyValue`, `Tag`.
 
-`stringTableType(type)` converts type code to string.
+`stringTableType(type)`은 타입 코드를 문자열로 변환합니다.
 
 ## TableFlag
 
-Table flag constants: `None`, `Data`, `Rollup`, `Meta`, `Stat`.
+테이블 플래그 상수: `None`, `Data`, `Rollup`, `Meta`, `Stat`.
 
-`stringTableFlag(flag)` converts flag code to string.
+`stringTableFlag(flag)`는 플래그 코드를 문자열로 변환합니다.
 
-`stringTableDescription(type, flag)` returns combined table description.
+`stringTableDescription(type, flag)`은 결합된 테이블 설명을 반환합니다.
 
 ## ColumnType
 
-Column type constants: `Short`, `UShort`, `Integer`, `UInteger`, `Long`, `ULong`, `Float`, `Double`, `Varchar`, `Text`, `Clob`, `Blob`, `Binary`, `Datetime`, `IPv4`, `IPv6`, `JSON`.
+컬럼 타입 상수: `Short`, `UShort`, `Integer`, `UInteger`, `Long`, `ULong`, `Float`, `Double`, `Varchar`, `Text`, `Clob`, `Blob`, `Binary`, `Datetime`, `IPv4`, `IPv6`, `JSON`.
 
-`stringColumnType(columnType)` converts type code to string.
+`stringColumnType(columnType)`은 타입 코드를 문자열로 변환합니다.
 
-`columnWidth(columnType, length)` returns default display width.
+`columnWidth(columnType, length)`는 기본 표시 너비를 반환합니다.
 
 ## ColumnFlag
 
-Column flag constants: `TagName`, `Basetime`, `Summarized`, `MetaColumn`.
+컬럼 플래그 상수: `TagName`, `Basetime`, `Summarized`, `MetaColumn`.
 
-`stringColumnFlag(flag)` converts flag code to string.
+`stringColumnFlag(flag)`는 플래그 코드를 문자열로 변환합니다.

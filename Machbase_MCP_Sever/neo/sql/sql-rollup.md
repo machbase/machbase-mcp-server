@@ -1,69 +1,69 @@
 # Machbase Neo SQL Rollup
 
-## Introduction
+## 소개
 
-Querying large-scale time-series datasets for statistical aggregates presents significant performance challenges. Performing aggregations over extensive time ranges or the entire dataset can be computationally expensive and time-consuming. Machbase addresses this through its Rollup feature, a specialized mechanism designed to optimize statistical analysis on time-series data stored within TAG tables. Rollup tables automatically pre-aggregate data at defined time granularities, enabling rapid retrieval of common statistical metrics.
+대규모 시계열 데이터셋에서 통계 집계를 조회하는 일은 성능 면에서 큰 부담입니다. 넓은 시간 범위나 전체 데이터셋에 대한 집계는 계산 비용이 크고 시간이 오래 걸립니다. Machbase는 TAG 테이블에 저장된 시계열 데이터의 통계 분석을 최적화하도록 설계된 롤업(Rollup) 기능으로 이 문제를 해결합니다. 롤업 테이블은 정해진 시간 단위로 데이터를 미리 집계해 두어 자주 쓰는 통계 지표를 빠르게 조회할 수 있게 합니다.
 
-## Core Concepts
+## 핵심 개념
 
-A **Rollup Table** in Machbase is a derived table that stores pre-calculated aggregate data originating from a source TAG table or another Rollup table. This pre-aggregation process is managed internally by Machbase, significantly reducing the overhead associated with on-the-fly statistical computations during query execution.
+Machbase의 **롤업 테이블**은 원본 TAG 테이블이나 다른 롤업 테이블로부터 미리 계산한 집계 데이터를 저장하는 파생 테이블입니다. 이 사전 집계 과정은 Machbase가 내부적으로 관리하므로, 질의 실행 시 실시간으로 통계를 계산하는 부담을 크게 줄여 줍니다.
 
-### Supported Aggregations
+### 지원하는 집계 함수
 
-Rollup tables intrinsically support the following standard aggregate functions:
-*   `MIN()`: Minimum value within the interval.
-*   `MAX()`: Maximum value within the interval.
-*   `SUM()`: Sum of values within the interval.
-*   `COUNT()`: Count of data points within the interval.
-*   `AVG()`: Average of values within the interval.
-*   `SUMSQ()`: Sum of the squares of values within the interval.
+롤업 테이블은 기본적으로 다음 표준 집계 함수를 지원합니다:
+*   `MIN()`: 구간 내 최솟값입니다.
+*   `MAX()`: 구간 내 최댓값입니다.
+*   `SUM()`: 구간 내 값의 합입니다.
+*   `COUNT()`: 구간 내 데이터 포인트 수입니다.
+*   `AVG()`: 구간 내 값의 평균입니다.
+*   `SUMSQ()`: 구간 내 값의 제곱합입니다.
 
-### Extended Aggregations (Optional)
+### 확장 집계 함수(선택)
 
-By utilizing the `EXTENSION` keyword during creation, Rollup tables can additionally support:
-*   `FIRST()`: The first recorded value within the interval.
-*   `LAST()`: The last recorded value within the interval.
+생성 시 `EXTENSION` 키워드를 사용하면 롤업 테이블이 다음도 지원합니다:
+*   `FIRST()`: 구간 내에 기록된 첫 번째 값입니다.
+*   `LAST()`: 구간 내에 기록된 마지막 값입니다.
 
-### Time Granularity
+### 시간 단위
 
-Rollup aggregation operates based on fixed time intervals, specifically:
+롤업 집계는 다음의 고정된 시간 구간을 기준으로 동작합니다:
 *   Seconds (`SEC`)
 *   Minutes (`MIN`)
 *   Hours (`HOUR`)
 
-Queries utilizing the Rollup mechanism can request aggregates based on these fundamental units or multiples thereof, including larger conceptual units like days, weeks, months, or years, which are internally mapped to the appropriate base Rollup table (typically HOUR-based for intervals >= 1 day).
+롤업을 사용하는 질의는 이 기본 단위나 그 배수를 기준으로 집계를 요청할 수 있습니다. 일·주·월·년처럼 더 큰 개념 단위도 사용할 수 있으며, 내부적으로 적절한 기본 롤업 테이블에 대응됩니다(1일 이상 구간은 보통 HOUR 기반).
 
-## Rollup Table Types
+## 롤업 테이블 종류
 
-Machbase provides two primary methods for creating and managing Rollup tables:
+Machbase는 롤업 테이블을 만들고 관리하는 두 가지 방법을 제공합니다:
 
-### Default Rollup
+### 기본 롤업(Default Rollup)
 
-*   Automatically generated when a TAG table is created using the `WITH ROLLUP` clause.
-*   Creates a standard hierarchy of Rollup tables (Second, Minute, Hour), depending on the specified minimum granularity. For instance, `WITH ROLLUP (MIN)` creates Minute and Hour Rollups. `WITH ROLLUP` or `WITH ROLLUP (SEC)` creates Second, Minute, and Hour Rollups.
-*   Rollup table names are automatically derived from the source TAG table name (e.g., `_mytag_ROLLUP_SEC`).
-*   Only one set of Default Rollup tables can exist per TAG table.
+*   `WITH ROLLUP` 절로 TAG 테이블을 만들 때 자동으로 생성됩니다.
+*   지정한 최소 단위에 따라 표준 롤업 계층(초·분·시)을 만듭니다. 예를 들어 `WITH ROLLUP (MIN)`은 분·시 롤업을, `WITH ROLLUP` 또는 `WITH ROLLUP (SEC)`은 초·분·시 롤업을 만듭니다.
+*   롤업 테이블 이름은 원본 TAG 테이블 이름에서 자동으로 파생됩니다(예: `_mytag_ROLLUP_SEC`).
+*   TAG 테이블 하나당 기본 롤업 테이블 세트는 하나만 존재할 수 있습니다.
 
-### Custom Rollup
+### 사용자 정의 롤업(Custom Rollup)
 
-*   Manually created by the user using the `CREATE ROLLUP` statement.
-*   Allows specification of custom aggregation intervals (e.g., 10 seconds, 5 minutes).
-*   Can be based on a TAG table or another Custom Rollup table, enabling multi-level aggregation hierarchies.
-*   Provides flexibility in defining specific aggregation needs beyond the default granularities.
+*   사용자가 `CREATE ROLLUP` 문으로 직접 만듭니다.
+*   집계 구간을 원하는 대로 지정할 수 있습니다(예: 10초, 5분).
+*   TAG 테이블이나 다른 사용자 정의 롤업 테이블을 기반으로 만들 수 있어 다단계 집계 계층을 구성할 수 있습니다.
+*   기본 단위를 넘어서는 집계 요구를 유연하게 정의할 수 있습니다.
 
-## Creating Rollup Tables
+## 롤업 테이블 생성
 
-### Default Rollup Creation
+### 기본 롤업 생성
 
-Default Rollup tables are created implicitly during TAG table definition.
+기본 롤업 테이블은 TAG 테이블을 정의할 때 암묵적으로 생성됩니다.
 
-Important: TAG tables must consist of exactly 3 columns: name, time, and value.
-- name: Tag identifier (VARCHAR, PRIMARY KEY)
-- time: Timestamp (DATETIME BASETIME)  
-- value: Measured value (numeric datatype, SUMMARIZED - target for rollup aggregation)
+중요: TAG 테이블은 정확히 name, time, value 세 컬럼으로 구성되어야 합니다.
+- name: 태그 식별자 (VARCHAR, PRIMARY KEY)
+- time: 타임스탬프 (DATETIME BASETIME)  
+- value: 측정값 (숫자 타입, SUMMARIZED - 롤업 집계 대상)
 
-Additional columns are not allowed. To store multiple types of sensor values, 
-you must create separate TAG tables for each value type.
+추가 컬럼은 허용되지 않습니다. 여러 종류의 센서 값을 저장하려면 
+값 종류마다 별도의 TAG 테이블을 만들어야 합니다.
 
 **Syntax:**
 
@@ -77,38 +77,38 @@ CREATE TAG TABLE table_name (
 WITH ROLLUP [ ( SEC | MIN | HOUR ) ] [ EXTENSION ];
 ```
 
-*   `SEC | MIN | HOUR`: Specifies the finest granularity required. If omitted, `SEC` is assumed. Higher granularities (MIN, HOUR) are automatically included based on the specified unit (e.g., `MIN` includes `HOUR`).
-*   `EXTENSION`: Optional keyword to enable `FIRST()` and `LAST()` aggregate functions.
+*   `SEC | MIN | HOUR`: 필요한 가장 세밀한 단위를 지정합니다. 생략하면 `SEC`으로 간주합니다. 지정한 단위보다 큰 단위(MIN, HOUR)는 자동으로 포함됩니다(예: `MIN`은 `HOUR`를 포함).
+*   `EXTENSION`: `FIRST()`와 `LAST()` 집계 함수를 활성화하는 선택 키워드입니다.
 
 **Examples:**
 
-Create SEC, MIN, HOUR Rollups:
+SEC, MIN, HOUR 롤업을 만듭니다:
 
 ```sql
 CREATE TAG TABLE sensor_data (...) WITH ROLLUP;
 ```
 
-Create MIN, HOUR Rollups:
+MIN, HOUR 롤업을 만듭니다:
 
 ```sql
 CREATE TAG TABLE hourly_stats (...) WITH ROLLUP (MIN);
 ```
 
-Create HOUR Rollup only:
+HOUR 롤업만 만듭니다:
 
 ```sql
 CREATE TAG TABLE daily_summary (...) WITH ROLLUP (HOUR);
 ```
 
-Create SEC, MIN, HOUR Rollups with FIRST/LAST support:
+FIRST/LAST를 지원하는 SEC, MIN, HOUR 롤업을 만듭니다:
 
 ```sql
 CREATE TAG TABLE detailed_sensor_data (...) WITH ROLLUP EXTENSION;
 ```
 
-### Custom Rollup Creation
+### 사용자 정의 롤업 생성
 
-Custom Rollup tables are created explicitly using a dedicated DDL statement.
+사용자 정의 롤업 테이블은 전용 DDL 문으로 명시적으로 만듭니다.
 
 **Syntax:**
 
@@ -119,47 +119,47 @@ INTERVAL interval_value ( SEC | MIN | HOUR )
 [ EXTENSION ];
 ```
 
-*   `rollup_name`: User-defined name for the new Rollup table.
-*   `source_table_or_rollup_name`: The name of the source TAG table or an existing Rollup table.
-*   `source_value_column`: The numeric column in the source table to be aggregated. (Omitted if the source is another Rollup table).
-*   `interval_value`: The numeric value defining the aggregation period (e.g., 10, 30).
-*   `SEC | MIN | HOUR`: The time unit for the interval.
-*   `EXTENSION`: Optional keyword to enable `FIRST()` and `LAST()` aggregate functions.
+*   `rollup_name`: 새 롤업 테이블에 사용자가 붙이는 이름입니다.
+*   `source_table_or_rollup_name`: 원본 TAG 테이블 또는 기존 롤업 테이블의 이름입니다.
+*   `source_value_column`: 원본 테이블에서 집계할 숫자 컬럼입니다. (원본이 다른 롤업 테이블이면 생략합니다.)
+*   `interval_value`: 집계 주기를 정하는 숫자 값입니다(예: 10, 30).
+*   `SEC | MIN | HOUR`: 구간의 시간 단위입니다.
+*   `EXTENSION`: `FIRST()`와 `LAST()` 집계 함수를 활성화하는 선택 키워드입니다.
 
-**Constraints:**
+**제약 사항:**
 
-*   The source must be a TAG table or another Rollup table.
-*   If the source is a Rollup table, the new `INTERVAL` must be a multiple of the source Rollup table's interval and represent a coarser granularity.
+*   원본은 TAG 테이블이거나 다른 롤업 테이블이어야 합니다.
+*   원본이 롤업 테이블이면 새 `INTERVAL`은 원본 롤업 구간의 배수여야 하며 더 큰 단위여야 합니다.
 
 **Examples:**
 
-Create a 30-second Rollup based on the 'tag_data' table's 'value' column:
+'tag_data' 테이블의 'value' 컬럼을 기준으로 30초 롤업을 만듭니다:
 
 ```sql
 CREATE ROLLUP _tag_data_rollup_30sec ON tag_data(value) INTERVAL 30 SEC;
 ```
 
-Create a 10-minute Rollup based on the previously created 30-second Rollup:
+앞서 만든 30초 롤업을 기준으로 10분 롤업을 만듭니다:
 
 ```sql
 CREATE ROLLUP _tag_data_rollup_10min ON _tag_data_rollup_30sec INTERVAL 10 MIN;
 ```
 
-Create a 15-minute Rollup with FIRST/LAST support:
+FIRST/LAST를 지원하는 15분 롤업을 만듭니다:
 
 ```sql
 CREATE ROLLUP _tag_data_rollup_15min_ext ON tag_data(value) INTERVAL 15 MIN EXTENSION;
 ```
 
-## Rollup vs Regular Aggregation
+## 롤업과 일반 집계 비교
 
-When a TAG table has Rollup tables (created via `WITH ROLLUP` or `CREATE ROLLUP`), you must use the `ROLLUP()` function to leverage pre-aggregated data. Using regular SQL aggregation functions without `ROLLUP()` will scan all raw data, resulting in significantly slower performance.
+TAG 테이블에 롤업 테이블이 있으면(`WITH ROLLUP` 또는 `CREATE ROLLUP`으로 생성) 사전 집계 데이터를 활용하기 위해 `ROLLUP()` 함수를 사용해야 합니다. `ROLLUP()` 없이 일반 SQL 집계 함수를 쓰면 원본 데이터를 전부 훑게 되어 성능이 크게 떨어집니다.
 
-### Performance Comparison
+### 성능 Comparison
 
-Assuming a TAG table with millions of rows and WITH ROLLUP enabled:
+수백만 행이 있고 WITH ROLLUP이 활성화된 TAG 테이블을 가정합니다:
 
-SLOW — Regular aggregation scans all raw data (scans millions of raw records):
+느림 — 일반 집계는 원본 데이터를 전부 훑습니다(수백만 건 스캔):
 
 ```sql
 SELECT
@@ -172,7 +172,7 @@ GROUP BY DATE_TRUNC('hour', time)
 ORDER BY hour_time;
 ```
 
-FAST — ROLLUP() function uses pre-aggregated data (100x+ faster):
+빠름 — ROLLUP() 함수는 사전 집계 데이터를 사용합니다(100배 이상 빠름):
 
 ```sql
 SELECT
@@ -187,17 +187,17 @@ ORDER BY hour_time;
 
 ### Key Rules
 
-1. **If Rollup tables exist, always use `ROLLUP()` function** for time-based aggregations
-2. Regular `GROUP BY` aggregation should only be used when:
-   - No Rollup tables exist for the TAG table
-   - You need aggregations not supported by Rollup (e.g., STDDEV, PERCENTILE)
-   - You need non-time-based grouping
+1. **롤업 테이블이 있으면 시간 기준 집계에는 항상 `ROLLUP()` 함수를 사용하세요**
+2. 일반 `GROUP BY` 집계는 다음 경우에만 사용하세요:
+   - 해당 TAG 테이블에 롤업 테이블이 없을 때
+   - 롤업이 지원하지 않는 집계가 필요할 때(예: STDDEV, PERCENTILE)
+   - 시간이 아닌 기준으로 그룹화해야 할 때
 
-## Querying Rollup Data
+## 롤업 데이터 조회
 
-To leverage the performance benefits of pre-aggregated data, queries must utilize the `ROLLUP()` function (or the deprecated `ROLLUP` keyword syntax). Machbase automatically selects the most appropriate Rollup table based on the requested interval and granularity.
+사전 집계 데이터의 성능 이점을 얻으려면 질의에서 `ROLLUP()` 함수(또는 더 이상 권장되지 않는 `ROLLUP` 키워드 문법)를 사용해야 합니다. Machbase는 요청한 구간과 단위에 따라 가장 적합한 롤업 테이블을 자동으로 선택합니다.
 
-**Syntax (Recommended):**
+**문법(권장):**
 
 ```sql
 SELECT
@@ -216,20 +216,20 @@ ORDER BY
     rollup_time;
 ```
 
-*   `time_unit`: The desired unit for the aggregation interval ('sec', 'min', 'hour', 'day', 'week', 'month', 'year', etc.).
-*   `period`: The numeric value of the aggregation interval relative to the `time_unit`. Must be a valid multiple of the underlying Rollup table's interval.
-*   `basetime_column`: The DATETIME column designated with the `BASETIME` attribute in the TAG table.
-*   `origin`: (Optional) A DATETIME literal specifying the alignment anchor for time bins. Defaults to '1970-01-01 00:00:00'. Crucial for week/month/year alignment.
-*   `AGGREGATE_FUNCTION`: One of the supported functions (MIN, MAX, AVG, SUM, COUNT, SUMSQ, or FIRST/LAST if `EXTENSION` was used).
+*   `time_unit`: 집계 구간의 단위입니다('sec', 'min', 'hour', 'day', 'week', 'month', 'year' 등).
+*   `period`: `time_unit` 기준 집계 구간의 숫자 값입니다. 기반이 되는 롤업 테이블 구간의 배수여야 합니다.
+*   `basetime_column`: TAG 테이블에서 `BASETIME` 속성이 지정된 DATETIME 컬럼입니다.
+*   `origin`: (선택) 시간 버킷의 정렬 기준점을 지정하는 DATETIME 리터럴입니다. 기본값은 '1970-01-01 00:00:00'입니다. 주·월·년 정렬에서 특히 중요합니다.
+*   `AGGREGATE_FUNCTION`: 지원되는 함수 중 하나입니다(MIN, MAX, AVG, SUM, COUNT, SUMSQ, 그리고 `EXTENSION`을 사용했다면 FIRST/LAST).
 
-**Important Considerations:**
+**중요 고려 사항:**
 
-*   The query must include a `GROUP BY` clause referencing the `ROLLUP()` expression (or its alias).
-*   Only the supported aggregate functions can be applied to the value column when using the `ROLLUP()` mechanism.
+*   질의에는 `ROLLUP()` 표현식(또는 그 별칭)을 참조하는 `GROUP BY` 절이 있어야 합니다.
+*   `ROLLUP()`을 사용할 때 값 컬럼에는 지원되는 집계 함수만 적용할 수 있습니다.
 
-**Query Examples:**
+**질의 예제:**
 
-Hourly MIN and MAX values for TAG_00001 within a specific month:
+특정 월에 대한 TAG_00001의 시간별 MIN·MAX 값:
 
 ```sql
 SELECT
@@ -243,7 +243,7 @@ GROUP BY mtime
 ORDER BY mtime;
 ```
 
-15-minute average values, assuming a MIN or SEC level Rollup exists:
+MIN 또는 SEC 단위 롤업이 있다고 가정한 15분 평균값:
 
 ```sql
 SELECT
@@ -255,7 +255,7 @@ GROUP BY rollup_interval
 ORDER BY rollup_interval;
 ```
 
-Daily FIRST and LAST values using Extension Rollup, aligning bins to Jan 1st, 2024:
+Extension 롤업으로 일별 FIRST·LAST 값을 구하고 버킷을 2024년 1월 1일에 맞춥니다:
 
 ```sql
 SELECT
@@ -268,7 +268,7 @@ GROUP BY day_interval
 ORDER BY day_interval;
 ```
 
-Weekly average, aligned to Mondays (assuming '2024-01-01' was a Monday):
+월요일 기준으로 정렬한 주별 평균('2024-01-01'이 월요일이라고 가정):
 
 ```sql
 SELECT
@@ -280,27 +280,27 @@ GROUP BY week_start
 ORDER BY week_start;
 ```
 
-## Managing Rollup Tables
+## 롤업 테이블 관리
 
-### Lifecycle Control
+### 수명 주기 제어
 
-The aggregation process performed by Rollup threads can be manually controlled.
+롤업 스레드가 수행하는 집계 과정을 직접 제어할 수 있습니다.
 
 **Commands:**
 
-Start the aggregation thread for a specific Rollup:
+특정 롤업의 집계 스레드를 시작합니다:
 
 ```sql
 EXEC ROLLUP_START('rollup_name');
 ```
 
-Stop the aggregation thread for a specific Rollup:
+특정 롤업의 집계 스레드를 정지합니다:
 
 ```sql
 EXEC ROLLUP_STOP('rollup_name');
 ```
 
-Force immediate aggregation processing for a specific Rollup, bypassing the normal interval wait time:
+일반적인 주기 대기를 건너뛰고 특정 롤업의 집계를 즉시 수행합니다:
 
 ```sql
 EXEC ROLLUP_FORCE('rollup_name');
@@ -316,37 +316,37 @@ EXEC ROLLUP_START('_tag_data_rollup_30sec');
 EXEC ROLLUP_STOP('_tag_data_rollup_10min');
 ```
 
-Process pending data for the hourly rollup now:
+시간 단위 롤업의 대기 중인 데이터를 지금 처리합니다:
 
 ```sql
 EXEC ROLLUP_FORCE('_tag_rollup_hour');
 ```
 
-### Rollup Data Deletion
+### 롤업 데이터 삭제
 
-Deleting data from the source TAG table does **not** automatically remove the corresponding aggregated data from Rollup tables. Rollup data must be explicitly deleted.
+원본 TAG 테이블에서 데이터를 삭제해도 롤업 테이블의 해당 집계 데이터가 자동으로 지워지지는 **않습니다**. 롤업 데이터는 명시적으로 삭제해야 합니다.
 
 **Syntax:**
 
-Delete all Rollup data for the specified table:
+지정한 테이블의 모든 롤업 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM table_name ROLLUP;
 ```
 
-Delete Rollup data before a specific timestamp for the specified table:
+지정한 테이블에서 특정 시각 이전의 롤업 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM table_name ROLLUP BEFORE TO_DATE('YYYY-MM-DD HH24:MI:SS');
 ```
 
-Delete all Rollup data for a specific tag within the table:
+테이블 안 특정 태그의 모든 롤업 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM table_name ROLLUP WHERE name = 'specific_tag_id';
 ```
 
-Delete Rollup data for a specific tag before a specific timestamp:
+특정 태그의 특정 시각 이전 롤업 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM table_name ROLLUP WHERE name = 'specific_tag_id' AND time <= TO_DATE('YYYY-MM-DD HH24:MI:SS');
@@ -354,41 +354,41 @@ DELETE FROM table_name ROLLUP WHERE name = 'specific_tag_id' AND time <= TO_DATE
 
 **Examples:**
 
-Remove all Rollup data associated with the 'TAG' table older than Jan 15, 2024:
+'TAG' 테이블의 2024년 1월 15일 이전 롤업 데이터를 모두 삭제합니다:
 
 ```sql
 DELETE FROM TAG ROLLUP BEFORE TO_DATE('2024-01-15 00:00:00');
 ```
 
-Remove all Rollup data for 'TAG01' from the 'TAG' table:
+'TAG' 테이블에서 'TAG01'의 모든 롤업 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM TAG ROLLUP WHERE name = 'TAG01';
 ```
 
-### Rollup Table Deletion
+### 롤업 테이블 삭제
 
-Custom Rollup tables can be dropped individually. Default Rollup tables are typically removed when the parent TAG table is dropped.
+사용자 정의 롤업 테이블은 개별적으로 삭제할 수 있습니다. 기본 롤업 테이블은 보통 상위 TAG 테이블을 삭제할 때 함께 제거됩니다.
 
 **Syntax:**
 
-Drop a specific Custom Rollup table:
+특정 사용자 정의 롤업 테이블을 삭제합니다:
 
 ```sql
 DROP ROLLUP rollup_name;
 ```
 
-Drop a TAG table and all its dependent Rollup tables (Default and Custom):
+TAG 테이블과 그에 종속된 모든 롤업 테이블(기본·사용자 정의)을 삭제합니다:
 
 ```sql
 DROP TABLE tag_table_name CASCADE;
 ```
 
-**Constraint:** A Rollup table cannot be dropped if another Rollup table depends on it. Dependent Rollups must be dropped first (in reverse order of creation).
+**제약:** 다른 롤업 테이블이 의존하고 있는 롤업 테이블은 삭제할 수 없습니다. 의존하는 롤업을 먼저(생성의 역순으로) 삭제해야 합니다.
 
 **Example:**
 
-Assuming _rollup_min depends on _rollup_sec, drop in reverse order:
+_rollup_min이 _rollup_sec에 의존한다고 할 때 역순으로 삭제합니다:
 
 ```sql
 DROP ROLLUP _rollup_min;
@@ -398,7 +398,7 @@ DROP ROLLUP _rollup_min;
 DROP ROLLUP _rollup_sec;
 ```
 
-Drop the 'sensor_data' TAG table and all associated Rollups:
+'sensor_data' TAG 테이블과 연결된 모든 롤업을 삭제합니다:
 
 ```sql
 DROP TABLE sensor_data CASCADE;
@@ -406,11 +406,11 @@ DROP TABLE sensor_data CASCADE;
 
 ## Rollup Gap
 
-The **Rollup Gap** refers to the time difference between the latest data inserted into the source TAG table and the latest data processed and reflected in the Rollup tables. Due to the periodic nature of aggregation, a small gap is expected. However, significant or growing gaps can indicate performance bottlenecks.
+**롤업 갭(Rollup Gap)** 은 원본 TAG 테이블에 입력된 최신 데이터와 롤업 테이블에 처리·반영된 최신 데이터 사이의 시간 차이를 말합니다. 집계가 주기적으로 이뤄지므로 약간의 갭은 정상입니다. 다만 갭이 크거나 계속 늘어난다면 성능 병목의 신호일 수 있습니다.
 
-### Checking Rollup Gap
+### 롤업 갭 확인
 
-The current status of Rollup processing, including any existing gaps, can be inspected.
+갭을 포함한 롤업 처리 현황을 확인할 수 있습니다.
 
 **Command:**
 
@@ -418,37 +418,37 @@ The current status of Rollup processing, including any existing gaps, can be ins
 SHOW ROLLUPGAP;
 ```
 
-This command displays information about each active Rollup process, including the count of pending data points contributing to the gap. A `GAP` count of 0 indicates that the Rollup is up-to-date.
+이 명령은 활성 롤업 프로세스별 정보를 보여 주며, 갭을 유발하는 대기 데이터 포인트 수도 함께 표시합니다. `GAP`이 0이면 롤업이 최신 상태라는 뜻입니다.
 
-### Mitigating Rollup Gap
+### 롤업 갭 해소
 
-If a significant gap develops, the following actions can be considered:
+갭이 크게 벌어지면 다음 조치를 고려할 수 있습니다:
 
-1.  **Force Aggregation:** Use `EXEC ROLLUP_FORCE('rollup_name');` to trigger immediate processing of pending data for a specific Rollup.
-2.  **Increase Parallelism:** Increase the `TAG_PARTITION_COUNT` property of the source TAG table. This allows more Rollup threads to potentially operate in parallel but increases memory consumption.
-3.  **Hardware Resources:** Enhance server resources, particularly CPU speed/cores and disk I/O performance.
-4.  **Ingestion Rate Management:** If the data ingestion rate consistently exceeds the system's processing capacity, consider strategies to moderate the input flow or scale the hardware further.
+1.  **강제 집계:** `EXEC ROLLUP_FORCE('rollup_name');`으로 특정 롤업의 대기 데이터를 즉시 처리합니다.
+2.  **병렬성 확대:** 원본 TAG 테이블의 `TAG_PARTITION_COUNT` 속성을 늘립니다. 더 많은 롤업 스레드가 병렬로 동작할 수 있지만 메모리 사용량이 늘어납니다.
+3.  **하드웨어 자원:** 서버 자원, 특히 CPU 속도·코어 수와 디스크 I/O 성능을 개선합니다.
+4.  **적재 속도 관리:** 데이터 적재 속도가 시스템 처리 용량을 지속적으로 넘어선다면 입력 흐름을 조절하거나 하드웨어를 더 확장하는 방안을 검토하세요.
 
-Persistent gaps often signify that the system resources are insufficient to handle the combined load of data ingestion and Rollup aggregation.
+갭이 계속 남아 있다면 대개 데이터 적재와 롤업 집계를 함께 감당하기에 시스템 자원이 부족하다는 뜻입니다.
 
-## Limitations
+## 제약 사항
 
-While powerful, the Machbase Rollup feature has certain limitations:
+Machbase 롤업 기능은 강력하지만 다음과 같은 제약이 있습니다:
 
-*   **Fixed Aggregate Functions:** Only the built-in aggregate functions (MIN, MAX, AVG, SUM, COUNT, SUMSQ, optionally FIRST/LAST) are supported. Custom aggregation logic requires alternative approaches.
-*   **Source Data Integrity:** Erroneous or outlier data ingested into the source TAG table will be reflected in the Rollup aggregates. Data quality measures should be applied prior to or during ingestion.
-*   **Resource Consumption:** The Rollup process consumes CPU and I/O resources to read from the source and write to the Rollup tables. Under high ingestion loads, this can lead to resource contention and potentially growing Rollup Gaps if resources are inadequate.
-*   **Latency:** There is inherent latency between data arrival in the TAG table and its reflection in Rollup tables, corresponding to the aggregation interval and processing time (the Rollup Gap). Near real-time queries requiring microsecond precision on aggregates might need to query the raw TAG data directly.
+*   **고정된 집계 함수:** 내장 집계 함수(MIN, MAX, AVG, SUM, COUNT, SUMSQ, 선택적으로 FIRST/LAST)만 지원합니다. 사용자 정의 집계 로직에는 다른 방법이 필요합니다.
+*   **원본 데이터 품질:** 원본 TAG 테이블에 적재된 잘못된 데이터나 이상치는 롤업 집계에 그대로 반영됩니다. 적재 전이나 적재 중에 데이터 품질 관리를 적용해야 합니다.
+*   **자원 소모:** 롤업 과정은 원본을 읽고 롤업 테이블에 쓰는 데 CPU와 I/O 자원을 사용합니다. 적재 부하가 높은데 자원이 부족하면 자원 경합이 생기고 롤업 갭이 커질 수 있습니다.
+*   **지연:** TAG 테이블에 데이터가 도착한 시점과 롤업 테이블에 반영되는 시점 사이에는 집계 주기와 처리 시간만큼의 지연(롤업 갭)이 있습니다. 집계에 마이크로초 정밀도가 필요한 준실시간 질의라면 원본 TAG 데이터를 직접 조회해야 할 수 있습니다.
 
-## Rollup Examples
+## 롤업 예제
 
-This section provides practical examples illustrating the creation, management, and querying of Machbase Rollup tables.
+이 절에서는 Machbase 롤업 테이블의 생성·관리·조회를 보여 주는 실전 예제를 다룹니다.
 
-### Example 1: Default Rollup Creation and Query
+### 예제 1: 기본 롤업 생성과 조회
 
-This example demonstrates creating a TAG table with default Rollup tables (SEC, MIN, HOUR) and querying hourly aggregates.
+기본 롤업 테이블(SEC, MIN, HOUR)이 포함된 TAG 테이블을 만들고 시간별 집계를 조회하는 예제입니다.
 
-**Step 1.** Create a TAG table with default Rollups enabled (creates _iot_sensors_ROLLUP_SEC, _iot_sensors_ROLLUP_MIN, _iot_sensors_ROLLUP_HOUR):
+**1단계.** 기본 롤업을 활성화한 TAG 테이블을 만듭니다(_iot_sensors_ROLLUP_SEC, _iot_sensors_ROLLUP_MIN, _iot_sensors_ROLLUP_HOUR 생성):
 
 ```sql
 CREATE TAG TABLE iot_sensors (
@@ -458,7 +458,7 @@ CREATE TAG TABLE iot_sensors (
 ) WITH ROLLUP;
 ```
 
-**Step 2.** Insert sample data:
+**2단계.** 샘플 데이터를 입력합니다:
 
 ```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-10 10:05:15', 20.1);
@@ -488,7 +488,7 @@ INSERT INTO iot_sensors VALUES ('TEMP_B', '2024-03-10 10:10:00', 15.0);
 INSERT INTO iot_sensors VALUES ('TEMP_B', '2024-03-10 11:10:00', 16.0);
 ```
 
-**Step 3.** Query the average hourly temperature for sensor TEMP_A:
+**3단계.** 센서 TEMP_A의 시간별 평균 온도를 조회합니다:
 
 ```sql
 SELECT
@@ -505,7 +505,7 @@ ORDER BY
     hour_interval;
 ```
 
-Expected approximate output:
+예상 출력(근사):
 
 ```text
 hour_interval                   avg_temp
@@ -514,13 +514,13 @@ hour_interval                   avg_temp
 2024-03-10 11:00:00 000:000:000 21.65      -- Avg of 21.5, 21.8
 ```
 
-### Example 2: Custom Rollup Creation and Query
+### 예제 2: 사용자 정의 롤업 생성과 조회
 
-This example creates a custom Rollup table aggregating data every 15 minutes.
+15분마다 데이터를 집계하는 사용자 정의 롤업 테이블을 만드는 예제입니다.
 
-Prerequisite: Assume iot_sensors table exists from Example 1.
+사전 조건: 예제 1의 iot_sensors 테이블이 있다고 가정합니다.
 
-**Step 1.** Create a custom 15-minute Rollup table based on the 'temperature' column:
+**1단계.** 'temperature' 컬럼을 기준으로 15분 사용자 정의 롤업 테이블을 만듭니다:
 
 ```sql
 CREATE ROLLUP _iot_sensors_rollup_15min
@@ -528,7 +528,7 @@ ON iot_sensors (temperature)
 INTERVAL 15 MIN;
 ```
 
-**Step 2.** Query MIN and MAX temperature aggregated over 15-minute intervals for TEMP_A:
+**2단계.** TEMP_A의 15분 구간별 최소·최대 온도를 조회합니다:
 
 ```sql
 SELECT
@@ -546,7 +546,7 @@ ORDER BY
     interval_15min;
 ```
 
-Expected approximate output:
+예상 출력(근사):
 
 ```text
 interval_15min                  min_temp    max_temp
@@ -558,11 +558,11 @@ interval_15min                  min_temp    max_temp
 2024-03-10 11:30:00 000:000:000 21.8        21.8        -- 11:30 to 11:44:59
 ```
 
-### Example 3: Extended Rollup Query (FIRST/LAST)
+### 예제 3: 확장 롤업 조회(FIRST/LAST)
 
-This example demonstrates querying the first and last values within an interval using an Extended Rollup.
+확장 롤업으로 구간 내 첫 값과 마지막 값을 조회하는 예제입니다.
 
-**Step 1.** Create a TAG table with default Rollups and EXTENSION (enable FIRST() and LAST()):
+**1단계.** 기본 롤업과 EXTENSION을 함께 지정해 TAG 테이블을 만듭니다(FIRST()·LAST() 활성화):
 
 ```sql
 DROP TABLE IF EXISTS iot_sensors_ext CASCADE;
@@ -576,7 +576,7 @@ CREATE TAG TABLE iot_sensors_ext (
 ) WITH ROLLUP EXTENSION;
 ```
 
-**Step 2.** Insert sample data:
+**2단계.** 샘플 데이터를 입력합니다:
 
 ```sql
 INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 09:01:00', 1000.1);
@@ -602,7 +602,7 @@ INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:08:00', 1001.5);
 INSERT INTO iot_sensors_ext VALUES ('PRES_1', '2024-03-10 10:40:00', 1001.8);
 ```
 
-**Step 3.** Query the first and last pressure readings per hour for PRES_1:
+**3단계.** PRES_1의 시간별 첫 압력값과 마지막 압력값을 조회합니다:
 
 ```sql
 SELECT
@@ -619,7 +619,7 @@ ORDER BY
     hour_interval;
 ```
 
-Expected approximate output:
+예상 출력(근사):
 
 ```text
 hour_interval                   first_pressure last_pressure
@@ -628,13 +628,13 @@ hour_interval                   first_pressure last_pressure
 2024-03-10 10:00:00 000:000:000 1001.2         1001.8
 ```
 
-### Example 4: Querying Different Granularities (Daily/Weekly)
+### 예제 4: 다른 단위로 조회하기(일별/주별)
 
-This example uses the `iot_sensors` table (assuming it has data spanning multiple days/weeks) to query daily and weekly averages.
+`iot_sensors` 테이블(여러 일·주에 걸친 데이터가 있다고 가정)에서 일별·주별 평균을 조회하는 예제입니다.
 
-Assume 'iot_sensors' table has data for TEMP_A from 2024-03-01 to 2024-03-15.
+'iot_sensors' 테이블에 2024-03-01부터 2024-03-15까지 TEMP_A 데이터가 있다고 가정합니다.
 
-**Query 1.** Daily Average Temperature for TEMP_A:
+**질의 1.** TEMP_A의 일별 평균 온도:
 
 ```sql
 SELECT
@@ -651,7 +651,7 @@ ORDER BY
     day_interval;
 ```
 
-**Query 2.** Weekly Average Temperature for TEMP_A, aligning weeks starting on Monday ('2024-03-04'):
+**질의 2.** 월요일('2024-03-04')을 주 시작으로 맞춘 TEMP_A의 주별 평균 온도:
 
 ```sql
 SELECT
@@ -669,11 +669,11 @@ ORDER BY
 ```
 
 
-### Example 5: Monthly Rollup Queries
+### 예제 5: 월별 롤업 조회
 
-This example demonstrates how to aggregate data on a monthly basis using the Rollup feature. This typically relies on the underlying HOUR-level Rollup table for efficient computation.
+롤업 기능으로 데이터를 월 단위로 집계하는 예제입니다. 효율적인 계산을 위해 보통 HOUR 단위 롤업 테이블을 기반으로 동작합니다.
 
-Assume the 'iot_sensors' table (from Example 1) has data spanning several months (January 2024 to April 2024 for sensor 'TEMP_A'). Insert additional example data:
+예제 1의 'iot_sensors' 테이블에 여러 달(센서 'TEMP_A'의 2024년 1월~4월)에 걸친 데이터가 있다고 가정합니다. 예제 데이터를 추가로 입력합니다:
 
 ```sql
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-01-15 12:00:00', 18.0);
@@ -699,7 +699,7 @@ INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-05 10:00:00', 19.5);
 INSERT INTO iot_sensors VALUES ('TEMP_A', '2024-03-20 11:00:00', 20.0);
 ```
 
-**Query 1.** Average Monthly Temperature for TEMP_A (the origin defaults to '1970-01-01', which works for standard calendar months):
+**질의 1.** TEMP_A의 월별 평균 온도(origin의 기본값 '1970-01-01'이 일반 달력 월에 맞습니다):
 
 ```sql
 SELECT
@@ -717,7 +717,7 @@ ORDER BY
     month_interval;
 ```
 
-Expected approximate output:
+예상 출력(근사):
 
 ```text
 month_interval                  avg_monthly_temp data_points_per_month
@@ -727,7 +727,7 @@ month_interval                  avg_monthly_temp data_points_per_month
 2024-03-01 00:00:00 000:000:000 20.55            8
 ```
 
-**Query 2.** Quarterly (3-Month) SUM and COUNT for TEMP_A (using period=3 with 'month' unit):
+**질의 2.** TEMP_A의 분기(3개월) SUM과 COUNT('month' 단위에 period=3 사용):
 
 ```sql
 SELECT
@@ -745,7 +745,7 @@ ORDER BY
     quarter_interval;
 ```
 
-Expected approximate output:
+예상 출력(근사):
 
 ```text
 quarter_interval                sum_quarterly_temp data_points_per_quarter
@@ -753,7 +753,7 @@ quarter_interval                sum_quarterly_temp data_points_per_quarter
 2024-01-01 00:00:00 000:000:000 241.1              12
 ```
 
-**Query 3.** Explicitly setting Origin (if setting origin for 'month', it MUST be the first day of some month):
+**질의 3.** Origin을 명시적으로 지정합니다('month'에 origin을 지정할 때는 반드시 어떤 달의 1일이어야 합니다):
 
 ```sql
 SELECT
@@ -771,7 +771,7 @@ ORDER BY
     month_interval;
 ```
 
-Expected approximate output:
+예상 출력(근사):
 
 ```text
 month_interval                  min_monthly_temp max_monthly_temp
@@ -781,29 +781,29 @@ month_interval                  min_monthly_temp max_monthly_temp
 2024-03-01 00:00:00 000:000:000 19.5             21.8
 ```
 
-### Example 6: Rollup Management Commands
+### 예제 6: 롤업 관리 명령
 
-This example shows how to check the status, force processing, delete old Rollup data, and drop tables with Rollups.
+상태 확인, 강제 처리, 오래된 롤업 데이터 삭제, 롤업이 있는 테이블 삭제 방법을 보여 주는 예제입니다.
 
-**Step 1.** Check the current Rollup gap status for all Rollups:
+**1단계.** 모든 롤업의 현재 갭 상태를 확인합니다:
 
 ```sql
 SHOW ROLLUPGAP;
 ```
 
-**Step 2.** Force immediate processing for a specific custom Rollup:
+**2단계.** 특정 사용자 정의 롤업의 처리를 즉시 수행합니다:
 
 ```sql
 EXEC ROLLUP_FORCE('_iot_sensors_rollup_15min');
 ```
 
-**Step 3.** Delete Rollup data older than March 1st, 2024 from the iot_sensors table's Rollups:
+**3단계.** iot_sensors 테이블의 롤업에서 2024년 3월 1일 이전 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM iot_sensors ROLLUP BEFORE TO_DATE('2024-03-01 00:00:00');
 ```
 
-**Step 4.** Drop the iot_sensors_ext table and all its associated Rollup tables:
+**4단계.** iot_sensors_ext 테이블과 연결된 모든 롤업 테이블을 삭제합니다:
 
 ```sql
 DROP TABLE iot_sensors_ext CASCADE;

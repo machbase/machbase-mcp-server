@@ -1,37 +1,37 @@
 # Machbase Neo SQL Automatic Outlier Removal
 
-## Introduction
+## 소개
 
-Time-series data originating from physical sensors, particularly in industrial or environmental settings, is frequently susceptible to noise, transient spikes, vibrational interference, or other anomalous readings. These outliers, while potentially numerous, often represent deviations from the expected operational range and can significantly impede data analysis, consume storage resources unnecessarily, and increase processing time.
+특히 산업·환경 현장의 물리 센서에서 나오는 시계열 데이터는 잡음, 순간 스파이크, 진동 간섭, 그 밖의 이상 측정값에 취약합니다. 이런 이상치는 수가 많을 수 있으며, 대개 기대되는 동작 범위를 벗어난 값이라 데이터 분석을 방해하고 저장 공간을 불필요하게 소모하며 처리 시간을 늘립니다.
 
-Manual or application-level filtering of such outliers can be complex and computationally expensive. Machbase provides an integrated mechanism for automatic outlier removal during data ingestion by leveraging Specification Limits defined within the Tag Metadata associated with TAG tables. This allows users to declaratively define valid operational ranges for specific sensors, ensuring that only data points falling within these bounds are persisted.
+이런 이상치를 수동으로 또는 애플리케이션 수준에서 걸러 내는 일은 복잡하고 계산 비용이 큽니다. Machbase는 TAG 테이블에 연결된 태그 메타데이터에 정의한 규격 한계(Specification Limits)를 활용해, 데이터 적재 중 이상치를 자동으로 제거하는 기능을 내장하고 있습니다. 센서별 유효 동작 범위를 선언적으로 정의하면 그 범위 안의 데이터만 저장됩니다.
 
-## Core Concept: Specification Limits (LSL/USL)
+## 핵심 개념: 규격 한계(LSL/USL)
 
-The Automatic Outlier Removal feature operates by defining bounds on the expected values for a given Tag Identifier (Tag ID). These bounds are established using two special attributes within the Tag Metadata table:
+자동 이상치 제거 기능은 주어진 Tag ID의 기대 값 범위를 정의해 동작합니다. 이 범위는 태그 메타데이터 테이블의 두 가지 특수 속성으로 지정합니다:
 
-*   **LSL (Lower Specification Limit):** Defines the minimum acceptable value for a sensor reading associated with a specific Tag ID.
-*   **USL (Upper Specification Limit):** Defines the maximum acceptable value for a sensor reading associated with a specific Tag ID.
+*   **LSL(하한 규격):** 특정 Tag ID의 센서 측정값에 허용되는 최솟값을 정의합니다.
+*   **USL(상한 규격):** 특정 Tag ID의 센서 측정값에 허용되는 최댓값을 정의합니다.
 
-When a new data row is being inserted into the main TAG table, Machbase performs the following validation against the LSL and USL values defined in the corresponding Tag ID's metadata entry:
+새 데이터 행이 TAG 테이블에 입력될 때, Machbase는 해당 Tag ID의 메타데이터에 정의된 LSL·USL 값을 기준으로 다음 검증을 수행합니다:
 
-1.  **Metadata Lookup:** The system retrieves the LSL and USL values associated with the `name` (Tag ID) of the incoming row from the dependent Tag Metadata table (`_TableName_meta`).
-2.  **Value Comparison:** The value being inserted into the designated `value` column (the one marked with `SUMMARIZED`) is compared against the retrieved LSL and USL.
-3.  **Validation Rule:** The insertion is permitted **only if** the incoming value satisfies the condition: `LSL <= incoming_value <= USL`.
-    *   If LSL is `NULL`, the lower bound check is skipped (`incoming_value <= USL`).
-    *   If USL is `NULL`, the upper bound check is skipped (`LSL <= incoming_value`).
-    *   If both LSL and USL are `NULL`, no validation occurs, and the value is accepted.
-4.  **Action:** If the validation succeeds, the row is inserted into the TAG table. If the validation fails (the value falls outside the defined LSL/USL range), the insertion operation for that specific row is rejected, and an appropriate error is typically returned (e.g., `ERR-02342` for value < LSL, `ERR-02341` for value > USL).
+1.  **메타데이터 조회:** 들어온 행의 `name`(Tag ID)에 해당하는 LSL·USL 값을 종속 태그 메타데이터 테이블(`_TableName_meta`)에서 가져옵니다.
+2.  **값 비교:** 지정된 `value` 컬럼(`SUMMARIZED`로 표시된 컬럼)에 입력되는 값을 가져온 LSL·USL과 비교합니다.
+3.  **검증 규칙:** 들어온 값이 `LSL <= 입력값 <= USL` 조건을 만족할 **때에만** 입력이 허용됩니다.
+    *   LSL이 `NULL`이면 하한 검사를 건너뜁니다(`입력값 <= USL`).
+    *   USL이 `NULL`이면 상한 검사를 건너뜁니다(`LSL <= 입력값`).
+    *   LSL과 USL이 모두 `NULL`이면 검증하지 않고 값을 그대로 받아들입니다.
+4.  **처리:** 검증에 성공하면 행이 TAG 테이블에 입력됩니다. 실패하면(값이 정의된 LSL/USL 범위를 벗어나면) 해당 행의 입력이 거부되고 그에 맞는 오류가 반환됩니다(예: 값 < LSL이면 `ERR-02342`, 값 > USL이면 `ERR-02341`).
 
-This mechanism effectively filters incoming data based on pre-defined acceptable ranges specific to each tag, directly at the ingestion point.
+이 메커니즘은 태그별로 미리 정의한 허용 범위를 기준으로 적재 시점에 곧바로 데이터를 걸러 냅니다.
 
-## Configuration
+## 설정
 
-Specification Limits (LSL/USL) are configured by defining specific columns with special keywords within the `METADATA` section of a `CREATE TAG TABLE` statement, or by adding such columns later using `ALTER TABLE`.
+규격 한계(LSL/USL)는 `CREATE TAG TABLE` 문의 `METADATA` 절에서 특수 키워드로 컬럼을 정의하거나, 나중에 `ALTER TABLE`로 해당 컬럼을 추가해 설정합니다.
 
-### Defining Limits during Table Creation
+### 테이블 생성 시 한계 정의
 
-Columns intended to hold the LSL and USL values are defined within the `METADATA` clause, using the `LOWER LIMIT` and `UPPER LIMIT` keywords respectively.
+LSL·USL 값을 담을 컬럼은 `METADATA` 절 안에서 각각 `LOWER LIMIT`, `UPPER LIMIT` 키워드로 정의합니다.
 
 **Syntax:**
 
@@ -49,11 +49,11 @@ METADATA (
 );
 ```
 
-*   `value_column`: Must be a numeric type and **must** include the `SUMMARIZED` keyword. Outlier validation applies specifically to values inserted into this column.
-*   `lsl_column_name`, `usl_column_name`: User-chosen names for the metadata columns storing the limits.
-*   `numeric_datatype`: The data type for the LSL/USL columns must be compatible with the `value_column`'s data type.
+*   `value_column`: 숫자 타입이어야 하며 `SUMMARIZED` 키워드를 **반드시** 포함해야 합니다. 이상치 검증은 이 컬럼에 입력되는 값에만 적용됩니다.
+*   `lsl_column_name`, `usl_column_name`: 한계 값을 저장할 메타데이터 컬럼의 이름으로, 사용자가 정합니다.
+*   `numeric_datatype`: LSL/USL 컬럼의 데이터 타입은 `value_column`의 데이터 타입과 호환되어야 합니다.
 
-**Example (Both LSL and USL):**
+**예제(LSL과 USL 모두):**
 
 ```sql
 CREATE TAG TABLE sensor_readings (
@@ -68,9 +68,9 @@ METADATA (
 );
 ```
 
-**Example (Only LSL):**
+**예제(LSL만):**
 
-It is permissible to define only one limit if validation is only required against a minimum or maximum threshold.
+최솟값 또는 최댓값 한쪽만 검증하면 되는 경우 한계를 하나만 정의해도 됩니다.
 
 ```sql
 CREATE TAG TABLE pressure_monitor (
@@ -83,19 +83,19 @@ METADATA (
 );
 ```
 
-### Adding Limits to an Existing Table
+### 기존 테이블에 한계 추가
 
-LSL/USL columns can be added to the metadata definition of an existing TAG table using `ALTER TABLE` on the dependent metadata table (`_TableName_meta`). Note that `DROP COLUMN` is **not** supported for metadata tables.
+기존 TAG 테이블의 메타데이터 정의에는 종속 메타데이터 테이블(`_TableName_meta`)에 `ALTER TABLE`을 실행해 LSL/USL 컬럼을 추가할 수 있습니다. 메타데이터 테이블에서 `DROP COLUMN`은 지원되지 **않습니다**.
 
 **Syntax:**
 
-Adding an LSL column:
+LSL 컬럼 추가:
 
 ```sql
 ALTER TABLE _table_name_meta ADD COLUMN ( lsl_column_name numeric_datatype LOWER LIMIT );
 ```
 
-Adding a USL column:
+USL 컬럼 추가:
 
 ```sql
 ALTER TABLE _table_name_meta ADD COLUMN ( usl_column_name numeric_datatype UPPER LIMIT );
@@ -103,7 +103,7 @@ ALTER TABLE _table_name_meta ADD COLUMN ( usl_column_name numeric_datatype UPPER
 
 **Example:**
 
-Assume 'sensor_readings' table exists without LSL/USL initially:
+처음에 LSL/USL 없이 'sensor_readings' 테이블이 있다고 가정합니다:
 
 ```sql
 ALTER TABLE _sensor_readings_meta ADD COLUMN ( min_acceptable DOUBLE LOWER LIMIT );
@@ -113,20 +113,20 @@ ALTER TABLE _sensor_readings_meta ADD COLUMN ( min_acceptable DOUBLE LOWER LIMIT
 ALTER TABLE _sensor_readings_meta ADD COLUMN ( max_acceptable DOUBLE UPPER LIMIT );
 ```
 
-When added via `ALTER TABLE`, these columns will initially have `NULL` values for all existing metadata rows.
+`ALTER TABLE`로 추가하면 기존 메타데이터 행들의 해당 컬럼 값은 처음에 모두 `NULL`입니다.
 
-### Setting Limit Values
+### 한계 값 설정
 
-Once the LSL/USL columns are defined, the actual limit values for each Tag ID are set by inserting or updating rows in the dependent Tag Metadata table (`_TableName_meta`).
+LSL/USL 컬럼을 정의한 뒤에는 종속 태그 메타데이터 테이블(`_TableName_meta`)의 행을 입력하거나 갱신해 Tag ID별 실제 한계 값을 설정합니다.
 
-Set limits when inserting a new tag's metadata:
+새 태그의 메타데이터를 입력하면서 한계를 설정합니다:
 
 ```sql
 INSERT INTO sensor_readings metadata (tag_id, min_acceptable, max_acceptable, location)
 VALUES ('TEMP_SENSOR_01', 10.0, 90.0, 'Boiler Room');
 ```
 
-Update limits for an existing tag:
+기존 태그의 한계를 갱신합니다:
 
 ```sql
 UPDATE sensor_readings metadata
@@ -134,28 +134,28 @@ SET min_acceptable = 15.0, max_acceptable = 85.0
 WHERE tag_id = 'TEMP_SENSOR_01';
 ```
 
-## Behavior and Constraints
+## 동작과 제약
 
-*   **`SUMMARIZED` Requirement:** The Automatic Outlier Removal feature **mandates** that the target `value` column in the TAG table definition includes the `SUMMARIZED` keyword. Validation is performed exclusively against values inserted into this specific column.
-*   **Data Type Compatibility:** The data types of the metadata columns designated as `LOWER LIMIT` and `UPPER LIMIT` must be numerically compatible with the data type of the `SUMMARIZED` value column in the main TAG table.
-*   **LSL <= USL:** When both LSL and USL are defined and have non-`NULL` values for a specific Tag ID, the LSL value must be less than or equal to the USL value (`LSL <= USL`).
-*   **Scope of Validation:** Validation occurs **only** during the `INSERT` operation into the main TAG table. It does not apply retroactively to data already present in the table before the LSL/USL limits were defined or updated in the metadata.
-*   **Metadata Updates:** Updating LSL/USL values in the metadata table changes the validation rules for *subsequent* inserts but does **not** trigger a re-validation or removal of existing data in the main TAG table that might now fall outside the new limits.
-*   **NULL Handling:** If the LSL value for a Tag ID is `NULL` in the metadata, the lower bound check is bypassed for incoming data for that tag. Similarly, if the USL value is `NULL`, the upper bound check is bypassed. If both are `NULL`, no outlier validation is performed for that Tag ID.
-*   **Partial Limit Usage:** Defining only an LSL column enforces a minimum value check (`value >= LSL`). Defining only a USL column enforces a maximum value check (`value <= USL`).
-*   **Metadata Table Dependency:** The feature relies entirely on the structure and content of the dependent Tag Metadata table (`_TableName_meta`).
+*   **`SUMMARIZED` 필수:** 자동 이상치 제거 기능은 TAG 테이블 정의의 대상 `value` 컬럼에 `SUMMARIZED` 키워드가 포함되어 있을 것을 **요구합니다**. 검증은 오직 이 컬럼에 입력되는 값에만 수행됩니다.
+*   **데이터 타입 호환성:** `LOWER LIMIT`, `UPPER LIMIT`으로 지정한 메타데이터 컬럼의 데이터 타입은 TAG 테이블의 `SUMMARIZED` 값 컬럼 타입과 숫자적으로 호환되어야 합니다.
+*   **LSL <= USL:** 특정 Tag ID에 LSL과 USL이 모두 정의되고 `NULL`이 아니면, LSL 값은 USL 값보다 작거나 같아야 합니다(`LSL <= USL`).
+*   **검증 범위:** 검증은 TAG 테이블에 대한 `INSERT` 시에만 수행됩니다. 메타데이터에 LSL/USL을 정의하거나 갱신하기 전에 이미 들어 있던 데이터에는 소급 적용되지 않습니다.
+*   **메타데이터 갱신:** 메타데이터의 LSL/USL 값을 갱신하면 *이후* 입력에 대한 검증 규칙이 바뀌지만, 새 한계를 벗어나게 된 기존 데이터를 다시 검증하거나 제거하지는 **않습니다**.
+*   **NULL 처리:** 메타데이터에서 어떤 Tag ID의 LSL이 `NULL`이면 해당 태그로 들어오는 데이터의 하한 검사를 건너뜁니다. USL이 `NULL`이면 상한 검사를 건너뜁니다. 둘 다 `NULL`이면 그 Tag ID에는 이상치 검증을 수행하지 않습니다.
+*   **한쪽 한계만 사용:** LSL 컬럼만 정의하면 최솟값 검사(`value >= LSL`)만 적용되고, USL 컬럼만 정의하면 최댓값 검사(`value <= USL`)만 적용됩니다.
+*   **메타데이터 테이블 의존성:** 이 기능은 전적으로 종속 태그 메타데이터 테이블(`_TableName_meta`)의 구조와 내용에 의존합니다.
 
-## Examples
+## 예제
 
-This section provides practical examples of configuring and utilizing the Automatic Outlier Removal feature.
+이 절에서는 자동 이상치 제거 기능을 설정하고 활용하는 실전 예제를 다룹니다.
 
-**1. Schema Definition with LSL/USL:**
+**1. LSL/USL을 포함한 스키마 정의:**
 
 ```sql
 DROP TABLE IF EXISTS out_tag CASCADE;
 ```
 
-Create TAG table with metadata for LSL and USL:
+LSL과 USL 메타데이터를 갖는 TAG 테이블을 만듭니다:
 
 ```sql
 CREATE TAG TABLE out_tag (
@@ -169,21 +169,21 @@ METADATA (
 ) TAG_PARTITION_COUNT=1;
 ```
 
-**2. Defining Limits in Metadata:**
+**2. 메타데이터에 한계 정의:**
 
-Set the operational range for TAG_01 (100.0 <= value <= 200.0):
+TAG_01의 동작 범위를 설정합니다(100.0 <= value <= 200.0):
 
 ```sql
 INSERT INTO out_tag metadata (tag_id, lsl, usl) VALUES ('TAG_01', 100.0, 200.0);
 ```
 
-Verify metadata entry:
+메타데이터 항목을 확인합니다:
 
 ```sql
 SELECT * FROM _out_tag_meta WHERE tag_id = 'TAG_01';
 ```
 
-Expected output:
+예상 출력:
 
 ```text
 _ID | TAG_ID | LSL   | USL
@@ -191,49 +191,49 @@ _ID | TAG_ID | LSL   | USL
 1   | TAG_01 | 100.0 | 200.0
 ```
 
-**3. Inserting Data and Observing Filtering:**
+**3. 데이터 입력과 필터링 확인:**
 
-Value below LSL (Rejected):
+LSL보다 작은 값(거부됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 95.2);
 ```
 
-> Expected Error: `[ERR-02342: SUMMARIZED value is less than LOWER LIMIT.]`
+> 예상 오류: `[ERR-02342: SUMMARIZED value is less than LOWER LIMIT.]`
 
-Value equal to LSL (Accepted):
+LSL과 같은 값(허용됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 100.0);
 ```
 
-Value within range (Accepted):
+범위 안의 값(허용됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 150.5);
 ```
 
-Value equal to USL (Accepted):
+USL과 같은 값(허용됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 200.0);
 ```
 
-Value above USL (Rejected):
+USL보다 큰 값(거부됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 205.5);
 ```
 
-> Expected Error: `[ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]`
+> 예상 오류: `[ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]`
 
-Verify accepted data:
+허용된 데이터를 확인합니다:
 
 ```sql
 SELECT * FROM out_tag WHERE tag_id = 'TAG_01';
 ```
 
-Expected output (timestamps will vary):
+예상 출력(타임스탬프는 다를 수 있음):
 
 ```text
 TAG_ID | TIME                              | VALUE | LSL   | USL
@@ -243,21 +243,21 @@ TAG_01 | 2024-XX-XX XX:XX:XX XXX:XXX:XXX | 150.5 | 100.0 | 200.0
 TAG_01 | 2024-XX-XX XX:XX:XX XXX:XXX:XXX | 200.0 | 100.0 | 200.0
 ```
 
-**4. Updating Limits in Metadata:**
+**4. 메타데이터의 한계 갱신:**
 
-Change the limits for TAG_01 to 10.0 <= value <= 100.0:
+TAG_01의 한계를 10.0 <= value <= 100.0으로 변경합니다:
 
 ```sql
 UPDATE out_tag metadata SET lsl = 10.0, usl = 100.0 WHERE tag_id = 'TAG_01';
 ```
 
-Verify the change in metadata:
+메타데이터의 변경을 확인합니다:
 
 ```sql
 SELECT * FROM _out_tag_meta WHERE tag_id = 'TAG_01';
 ```
 
-Expected output:
+예상 출력:
 
 ```text
 _ID | TAG_ID | LSL  | USL
@@ -265,37 +265,37 @@ _ID | TAG_ID | LSL  | USL
 1   | TAG_01 | 10.0 | 100.0
 ```
 
-Value 150.5 (accepted previously) is now above the new USL (Rejected):
+이전에 허용되던 150.5는 이제 새 USL을 넘습니다(거부됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 150.5);
 ```
 
-> Expected Error: `[ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]`
+> 예상 오류: `[ERR-02341: SUMMARIZED value is greater than UPPER LIMIT.]`
 
-Value 95.2 (rejected previously) is now within the new range (Accepted):
+이전에 거부되던 95.2는 이제 새 범위 안에 들어옵니다(허용됨):
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 95.2);
 ```
 
-> Note: The previously inserted values (100.0, 150.5, 200.0) remain in the 'out_tag' table. The update to metadata limits does not affect existing data.
+> 참고: 앞서 입력된 값(100.0, 150.5, 200.0)은 'out_tag' 테이블에 그대로 남아 있습니다. 메타데이터 한계 갱신은 기존 데이터에 영향을 주지 않습니다.
 
-**5. Disabling Filtering using NULL:**
+**5. NULL로 필터링 비활성화하기:**
 
-Disable outlier filtering for TAG_01 by setting limits to NULL:
+한계를 NULL로 설정해 TAG_01의 이상치 필터링을 끕니다:
 
 ```sql
 UPDATE out_tag metadata SET lsl = NULL, usl = NULL WHERE tag_id = 'TAG_01';
 ```
 
-Verify metadata:
+메타데이터를 확인합니다:
 
 ```sql
 SELECT * FROM _out_tag_meta WHERE tag_id = 'TAG_01';
 ```
 
-Expected output:
+예상 출력:
 
 ```text
 _ID | TAG_ID | LSL  | USL
@@ -303,13 +303,13 @@ _ID | TAG_ID | LSL  | USL
 1   | TAG_01 | NULL | NULL
 ```
 
-Insert values previously rejected (these should now succeed). Below previous LSL:
+이전에 거부되던 값을 입력합니다(이제 성공해야 합니다). 이전 LSL보다 작은 값:
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 9.0);
 ```
 
-Above previous USL:
+이전 USL보다 큰 값:
 
 ```sql
 INSERT INTO out_tag VALUES ('TAG_01', NOW, 250.0);

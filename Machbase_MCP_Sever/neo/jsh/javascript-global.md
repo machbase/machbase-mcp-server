@@ -1,27 +1,27 @@
 # Machbase Neo JavaScript Global
 
-These are global functions and objects available without loading any additional module.
+추가 모듈을 불러오지 않아도 사용할 수 있는 전역 함수와 객체입니다.
 
-Timer APIs are provided by the JSH event loop, and the `console` object provides standard output and
-logging helpers.
+타이머 API는 JSH 이벤트 루프가 제공하고, `console` 객체는 표준 출력과
+로깅 도우미를 제공합니다.
 
 ## setTimeout()
 
-Execute a callback once after the specified delay in milliseconds.
+지정한 밀리초만큼 지연한 뒤 콜백을 한 번 실행합니다.
 
-If extra arguments are provided, they are passed to the callback as-is.
+추가 인자를 주면 콜백에 그대로 전달됩니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 setTimeout(callback, delayMs[, ...args])
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-- A timer handle object. Pass it to `clearTimeout()` to cancel execution.
+- 타이머 핸들 객체입니다. `clearTimeout()`에 전달하면 실행을 취소합니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 setTimeout((name, count) => {
@@ -34,17 +34,17 @@ setTimeout((name, count) => {
 
 ## clearTimeout()
 
-Cancel a pending callback created by `setTimeout()` if it has not executed yet.
+`setTimeout()`으로 만든 콜백이 아직 실행되지 않았다면 취소합니다.
 
-Calling it again for an already cancelled or already executed timer has no further effect.
+이미 취소되었거나 실행된 타이머에 다시 호출해도 아무 영향이 없습니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 clearTimeout(timer)
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 const timer = setTimeout(() => {
@@ -57,21 +57,21 @@ clearTimeout(timer);
 
 ## setInterval()
 
-Execute a callback repeatedly at the specified interval in milliseconds.
+지정한 밀리초 간격으로 콜백을 반복 실행합니다.
 
-To stop repeated execution, pass the returned handle to `clearInterval()`.
+반복 실행을 멈추려면 반환된 핸들을 `clearInterval()`에 전달합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 setInterval(callback, delayMs[, ...args])
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-- An interval handle object. Pass it to `clearInterval()` to stop repetition.
+- 인터벌 핸들 객체입니다. `clearInterval()`에 전달하면 반복을 멈춥니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 let count = 0;
@@ -86,9 +86,9 @@ const timer = setInterval(() => {
 
 ## clearInterval()
 
-Stop a repeating callback created by `setInterval()`.
+`setInterval()`로 만든 반복 콜백을 멈춥니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 clearInterval(interval)
@@ -96,21 +96,21 @@ clearInterval(interval)
 
 ## setImmediate()
 
-Schedule a callback to run as soon as possible on the next event loop turn after the current execution finishes.
+현재 실행이 끝난 뒤 다음 이벤트 루프 차례에 가능한 한 빨리 콜백이 실행되도록 예약합니다.
 
-It is useful for lightweight asynchronous follow-up work without a timer delay.
+타이머 지연 없이 가벼운 비동기 후속 작업을 할 때 유용합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 setImmediate(callback[, ...args])
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-- An immediate handle object. Pass it to `clearImmediate()` to cancel execution.
+- immediate 핸들 객체입니다. `clearImmediate()`에 전달하면 실행을 취소합니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 console.println("Add event loop");
@@ -125,9 +125,9 @@ setImmediate(() => {
 
 ## clearImmediate()
 
-Cancel a pending callback created by `setImmediate()` if it has not executed yet.
+`setImmediate()`로 만든 콜백이 아직 실행되지 않았다면 취소합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 clearImmediate(immediate)
@@ -135,13 +135,13 @@ clearImmediate(immediate)
 
 ## console
 
-The global `console` object provides log output and standard output helpers.
+전역 `console` 객체는 로그 출력과 표준 출력 도우미를 제공합니다.
 
 ## console.log()
 
-Write an info-level log message. The output includes the `INFO` level prefix.
+info 수준 로그 메시지를 씁니다. 출력에 `INFO` 수준 접두가 포함됩니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 console.log("Hello, World!");
@@ -152,25 +152,25 @@ console.log("Hello, World!");
 
 ## console.debug()
 
-Write a debug-level log message.
+debug 수준 로그 메시지를 씁니다.
 
 ## console.info()
 
-Write an info-level log message. It uses the same level as `console.log()`.
+info 수준 로그 메시지를 씁니다. `console.log()`와 같은 수준을 사용합니다.
 
 ## console.warn()
 
-Write a warning-level log message.
+warning 수준 로그 메시지를 씁니다.
 
 ## console.error()
 
-Write an error-level log message.
+error 수준 로그 메시지를 씁니다.
 
 ## console.print()
 
-Write values without a trailing newline.
+끝에 줄바꿈 없이 값을 씁니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 console.print("hello", "world");
@@ -181,9 +181,9 @@ console.print("hello", "world");
 
 ## console.println()
 
-Write values separated by spaces and append a trailing newline.
+값들을 공백으로 구분해 쓰고 끝에 줄바꿈을 붙입니다.
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 console.println("hello", "world");
@@ -194,15 +194,15 @@ console.println("hello", "world");
 
 ## console.printf()
 
-Write formatted output using a format string.
+형식 문자열을 사용해 서식화된 출력을 씁니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 console.printf(format, ...args)
 ```
 
-<h6>Usage example</h6>
+<h6>사용 예제</h6>
 
 ```js
 console.printf("value=%d, name=%s\n", 42, "neo");

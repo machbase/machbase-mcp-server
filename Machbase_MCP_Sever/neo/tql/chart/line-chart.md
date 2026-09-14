@@ -1,121 +1,121 @@
 # Machbase Neo Line Chart
 
-## Quick Reference
+## 빠른 참조
 
-### TQL Pipeline Structure
+### TQL 파이프라인 구조
 
-TQL operates in a **data flow (pipeline)** manner:
+TQL은 **데이터 흐름(파이프라인)** 방식으로 동작합니다:
 
 ```
-SRC (Data Source) → MAP (Transform) → SINK (Output)
+SRC (데이터 소스) → MAP (변환) → SINK (출력)
 ```
 
 ---
 
-### SRC - Data Sources
+### SRC - 데이터 소스
 
-Functions that **generate or fetch data** (pipeline start)
+**데이터를 생성하거나 가져오는** 함수 (파이프라인 시작)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `FAKE()` | Generate test data | `FAKE(linspace(0, 100, 10))` |
-| `SQL()` | Database query | `SQL('SELECT time, value FROM example')` |
-| `CSV()` | Read CSV file | `CSV(file('/path/to/data.csv'))` |
-| `HTTP()` | HTTP request | `HTTP('GET https://example.com/data.csv')` |
-| `SCRIPT()` | JavaScript code | `SCRIPT({ $.yield(1, 2, 3) })` |
+| `FAKE()` | 테스트 데이터 생성 | `FAKE(linspace(0, 100, 10))` |
+| `SQL()` | 데이터베이스 쿼리 | `SQL('SELECT time, value FROM example')` |
+| `CSV()` | CSV 파일 읽기 | `CSV(file('/path/to/data.csv'))` |
+| `HTTP()` | HTTP 요청 | `HTTP('GET https://example.com/data.csv')` |
+| `SCRIPT()` | JavaScript 코드 | `SCRIPT({ $.yield(1, 2, 3) })` |
 
 ---
 
-### MAP - Data Transformation
+### MAP - 데이터 변환
 
-Functions that **process and transform data** (pipeline middle)
+**데이터를 가공하고 변환하는** 함수 (파이프라인 중간)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `MAPVALUE()` | Add/modify column | `MAPVALUE(1, value(0) * 2)` |
-| `MAPKEY()` | Modify key | `MAPKEY(strUpper(key()))` |
-| `PUSHVALUE()` | Insert column at front | `PUSHVALUE(0, "new_value")` |
-| `POPVALUE()` | Remove column | `POPVALUE(2)` |
-| `GROUP()` | Group/aggregate | `GROUP(by(value(0)), avg(value(1)))` |
-| `FILTER()` | Filter records | `FILTER(value(0) > 10)` |
-| `DROP()` | Drop first N records | `DROP(1)` |
-| `SCRIPT()` | JavaScript processing | `SCRIPT({}, { /* process */ }, {})` |
+| `MAPVALUE()` | 컬럼 추가/수정 | `MAPVALUE(1, value(0) * 2)` |
+| `MAPKEY()` | 키 수정 | `MAPKEY(strUpper(key()))` |
+| `PUSHVALUE()` | 앞쪽에 컬럼 삽입 | `PUSHVALUE(0, "new_value")` |
+| `POPVALUE()` | 컬럼 제거 | `POPVALUE(2)` |
+| `GROUP()` | 그룹화/집계 | `GROUP(by(value(0)), avg(value(1)))` |
+| `FILTER()` | 레코드 필터링 | `FILTER(value(0) > 10)` |
+| `DROP()` | 앞의 N개 레코드 버리기 | `DROP(1)` |
+| `SCRIPT()` | JavaScript 처리 | `SCRIPT({}, { /* process */ }, {})` |
 
 ---
 
-### SINK - Data Output
+### SINK - 데이터 출력
 
-Functions that **output or save data** (pipeline end)
+**데이터를 출력하거나 저장하는** 함수 (파이프라인 끝)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `CHART()` | Create chart | `CHART(chartOption({...}))` |
-| `CSV()` | CSV output | `CSV()` |
-| `JSON()` | JSON output | `JSON()` |
+| `CHART()` | 차트 생성 | `CHART(chartOption({...}))` |
+| `CSV()` | CSV 출력 | `CSV()` |
+| `JSON()` | JSON 출력 | `JSON()` |
 | `HTML()` | HTML output | `HTML(template({...}))` |
-| `INSERT()` | DB insert | `INSERT(...)` |
+| `INSERT()` | DB 입력 | `INSERT(...)` |
 | `APPEND()` | DB append | `APPEND(table('example'))` |
 
 ---
 
-### CHART() Function Basic Usage
+### CHART() 함수 기본 사용법
 
-**Syntax**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
+**문법**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
 
-*Available since version 8.0.8*
+*버전 8.0.8부터 사용 가능*
 
-#### Main Options
+#### 주요 옵션
 
 **chartOption()**
 - `chartOption( { json in apache echarts options } )`
-- Pass Apache ECharts options in JSON format.
+- Apache ECharts 옵션을 JSON 형식으로 전달합니다.
 
 **size()**
 - `size(width, height)`
-- `width` *string* Chart width in HTML syntax e.g., `'800px'`
-- `height` *string* Chart height in HTML syntax e.g., `'800px'`
+- `width` *string* HTML 문법의 차트 너비, 예: `'800px'`
+- `height` *string* HTML 문법의 차트 높이, 예: `'800px'`
 
 **theme()**
 - `theme(name)`
-- `name` *string* Theme name
-- Available themes: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
+- `name` *string* 테마 이름
+- 사용 가능한 테마: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
 
 **chartJSCode()**
 - `chartJSCode( { user javascript code } )`
-- Execute custom JavaScript code.
+- 사용자 정의 JavaScript 코드를 실행합니다.
 
 ---
 
-### Key Functions
+### 핵심 함수
 
 #### value(index)
-Access values of the **current record** (used in pipeline middle)
+**현재 레코드**의 값에 접근합니다 (파이프라인 중간에서 사용)
 
-- `value(0)` = First value of current record
-- `value(1)` = Second value of current record
-- `value()` = Entire value array
+- `value(0)` = 현재 레코드의 첫 번째 값
+- `value(1)` = 현재 레코드의 두 번째 값
+- `value()` = 값 배열 전체
 
 ---
 
 #### column(index)
-Collect specific column from **all records** as array (CHART() only)
+**모든 레코드**에서 특정 컬럼을 배열로 모읍니다 (CHART() 전용)
 
-- `column(0)` = First values from all records → array
-- `column(1)` = Second values from all records → array
-- **⚠️ Only usable inside CHART()**
+- `column(0)` = 모든 레코드의 첫 번째 값 → 배열
+- `column(1)` = 모든 레코드의 두 번째 값 → 배열
+- **⚠️ CHART() 안에서만 사용 가능**
 
-**Comparison**:
+**비교**:
 
-| Function | Location | Returns | Example |
+| 함수 | 사용 위치 | 반환 | 예시 |
 |----------|----------|---------|---------|
-| `value(0)` | Pipeline middle | Single value | `10` |
-| `column(0)` | Inside CHART() | Array | `[1,2,3]` |
+| `value(0)` | 파이프라인 중간 | 단일 값 | `10` |
+| `column(0)` | CHART() 내부 | 배열 | `[1,2,3]` |
 
 ---
 
-## 1. Basic Line Chart
+## 1. 기본 선 차트
 
-Simple line chart with multiple data source approaches.
+여러 데이터 소스 방식을 보여주는 단순한 선 차트입니다.
 
 ### Using FAKE
 
@@ -145,7 +145,7 @@ CHART(
 )
 ```
 
-### Using SCRIPT
+### SCRIPT 사용
 
 ```js
 SCRIPT({
@@ -172,7 +172,7 @@ CHART(
 
 ### Using SQL
 
-**Prepare data first:**
+**먼저 데이터를 준비합니다:**
 
 ```js
 FAKE( arrange(1, 100, 1))
@@ -194,7 +194,7 @@ PUSHVALUE(0, "chart-line")
 APPEND(table("example"))
 ```
 
-**Prepare data with SCRIPT**
+**SCRIPT로 데이터 준비**
 
 ```js
 SCRIPT({
@@ -210,7 +210,7 @@ SCRIPT({
 APPEND(table("example"))
 ```
 
-**Query and visualize:**
+**조회 후 시각화:**
 
 ```js
 SQL(`select time, value from example where name = 'chart-line'`)
@@ -232,7 +232,7 @@ CHART(
 )
 ```
 
-### Using SCRIPT with DB Client
+### DB 클라이언트와 함께 SCRIPT 사용
 
 ```js
 SCRIPT({
@@ -259,7 +259,7 @@ SCRIPT({
 CHART()
 ```
 
-### Using HTML Template
+### HTML 템플릿 사용
 
 ```html
 SQL(`select time, value from example where name = 'chart-line'`)
@@ -292,18 +292,18 @@ HTML(template({
 }))
 ```
 
-**Description**: Basic line chart demonstrating five different approaches:
-- **FAKE**: Generate test data
-- **SCRIPT**: Custom JavaScript logic
-- **SQL**: Database query with pipeline processing
-- **SCRIPT with DB Client**: Direct database access using `@jsh/db` module
-- **HTML Template**: Standalone HTML output with embedded ECharts
+**설명**: 다섯 가지 방식을 보여주는 기본 선 차트입니다:
+- **FAKE**: 테스트 데이터 생성
+- **SCRIPT**: 사용자 정의 JavaScript 로직
+- **SQL**: 파이프라인 처리를 곁들인 데이터베이스 쿼리
+- **DB 클라이언트와 SCRIPT**: `@jsh/db` 모듈로 데이터베이스 직접 접근
+- **HTML 템플릿**: ECharts가 내장된 독립 HTML 출력
 
 ---
 
-## 2. Basic Area Chart
+## 2. 기본 영역 차트
 
-Line chart with filled area under the curve.
+곡선 아래를 채운 선 차트입니다.
 
 ```js
 FAKE( json({
@@ -330,13 +330,13 @@ CHART(
 )
 ```
 
-**Description**: Area chart showing weekly data. The `areaStyle:{}` option fills the area below the line.
+**설명**: 주간 데이터를 보여주는 영역 차트입니다. `areaStyle:{}` 옵션이 선 아래 영역을 채웁니다.
 
 ---
 
-## 3. Stacked Line Chart
+## 3. 누적 선 차트
 
-Multiple line series stacked on top of each other.
+여러 선 시리즈를 위로 쌓아 올린 차트입니다.
 
 ```js
 FAKE( json({
@@ -366,13 +366,13 @@ CHART(
 )
 ```
 
-**Description**: Stacked line chart showing multiple traffic sources. All series share `stack: "total"` to stack values.
+**설명**: 여러 트래픽 유입 경로를 보여주는 누적 선 차트입니다. 모든 시리즈가 `stack: "total"`을 공유해 값이 쌓입니다.
 
 ---
 
-## 4. Stacked Area Chart
+## 4. 누적 영역 차트
 
-Stacked area chart with labels on top series.
+최상단 시리즈에 라벨이 붙은 누적 영역 차트입니다.
 
 ```js
 FAKE( json({
@@ -405,13 +405,13 @@ CHART(
 )
 ```
 
-**Description**: Similar to stacked line but with filled areas. Top series shows values with labels.
+**설명**: 누적 선 차트와 비슷하지만 영역이 채워집니다. 최상단 시리즈는 값을 라벨로 표시합니다.
 
 ---
 
 ## 5. Area Pieces
 
-Area chart with colored segments using visualMap.
+visualMap으로 구간별 색을 다르게 한 영역 차트입니다.
 
 ```js
 SCRIPT({
@@ -510,13 +510,13 @@ CHART(
 )
 ```
 
-**Description**: Area chart with specific segments colored differently using `visualMap.pieces`. MarkLines highlight specific x-axis positions.
+**설명**: `visualMap.pieces`로 특정 구간의 색을 다르게 칠한 영역 차트입니다. MarkLine이 x축의 특정 위치를 강조합니다.
 
 ---
 
 ## 6. Step Line
 
-Line chart with step interpolation.
+계단식 보간을 적용한 선 차트입니다.
 
 ```js
 SCRIPT({
@@ -575,13 +575,13 @@ CHART(
 )
 ```
 
-**Description**: Step line chart showing three step interpolation modes: start, middle, and end.
+**설명**: start, middle, end 세 가지 계단 보간 방식을 보여주는 계단식 선 차트입니다.
 
 ---
 
-## 7. Multiple X-Axes
+## 7. 다중 X축
 
-Chart with two x-axes for comparing different time periods.
+서로 다른 기간을 비교하기 위해 x축을 두 개 사용하는 차트입니다.
 
 ```js
 FAKE(csv(`2015-1,2.6
@@ -727,13 +727,13 @@ CHART(
 )
 ```
 
-**Description**: Dual x-axes comparing 2015 vs 2016 monthly data. Each series uses a different x-axis index.
+**설명**: 2015년과 2016년 월별 데이터를 비교하는 이중 x축 차트입니다. 각 시리즈가 서로 다른 x축 인덱스를 사용합니다.
 
 ---
 
-## 8. Multiple Y-Axes
+## 8. 다중 Y축
 
-Chart with three y-axes for different measurement units.
+서로 다른 측정 단위를 위해 y축을 세 개 사용하는 차트입니다.
 
 ```js
 FAKE(json({
@@ -832,13 +832,13 @@ CHART(
 )
 ```
 
-**Description**: Combines bar and line charts with three y-axes for different units (ml and °C). Each series references a specific y-axis via `yAxisIndex`.
+**설명**: 단위가 다른 값(ml, °C)을 위해 y축 3개를 두고 막대와 선 차트를 결합합니다. 각 시리즈는 `yAxisIndex`로 특정 y축을 참조합니다.
 
 ---
 
-## 9. Basic Mix (Line and Bar)
+## 9. 기본 혼합 (선 + 막대)
 
-Combined line and bar chart.
+선과 막대를 결합한 차트입니다.
 
 ```js
 FAKE( linspace(0, 360, 50))
@@ -856,13 +856,13 @@ CHART(
 )
 ```
 
-**Description**: Mix of bar and line series showing sine and cosine waves.
+**설명**: 사인파와 코사인파를 막대와 선 시리즈로 섞어 보여줍니다.
 
 ---
 
-## 10. Large Area Chart
+## 10. 대규모 영역 차트
 
-Efficiently render 20,000 data points using LTTB algorithm.
+LTTB 알고리즘으로 2만 개 데이터 포인트를 효율적으로 렌더링합니다.
 
 ```js
 FAKE(linspace(0,19999,20000))
@@ -960,13 +960,13 @@ CHART(
 )
 ```
 
-**Description**: Large dataset (20K points) efficiently rendered using `sampling: "lttb"` (Largest-Triangle-Three-Buckets algorithm). DataZoom enables exploration.
+**설명**: `sampling: "lttb"`(Largest-Triangle-Three-Buckets 알고리즘)로 2만 개 포인트의 대용량 데이터를 효율적으로 렌더링합니다. DataZoom으로 탐색할 수 있습니다.
 
 ---
 
-## 11. Data Transform
+## 11. 데이터 변환
 
-Transform and filter external CSV data.
+외부 CSV 데이터를 변환하고 필터링합니다.
 
 ```js
 CSV( file("https://docs.machbase.com/assets/example/life-expectancy-table.csv") )
@@ -1023,13 +1023,13 @@ CHART(
 )
 ```
 
-**Description**: Load external CSV, filter for Germany and France, group by year, and compare income trends.
+**설명**: 외부 CSV를 불러와 독일과 프랑스만 걸러내고, 연도별로 묶어 소득 추이를 비교합니다.
 
 ---
 
-## 12. Air Passengers
+## 12. 항공 승객 수
 
-Process time-series data from external CSV.
+외부 CSV의 시계열 데이터를 처리합니다.
 
 ```js
 CSV (file("https://docs.machbase.com/assets/example/AirPassengers.csv"))
@@ -1060,13 +1060,13 @@ CHART(
 )
 ```
 
-**Description**: Convert decimal year format (e.g., 1949.08) to "YYYY/M" format and plot air passenger data.
+**설명**: 소수 연도 형식(예: 1949.08)을 "YYYY/M" 형식으로 변환해 항공 승객 데이터를 그립니다.
 
 ---
 
-## 13. Cartesian Coordinate System
+## 13. 직교 좌표계
 
-Line chart using [x, y] coordinate pairs.
+[x, y] 좌표 쌍을 사용하는 선 차트입니다.
 
 ```js
 FAKE(json({
@@ -1088,4 +1088,4 @@ CHART(
 )
 ```
 
-**Description**: Simple line chart using [x, y] coordinate pairs instead of separate x-axis categories.
+**설명**: 별도의 x축 카테고리 대신 [x, y] 좌표 쌍을 사용하는 단순한 선 차트입니다.

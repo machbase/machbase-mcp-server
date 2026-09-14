@@ -2,20 +2,20 @@
 
 Machbase Neo 타이머에서 실행할 TQL 스크립트 작성 가이드입니다.
 
-## Schedule Options
+## 일정 옵션
 
-### CRON Expression (6 fields)
+### CRON 표현식 (6개 필드)
 ```
 Seconds Minutes Hours Day Month DayOfWeek
 ```
-| Example | Description |
+| 예시 | 설명 |
 |---------|-------------|
-| `0 30 * * * *` | Every hour at 30 minutes |
-| `0 0 9 * * MON-FRI` | Weekdays at 9:00 AM |
-| `*/10 * * * * *` | Every 10 seconds |
+| `0 30 * * * *` | 매시 30분 |
+| `0 0 9 * * MON-FRI` | 평일 오전 9시 |
+| `*/10 * * * * *` | 10초마다 |
 
 ### Interval
-`@every <duration>` — valid units: "ms", "s", "m", "h"
+`@every <duration>` — 유효 단위: "ms", "s", "m", "h"
 ```
 @every 1s
 @every 5s
@@ -24,9 +24,9 @@ Seconds Minutes Hours Day Month DayOfWeek
 ```
 
 ### Predefined
-| Expression | Description |
+| 표현식 | 설명 |
 |------------|-------------|
-| `@daily` | Once a day, midnight |
+| `@daily` | 하루 한 번, 자정 |
 | `@hourly` | Once an hour |
 | `@weekly` | Once a week |
 | `@monthly` | Once a month |

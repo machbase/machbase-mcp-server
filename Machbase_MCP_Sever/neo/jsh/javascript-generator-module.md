@@ -2,25 +2,25 @@
 
 ## arrange()
 
-Returns array of numbers.
+숫자 배열을 반환합니다.
 
-**Syntax**
+**문법**
 
 ```js
 arrange(start, end, step)
 ```
 
-**Parameters**
+**파라미터**
 
 - `start` `Number` start from
 - `end` `Number` end to
 - `step` `Number` increments
 
-**Return value**
+**반환값**
 
-`Number[]` generated numbers in an array.
+`Number[]` 생성된 숫자들의 배열.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { arrange } = require("@jsh/generator")
@@ -33,25 +33,25 @@ arrange(0, 6, 3).forEach((i) => console.log(i))
 
 ## linspace()
 
-Returns array of numbers.
+숫자 배열을 반환합니다.
 
-**Syntax**
+**문법**
 
 ```js
 linspace(start, end, count)
 ```
 
-**Parameters**
+**파라미터**
 
 - `start` `Number` start from
 - `end` `Number` end to
-- `count` `Number` total count of numbers to generate
+- `count` `Number` 생성할 숫자의 총 개수
 
-**Return value**
+**반환값**
 
-`Number[]` generated numbers in an array.
+`Number[]` 생성된 숫자들의 배열.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { linspace } = require("@jsh/generator")
@@ -64,24 +64,24 @@ linspace(0, 1, 3).forEach((i) => console.log(i))
 
 ## meshgrid()
 
-Returns array of numbers array.
+숫자 배열의 배열을 반환합니다.
 
-**Syntax**
+**문법**
 
 ```js
 meshgrid(arr1, arr2)
 ```
 
-**Parameters**
+**파라미터**
 
 - `arr1` `Number[]`
 - `arr2` `Number[]`
 
-**Return value**
+**반환값**
 
-`Number[][]` generated numbers in an array of numbers.
+`Number[][]` 생성된 숫자들의 배열의 배열.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { meshgrid } = require("@jsh/generator")
@@ -101,23 +101,23 @@ for(i=0; i < gen.length; i++) {
 
 ## random()
 
-Returns a random number between [0.0, 1.0).
+[0.0, 1.0) 범위의 난수를 반환합니다.
 
-**Syntax**
+**문법**
 
 ```js
 random()
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
-`Number` random number between 0.0 and 1.0 : `[0.0, 1.0)`
+`Number` 0.0과 1.0 사이의 난수 : `[0.0, 1.0)`
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { random } = require("@jsh/generator")
@@ -132,27 +132,27 @@ for(i=0; i < 3; i++) {
 
 ## Simplex
 
-A noise generator based on the Simplex noise algorithm.
+Simplex 노이즈 알고리즘 기반 노이즈 생성기입니다.
 
-**Syntax**
+**문법**
 
 ```js
 new Simplex(seed)
 ```
 
-**Parameters**
+**파라미터**
 
 `seed` seed number.
 
-**Return value**
+**반환값**
 
-A new Simplex generator object.
+새 Simplex 생성기 객체입니다.
 
 ### eval()
 
-Returns a random noise value. Repeated calls with the same args inputs will have the same output.
+무작위 노이즈 값을 반환합니다. 같은 인자로 반복 호출하면 같은 출력이 나옵니다.
 
-**Syntax**
+**문법**
 
 ```js
 eval(arg1)
@@ -161,15 +161,15 @@ eval(arg1, arg2, arg3)
 eval(arg1, arg2, arg3, arg4)
 ```
 
-**Parameters**
+**파라미터**
 
-`args` `Number` A variable-length list of numbers, representing dimensions. The function accepts a minimum of one argument (1-dimensional) and a maximum of four arguments (4-dimensional).
+`args` `Number` 차원을 나타내는 가변 길이 숫자 목록입니다. 최소 1개(1차원)에서 최대 4개(4차원) 인자를 받습니다.
 
-**Return value**
+**반환값**
 
-`Number` random noise value
+`Number` 무작위 노이즈 값
 
-**Usage example**
+**사용 예제**
 
 ```js
 const g = require("@jsh/generator")
@@ -188,39 +188,39 @@ for(i=0; i < 5; i++) {
 
 ## UUID
 
-UUID generator
+UUID 생성기
 
-**Syntax**
+**문법**
 
 ```js
 new UUID(ver)
 ```
 
-**Parameters**
+**파라미터**
 
-`ver` UUID version number. It should be one of 1, 4, 6, 7.
+`ver` UUID 버전 번호입니다. 1, 4, 6, 7 중 하나여야 합니다.
 
-**Return value**
+**반환값**
 
-a new UUID generator object.
+새 UUID 생성기 객체입니다.
 
 ### eval()
 
-**Syntax**
+**문법**
 
 ```js
 eval()
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 `String` a new UUID.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const {UUID} = require("@jsh/generator")

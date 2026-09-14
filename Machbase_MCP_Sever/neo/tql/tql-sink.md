@@ -1,24 +1,24 @@
 # Machbase Neo TQL Sink Functions
 
-All TQL scripts must end with one of the sink functions.
+모든 TQL 스크립트는 SINK 함수 중 하나로 끝나야 합니다.
 
-The basic SINK function might be `INSERT()` which write the incoming records onto machbase-neo database. `CHART()` function can render various charts with incoming records. `JSON()` and `CSV()` encode incoming data into proper formats.
+가장 기본적인 SINK 함수는 들어온 레코드를 machbase-neo 데이터베이스에 쓰는 `INSERT()`입니다. `CHART()` 함수는 들어온 레코드로 다양한 차트를 그립니다. `JSON()`과 `CSV()`는 들어온 데이터를 각 형식으로 인코딩합니다.
 
 ## INSERT()
 
-**Syntax**: `INSERT( [bridge(),] columns..., table() [, tag()] )`
+**문법**: `INSERT( [bridge(),] columns..., table() [, tag()] )`
 
-`INSERT()` stores incoming records into specified database table by an 'INSERT' statement for each record.
+`INSERT()`는 레코드마다 'INSERT' 문을 실행해 지정한 데이터베이스 테이블에 저장합니다.
 
 **Parameters:**
-- `bridge()` - bridge('name'), optional
-- `columns` - String, column list
-- `table()` - table('name'), specify the destination table name
-- `tag()` - tag('name'), optional, applicable only to tag tables
+- `bridge()` - bridge('name'), 선택
+- `columns` - 문자열, 컬럼 목록
+- `table()` - table('name'), 대상 테이블 이름 지정
+- `tag()` - tag('name'), 선택, 태그 테이블에만 적용
 
-### Example: Basic INSERT
+### 예제: 기본 INSERT
 
-Write records to machbase that contains tag name.
+태그 이름이 포함된 레코드를 machbase에 씁니다.
 
 ```js
 FAKE(json({
@@ -29,9 +29,9 @@ MAPVALUE(1, value(1)*1000000000) // convert epoch sec to nanosec
 INSERT("name", "time", "value", table("example"))
 ```
 
-### Example: Using PUSHVALUE()
+### 예제: PUSHVALUE() 사용
 
-Write records to machbase with same tag name by adding "name" field by `PUSHVALUE()`.
+`PUSHVALUE()`로 "name" 필드를 추가해 동일한 태그 이름으로 machbase에 씁니다.
 
 ```js
 FAKE(json({
@@ -43,9 +43,9 @@ MAPVALUE(1, value(1)*1000000000) // convert epoch sec to nanosec
 INSERT("name","time", "value", table("example"))
 ```
 
-### Example: Using tag()
+### 예제: tag() 사용
 
-Write records to machbase with same tag name by using `tag()` option if the destination is a tag table.
+대상이 태그 테이블이면 `tag()` 옵션으로 동일한 태그 이름을 지정해 machbase에 씁니다.
 
 ```js
 FAKE(json({
@@ -56,9 +56,9 @@ MAPVALUE(0, value(0)*1000000000) // convert epoch sec to nanosec
 INSERT("time", "value", table("example"), tag('temperature'))
 ```
 
-### Example: Bridge Database
+### 예제: 브리지 데이터베이스
 
-Insert records into bridged database.
+브리지로 연결된 데이터베이스에 레코드를 삽입합니다.
 
 ```js
 INSERT(
@@ -69,12 +69,12 @@ INSERT(
 
 ## APPEND()
 
-**Syntax**: `APPEND( table() )`
+**문법**: `APPEND( table() )`
 
-`APPEND()` stores incoming records into specified database table via the 'append' method of machbase-neo.
+`APPEND()`는 machbase-neo의 'append' 방식으로 들어온 레코드를 지정한 테이블에 저장합니다.
 
 **Parameters:**
-- `table()` - table(string), specify destination table
+- `table()` - table(string), 대상 테이블 지정
 
 ```js
 FAKE(json({
@@ -85,36 +85,36 @@ MAPVALUE(1, value(1)*1000000000 ) // convert epoch sec to nanosec
 APPEND( table("example") )
 ```
 
-## binaryformat (since v8.5.2)
+## binaryformat (v8.5.2부터)
 
-The `binaryformat()` option controls how binary column data is represented in text output. It applies to CSV(), JSON(), NDJSON(), and BOX() sinks.
+`binaryformat()` 옵션은 이진 컬럼 데이터를 텍스트 출력에서 어떻게 표현할지 제어합니다. CSV(), JSON(), NDJSON(), BOX() SINK에 적용됩니다.
 
-Supported values:
-- `hex` (default): Hexadecimal encoding
-- `base64`: Base64 encoding
-- `bytes`: Raw byte representation
-- `preview`: Preview/truncated display
+지원하는 값:
+- `hex` (기본값): 16진수 인코딩
+- `base64`: Base64 인코딩
+- `bytes`: 원시 바이트 표현
+- `preview`: 미리보기(잘린) 표시
 
 ## CSV()
 
-**Syntax**: `CSV( [tz(), timeformat(), precision(), rownum(), heading(), delimiter(), nullValue() ] )`
+**문법**: `CSV( [tz(), timeformat(), precision(), rownum(), heading(), delimiter(), nullValue() ] )`
 
-Makes the records of the result in CSV format. The values of the records become the fields of the CSV lines. The end of the data is identified by the last two consecutive newline characters (`\n\n`).
+결과 레코드를 CSV 형식으로 만듭니다. 레코드의 값들이 CSV 줄의 필드가 됩니다. 데이터의 끝은 연속된 개행 문자 두 개(`\n\n`)로 식별합니다.
 
-For example, if a record was `{key: k, value:[v1,v2]}`, it generates an CSV records as `v1,v2`.
+예를 들어 레코드가 `{key: k, value:[v1,v2]}`이면 `v1,v2` 형태의 CSV 레코드가 생성됩니다.
 
 **Parameters:**
-- `tz` - tz(name), time zone, default is `tz('UTC')`
-- `timeformat` - timeformat(string), specify the format how represents datetime fields, default is `timeformat('ns')`
-- `rownum` - rownum(boolean), adds rownum column
-- `precision` - precision(int), specify precision of float fields, `precision(-1)` means no restriction, `precision(0)` converts to integer
-- `heading` - heading(boolean), add fields names as the first row
-- `delimiter` - delimiter(string), specify fields separator other than the default comma(`,`)
-- `nullValue()` - Specify substitution string for the NULL value, default is `nullValue('NULL')` (Version 8.0.14 or later)
-- `substituteNull` - substitute(string), specify substitution string for the NULL value, default is `substituteNull('NULL')` (deprecated, replaced by `nullValue()`)
-- `cache()` - Cache result data. See Cache Result Data for details (Version 8.0.43 or later)
+- `tz` - tz(name), 시간대, 기본값은 `tz('UTC')`
+- `timeformat` - timeformat(string), datetime 필드의 표현 형식 지정, 기본값은 `timeformat('ns')`
+- `rownum` - rownum(boolean), rownum 컬럼 추가
+- `precision` - precision(int), 실수 필드의 정밀도 지정. `precision(-1)`은 제한 없음, `precision(0)`은 정수로 변환
+- `heading` - heading(boolean), 첫 행에 필드 이름 추가
+- `delimiter` - delimiter(string), 기본 쉼표(`,`) 대신 사용할 필드 구분자 지정
+- `nullValue()` - NULL 값을 대체할 문자열 지정, 기본값은 `nullValue('NULL')` (버전 8.0.14 이상)
+- `substituteNull` - substitute(string), NULL 값을 대체할 문자열 지정, 기본값은 `substituteNull('NULL')` (폐기됨, `nullValue()`로 대체)
+- `cache()` - 결과 데이터를 캐시합니다. 자세한 내용은 결과 데이터 캐시 항목 참고 (버전 8.0.43 이상)
 
-### Example: Default Output
+### 예제: 기본 출력
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -130,7 +130,7 @@ CSV()
 3,30
 ```
 
-### Example: With heading()
+### 예제: heading() 사용
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -147,7 +147,7 @@ x,x10
 3,30
 ```
 
-### Example: With delimiter()
+### 예제: delimiter() 사용
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -164,7 +164,7 @@ x|x10
 3|30
 ```
 
-### Example: With nullValue()
+### 예제: nullValue() 사용
 
 ```js
 FAKE( json({ ["A", 123], ["B", null], ["C", 234] }) )
@@ -181,21 +181,21 @@ C|234
 
 ## JSON()
 
-**Syntax**: `JSON( [transpose(), tz(), timeformat(), precision(), rownum(), rowsFlatten(), rowsArray() ] )`
+**문법**: `JSON( [transpose(), tz(), timeformat(), precision(), rownum(), rowsFlatten(), rowsArray() ] )`
 
-Generates JSON results from the values of the records.
+레코드의 값으로 JSON 결과를 생성합니다.
 
 **Parameters:**
-- `transpose` - transpose(boolean), transpose rows and columns, it is useful that specifying `transpose(true)` for the most of chart libraries
-- `tz` - tz(name), time zone, default is `tz('UTC')`
-- `timeformat` - timeformat(string), specify the format how represents datetime fields, default is `timeformat('ns')`
-- `rownum` - rownum(boolean), adds rownum column
-- `precision` - precision(int), specify precision of float fields, `precision(-1)` means no restriction, `precision(0)` converts to integer
-- `rowsFlatten` - rowsFlatten(boolean), reduces the array dimension of the rows field in the JSON object. If `JSON()` has `transpose(true)` and `rowsFlatten(true)` together, it ignores `rowsFlatten(true)` and only `transpose(true)` affects on the result (Version 8.0.12 or later)
-- `rowsArray` - rowsArray(boolean), produces JSON that contains only array of object for each record. The `rowsArray(true)` has higher priority than `transpose(true)` and `rowsFlatten(true)` (Version 8.0.12 or later)
-- `cache()` - Cache result data. See Cache Result Data for details (Version 8.0.43 or later)
+- `transpose` - transpose(boolean), 행과 열을 전치합니다. 대부분의 차트 라이브러리에서는 `transpose(true)` 지정이 유용합니다
+- `tz` - tz(name), 시간대, 기본값은 `tz('UTC')`
+- `timeformat` - timeformat(string), datetime 필드의 표현 형식 지정, 기본값은 `timeformat('ns')`
+- `rownum` - rownum(boolean), rownum 컬럼 추가
+- `precision` - precision(int), 실수 필드의 정밀도 지정. `precision(-1)`은 제한 없음, `precision(0)`은 정수로 변환
+- `rowsFlatten` - rowsFlatten(boolean), JSON 객체의 rows 필드 배열 차원을 낮춥니다. `JSON()`에 `transpose(true)`와 `rowsFlatten(true)`이 함께 있으면 `rowsFlatten(true)`은 무시되고 `transpose(true)`만 적용됩니다 (버전 8.0.12 이상)
+- `rowsArray` - rowsArray(boolean), 레코드마다 객체 배열만 담은 JSON을 생성합니다. `rowsArray(true)`가 `transpose(true)`·`rowsFlatten(true)`보다 우선합니다 (버전 8.0.12 이상)
+- `cache()` - 결과 데이터를 캐시합니다. 자세한 내용은 결과 데이터 캐시 항목 참고 (버전 8.0.43 이상)
 
-### Example: Default Output
+### 예제: 기본 출력
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -218,7 +218,7 @@ JSON()
 }
 ```
 
-### Example: With transpose()
+### 예제: transpose() 사용
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -241,7 +241,7 @@ JSON( transpose(true) )
 }
 ```
 
-### Example: With rowsFlatten()
+### 예제: rowsFlatten() 사용
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -264,7 +264,7 @@ JSON( rowsFlatten(true) )
 }
 ```
 
-### Example: With rowsArray()
+### 예제: rowsArray() 사용
 
 ```js
 FAKE( arrange(1, 3, 1))
@@ -289,19 +289,19 @@ JSON( rowsArray(true) )
 
 ## NDJSON()
 
-**Syntax**: `NDJSON( [tz(), timeformat(), rownum()] )`
+**문법**: `NDJSON( [tz(), timeformat(), rownum()] )`
 
-*Version 8.0.33 or later*
+*버전 8.0.33 이상*
 
-Generates NDJSON results from the values of the records.
+레코드의 값으로 NDJSON 결과를 생성합니다.
 
-NDJSON (Newline Delimited JSON) is a format for streaming JSON data where each line is a valid JSON object. This is useful for processing large datasets or streaming data because it allows you to handle one JSON object at a time. The end of the data is identified by the last two consecutive newline characters (`\n\n`).
+NDJSON(Newline Delimited JSON)은 각 줄이 하나의 유효한 JSON 객체인 스트리밍 JSON 형식입니다. 한 번에 JSON 객체 하나씩 처리할 수 있어 대용량 데이터셋이나 스트리밍 데이터를 다룰 때 유용합니다. 데이터의 끝은 연속된 개행 문자 두 개(`\n\n`)로 식별합니다.
 
 **Parameters:**
-- `tz` - tz(name), time zone, default is `tz('UTC')`
-- `timeformat` - timeformat(string), specify the format how represents datetime fields, default is `timeformat('ns')`
-- `rownum` - rownum(boolean), adds rownum column
-- `cache()` - Cache result data. See Cache Result Data for details (Version 8.0.43 or later)
+- `tz` - tz(name), 시간대, 기본값은 `tz('UTC')`
+- `timeformat` - timeformat(string), datetime 필드의 표현 형식 지정, 기본값은 `timeformat('ns')`
+- `rownum` - rownum(boolean), rownum 컬럼 추가
+- `cache()` - 결과 데이터를 캐시합니다. 자세한 내용은 결과 데이터 캐시 항목 참고 (버전 8.0.43 이상)
 
 **Example:**
 
@@ -321,20 +321,20 @@ NDJSON(timeformat('Default'), tz('local'), rownum(true))
 
 ## MARKDOWN()
 
-Generates a table in markdown format or HTML.
+마크다운 형식 또는 HTML 표를 생성합니다.
 
-**Syntax**: `MARKDOWN( [ options... ] )`
+**문법**: `MARKDOWN( [ options... ] )`
 
 **Parameters:**
-- `tz(string)` - Time zone, default is `tz('UTC')`
-- `timeformat(string)` - Specify the format how represents datetime fields, default is `timeformat('ns')`
-- `html(boolean)` - Produce result by HTML renderer, default `false`
-- `rownum(boolean)` - Show rownum column
-- `precision` - precision(int), specify precision of float fields, `precision(-1)` means no restriction, `precision(0)` converts to integer
-- `brief(boolean)` - Omit result rows, `brief(true)` is equivalent with `briefCount(5)`
-- `briefCount(limit int)` - Omit result rows if the records exceeds the given limit, no omission if limit is `0`
+- `tz(string)` - 시간대, 기본값은 `tz('UTC')`
+- `timeformat(string)` - datetime 필드의 표현 형식 지정, 기본값은 `timeformat('ns')`
+- `html(boolean)` - HTML 렌더러로 결과를 생성, 기본값 `false`
+- `rownum(boolean)` - rownum 컬럼 표시
+- `precision` - precision(int), 실수 필드의 정밀도 지정. `precision(-1)`은 제한 없음, `precision(0)`은 정수로 변환
+- `brief(boolean)` - 결과 행을 생략합니다. `brief(true)`는 `briefCount(5)`와 같습니다
+- `briefCount(limit int)` - 레코드가 주어진 한도를 넘으면 결과 행을 생략합니다. 한도가 `0`이면 생략하지 않습니다
 
-### Example: Default Output
+### 예제: 기본 출력
 
 ```js
 FAKE( csv(`
@@ -359,7 +359,7 @@ MARKDOWN()
 | 50     | The last is 5th |
 ```
 
-### Example: With briefCount
+### 예제: briefCount 사용
 
 ```js
 FAKE( csv(`
@@ -381,10 +381,10 @@ MARKDOWN( briefCount(2) )
 | 20     | 2nd line |
 | ...    | ...      |
 
-> Total 5 records
+> 전체 5건
 ```
 
-### Example: With html()
+### 예제: html() 사용
 
 ```js
 FAKE( csv(`
@@ -405,35 +405,35 @@ MARKDOWN( briefCount(2), html(true) )
 | 20     | 2nd line |
 | ...    | ...      |
 
-> Total 5 records
+> 전체 5건
 
 ## HTML()
 
-**Syntax**: `HTML(templates...)`
+**문법**: `HTML(templates...)`
 
-*Version 8.0.52 or later*
+*버전 8.0.52 이상*
 
-Generates an HTML document using the provided templates.
+제공된 템플릿으로 HTML 문서를 생성합니다.
 
-For detailed usage and examples, refer to the HTML section.
+자세한 사용법과 예제는 HTML 항목을 참고하세요.
 
 ## TEXT()
 
-**Syntax**: `TEXT(templates...)`
+**문법**: `TEXT(templates...)`
 
-*Version 8.0.52 or later*
+*버전 8.0.52 이상*
 
-Generates a text document using the provided templates.
+제공된 템플릿으로 텍스트 문서를 생성합니다.
 
-It functions similarly to `HTML()`, but does not perform HTML escaping on the data.
+`HTML()`과 비슷하게 동작하지만 데이터에 HTML 이스케이프를 적용하지 않습니다.
 
 ## DISCARD()
 
-**Syntax**: `DISCARD()`
+**문법**: `DISCARD()`
 
-*Version 8.0.7 or later*
+*버전 8.0.7 이상*
 
-`DISCARD()` silently ignore all records as its name implies, so that no output generates.
+`DISCARD()`는 이름 그대로 모든 레코드를 조용히 버리며 아무 출력도 생성하지 않습니다.
 
 ```js
 FAKE( json({
@@ -450,15 +450,15 @@ CSV()
 
 ## CHART()
 
-**Syntax**: `CHART()`
+**문법**: `CHART()`
 
-*Version 8.0.8 or later*
+*버전 8.0.8 이상*
 
-Generates chart using Apache echarts.
+Apache ECharts로 차트를 생성합니다.
 
-Refer to CHART() examples for the various usages.
+다양한 사용법은 CHART() 예제를 참고하세요.
 
-##### Using CHART()
+### 예제: CHART() 사용
 
 ```js
 FAKE( oscillator(freq(1.5, 1.0), freq(1.0, 0.7), range('now', '3s', '25ms')))

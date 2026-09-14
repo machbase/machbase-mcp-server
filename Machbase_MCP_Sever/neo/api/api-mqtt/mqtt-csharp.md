@@ -1,34 +1,34 @@
 # Machbase Neo MQTT C# Client
 
-## Setup
+## 준비
 
-### Install dotnet-sdk
+### dotnet-sdk 설치
 
 ```sh
 brew install dotnet-sdk
 ```
 
-### Create project directory
+### 프로젝트 디렉터리 생성
 
 ```sh
 mkdir csharp-mqtt && cd csharp-mqtt
 ```
 
-### Create console project
+### 콘솔 프로젝트 생성
 
 ```sh
 dotnet new console --framework net7.0
 ```
 
-### Add MQTTnet packages
+### MQTTnet 패키지 추가
 
 ```sh
 dotnet add package MQTTnet --version 4.3.3.952
 ```
 
-## Connect (non-TLS)
+## 접속 (비 TLS)
 
-Connect to machbase-neo via MQTT plain socket.
+MQTT 일반 소켓으로 machbase-neo에 접속합니다.
 
 ```c#
 var mqttFactory = new MqttFactory();
@@ -39,14 +39,14 @@ var connAck = await mqttClient.ConnectAsync(connectOptions, CancellationToken.No
 connAck.DumpToConsole();
 ```
 
-## Disconnect
+## 접속 종료
 
 ```c#
 var mqttClientDisconnectOptions = mqttFactory.CreateClientDisconnectOptionsBuilder().Build();
 await mqttClient.DisconnectAsync(mqttClientDisconnectOptions, CancellationToken.None);
 ```
 
-## Publish message
+## 메시지 발행
 
 ```c#
 var msg = new MqttApplicationMessageBuilder()
@@ -60,7 +60,7 @@ var msg = new MqttApplicationMessageBuilder()
 await mqttClient.PublishAsync(msg, CancellationToken.None);
 ```
 
-## Full source code
+## 전체 소스 코드
 
 ```c#
 using MQTTnet;

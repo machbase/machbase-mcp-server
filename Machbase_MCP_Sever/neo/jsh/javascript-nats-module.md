@@ -1,9 +1,9 @@
 # Machbase Neo JavaScript NATS Module
 
-The `nats` module provides an event-driven NATS client for JSH applications.
-The client automatically starts connecting when a `Client` is created.
+`nats` 모듈은 JSH 애플리케이션에 이벤트 기반 NATS 클라이언트를 제공합니다.
+`Client`를 만들면 클라이언트가 자동으로 연결을 시작합니다.
 
-Typical usage looks like this.
+일반적인 사용법은 다음과 같습니다.
 
 ```js
 const nats = require('nats');
@@ -11,63 +11,92 @@ const nats = require('nats');
 
 ## Client
 
-Creates a NATS client and begins connecting.
+NATS 클라이언트를 만들고 연결을 시작합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new nats.Client(options)
 ```
 
-<h6>Options</h6>
+<h6>옵션</h6>
 
-- `servers` server URLs (e.g. `nats://localhost:4222`)
-- `user` authentication user
-- `password` authentication password
-- `token` authentication token
-- `timeout` connection timeout in milliseconds
-- `reconnect` enable automatic reconnection
-- `maxReconnectAttempts` maximum reconnection attempts
+| 옵션 | 타입 | 설명 |
+|:-----|:-----|:-----|
+| `servers` | String[] | `nats://127.0.0.1:4222` 같은 NATS 서버 URL 목록 |
+| `name` | String | 연결 이름 |
+| `user` | String | 인증 사용자 |
+| `password` | String | 인증 비밀번호 |
+| `token` | String | 인증 토큰 |
+| `noRandomize` | Boolean | 서버 랜덤 선택 비활성화 |
+| `noEcho` | Boolean | 자신이 발행한 메시지 echo 비활성화 |
+| `verbose` | Boolean | verbose 프로토콜 동작 활성화 |
+| `pedantic` | Boolean | pedantic 프로토콜 검사 활성화 |
+| `allowReconnect` | Boolean | 재연결 허용 |
+| `maxReconnect` | Number | 최대 재연결 횟수 |
+| `reconnectWait` | Number | 재연결 대기 시간(밀리초) |
+| `timeout` | Number | 연결 타임아웃(밀리초) |
+| `drainTimeout` | Number | drain 타임아웃(밀리초) |
+| `flusherTimeout` | Number | flush 타임아웃(밀리초) |
+| `pingInterval` | Number | ping 간격(밀리초) |
+| `maxPingsOut` | Number | 최대 outstanding ping 수 |
+| `retryOnFailedConnect` | Boolean | 최초 연결 실패 시 재시도 |
+| `skipHostLookup` | Boolean | host lookup 최적화 건너뛰기 |
 
-The `config` property exposes the active configuration.
+`client.config` 속성은 현재 적용된 설정을 노출합니다.
+
+<h6>사용 예제</h6>
+
+```js
+const nats = require('nats');
+
+const client = new nats.Client({
+    servers: ['nats://127.0.0.1:4222'],
+    name: 'test-client',
+    allowReconnect: true,
+    maxReconnect: 10,
+    reconnectWait: 2000,
+    timeout: 10 * 1000,
+});
+```
 
 ## publish()
 
-Sends a message to a NATS subject.
+NATS subject로 메시지를 보냅니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 client.publish(subject, message[, options])
 ```
 
-<h6>Options</h6>
+<h6>옵션</h6>
 
-- `reply` optional reply subject for request/reply patterns
+- `reply` 요청/응답 패턴을 위한 선택적 응답 subject
 
-Calling `publish()` before the connection is open emits an `error` event.
+연결이 열리기 전에 `publish()`를 호출하면 `error` 이벤트가 발생합니다.
 
 ## subscribe()
 
-Subscribes to a NATS subject.
+NATS subject를 구독합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 client.subscribe(subject[, options])
 ```
 
-<h6>Options</h6>
+<h6>옵션</h6>
 
-- `queue` queue group name for load-balanced distribution
+- `queue` 부하 분산 배분을 위한 queue 그룹 이름
 
-Calling `subscribe()` before the connection is open emits an `error` event.
+연결이 열리기 전에 `subscribe()`를 호출하면 `error` 이벤트가 발생합니다.
 
 ## close()
 
-Terminates the NATS connection.
+NATS 연결을 종료합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 client.close()
@@ -75,14 +104,14 @@ client.close()
 
 ## Events
 
-- `open` - connection established
-- `message` - message received from subscription; message object includes `subject`, `reply`, and `payload`
-- `subscribed` - server accepted the subscription
-- `published` - publish completed
-- `error` - connection or operation failure
-- `close` - connection closed
+- `open` - 연결 수립됨
+- `message` - 구독에서 메시지 수신. 메시지 객체는 `subject`, `reply`, `payload`를 포함합니다
+- `subscribed` - 서버가 구독을 수락함
+- `published` - 발행 완료
+- `error` - 연결 또는 작업 실패
+- `close` - 연결 닫힘
 
-## Usage example: Pub/Sub
+## 사용 예제: Pub/Sub
 
 ```js
 const nats = require('nats');
@@ -105,7 +134,7 @@ pub.on('published', function() {
 });
 ```
 
-## Usage example: Request/Reply
+## 사용 예제: Request/Reply
 
 ```js
 const nats = require('nats');
@@ -132,8 +161,8 @@ requester.on('message', function(msg) {
 });
 ```
 
-## Behavior notes
+## 동작 참고사항
 
-- The client automatically starts connecting when created.
-- Calling `publish()` or `subscribe()` before the connection is open emits an `error` event.
-- Queue subscriptions enable load-balanced message distribution across multiple subscribers.
+- 클라이언트는 생성 시 자동으로 연결을 시작합니다.
+- 연결이 열리기 전에 `publish()`나 `subscribe()`를 호출하면 `error` 이벤트가 발생합니다.
+- queue 구독을 사용하면 여러 구독자에게 부하 분산된 메시지 배분이 가능합니다.

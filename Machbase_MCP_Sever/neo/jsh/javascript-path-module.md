@@ -1,9 +1,9 @@
 # Machbase Neo JavaScript Path Module
 
-The `path` module provides path manipulation utilities similar to Node.js for JSH applications.
+`path` 모듈은 JSH 애플리케이션을 위해 Node.js와 유사한 경로 조작 유틸리티를 제공합니다.
 
-The default export is POSIX-oriented, using `/` as the separator and `:` as the delimiter.
-`path.posix` and `path.win32` namespaces are available for explicit behavior control.
+기본 export는 POSIX 기준이며 구분자로 `/`, 구분 기호로 `:`를 사용합니다.
+동작을 명시적으로 제어하려면 `path.posix`와 `path.win32` 네임스페이스를 사용할 수 있습니다.
 
 ```js
 const path = require('path');
@@ -11,9 +11,9 @@ const path = require('path');
 
 ## resolve()
 
-Resolves a sequence of paths into an absolute path.
+여러 경로를 하나의 절대 경로로 해석합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.resolve([...paths])
@@ -21,9 +21,9 @@ path.resolve([...paths])
 
 ## normalize()
 
-Resolves `.` and `..` segments and normalizes path separators.
+`.`과 `..` 구간을 해석하고 경로 구분자를 정규화합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.normalize(p)
@@ -31,9 +31,9 @@ path.normalize(p)
 
 ## isAbsolute()
 
-Determines if a path is absolute.
+경로가 절대 경로인지 판별합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.isAbsolute(p)
@@ -41,9 +41,9 @@ path.isAbsolute(p)
 
 ## join()
 
-Joins path segments using the active path style and normalizes the result.
+현재 경로 스타일로 경로 조각들을 이어 붙이고 결과를 정규화합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.join(...paths)
@@ -51,9 +51,9 @@ path.join(...paths)
 
 ## relative()
 
-Calculates the relative path from one location to another.
+한 위치에서 다른 위치까지의 상대 경로를 계산합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.relative(from, to)
@@ -61,9 +61,9 @@ path.relative(from, to)
 
 ## dirname()
 
-Extracts the directory portion of a path.
+경로에서 디렉터리 부분을 추출합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.dirname(p)
@@ -71,9 +71,9 @@ path.dirname(p)
 
 ## basename()
 
-Returns the last path component, optionally removing a suffix.
+경로의 마지막 구성요소를 반환하며, 선택적으로 접미사를 제거합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.basename(p[, ext])
@@ -81,9 +81,9 @@ path.basename(p[, ext])
 
 ## extname()
 
-Returns the file extension including the leading dot.
+앞의 점을 포함한 파일 확장자를 반환합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.extname(p)
@@ -91,23 +91,23 @@ path.extname(p)
 
 ## parse()
 
-Breaks a path into structured components.
+경로를 구조화된 구성요소로 분해합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.parse(p)
 ```
 
-<h6>Return value</h6>
+<h6>반환값</h6>
 
-Returns an object with `root`, `dir`, `base`, `ext`, `name`.
+`root`, `dir`, `base`, `ext`, `name`을 가진 객체를 반환합니다.
 
 ## format()
 
-Reconstructs a path from a parsed object.
+파싱된 객체로부터 경로를 재구성합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 path.format(pathObject)
@@ -115,18 +115,18 @@ path.format(pathObject)
 
 ## sep
 
-The platform path separator. Default: `/`.
+플랫폼 경로 구분자입니다. 기본값: `/`.
 
 ## delimiter
 
-The platform path delimiter. Default: `:`.
+플랫폼 경로 구분 기호입니다. 기본값: `:`.
 
 ## posix / win32
 
-Explicit POSIX or Windows path handling namespaces.
-`path.win32` is available for Windows path handling even when JSH is running on a non-Windows system.
+POSIX 또는 Windows 경로 처리를 명시적으로 지정하는 네임스페이스입니다.
+JSH가 Windows가 아닌 시스템에서 실행 중이어도 `path.win32`로 Windows 경로를 처리할 수 있습니다.
 
-## Usage example
+## 사용 예제
 
 ```js
 const path = require('path');
@@ -141,7 +141,7 @@ const parsed = path.parse('/work/data/file.txt');
 console.println(parsed.dir, parsed.name, parsed.ext);     // /work/data file .txt
 ```
 
-## Behavior notes
+## 동작 참고사항
 
-- All public functions require string arguments where applicable and throw `TypeError` for invalid input.
-- The default JSH export is POSIX-oriented.
+- 모든 공개 함수는 해당하는 경우 문자열 인자를 요구하며, 잘못된 입력에는 `TypeError`를 던집니다.
+- JSH의 기본 export는 POSIX 기준입니다.

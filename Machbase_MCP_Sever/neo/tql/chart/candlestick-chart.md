@@ -1,95 +1,95 @@
 # Machbase Neo Candlestick Chart
 
-## Quick Reference
+## 빠른 참조
 
-### TQL Pipeline Structure
+### TQL 파이프라인 구조
 
-TQL operates in a **data flow (pipeline)** manner:
+TQL은 **데이터 흐름(파이프라인)** 방식으로 동작합니다:
 
 ```
-SRC (Data Source) → MAP (Transform) → SINK (Output)
+SRC (데이터 소스) → MAP (변환) → SINK (출력)
 ```
 
 ---
 
-### SRC - Data Sources
+### SRC - 데이터 소스
 
-Functions that **generate or fetch data** (pipeline start)
+**데이터를 생성하거나 가져오는** 함수 (파이프라인 시작)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `FAKE()` | Generate test data | `FAKE(linspace(0, 100, 10))` |
-| `SQL()` | Database query | `SQL('SELECT time, value FROM example')` |
-| `CSV()` | Read CSV file | `CSV(file('/path/to/data.csv'))` |
-| `SCRIPT()` | JavaScript code | `SCRIPT({ $.yield(1, 2, 3) })` |
+| `FAKE()` | 테스트 데이터 생성 | `FAKE(linspace(0, 100, 10))` |
+| `SQL()` | 데이터베이스 쿼리 | `SQL('SELECT time, value FROM example')` |
+| `CSV()` | CSV 파일 읽기 | `CSV(file('/path/to/data.csv'))` |
+| `SCRIPT()` | JavaScript 코드 | `SCRIPT({ $.yield(1, 2, 3) })` |
 
 ---
 
-### MAP - Data Transformation
+### MAP - 데이터 변환
 
-Functions that **process and transform data** (pipeline middle)
+**데이터를 가공하고 변환하는** 함수 (파이프라인 중간)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `MAPVALUE()` | Add/modify column | `MAPVALUE(1, value(0) * 2)` |
-| `MAPKEY()` | Modify key | `MAPKEY(strUpper(key()))` |
-| `PUSHVALUE()` | Insert column at front | `PUSHVALUE(0, "new_value")` |
-| `POPVALUE()` | Remove column | `POPVALUE(2)` |
-| `GROUP()` | Group/aggregate | `GROUP(by(value(0)), avg(value(1)))` |
-| `MAP_MOVAVG()` | Calculate moving average | `MAP_MOVAVG(6, value(2), 5, "MA5")` |
-| `MAP_DIFF()` | Calculate difference | `MAP_DIFF(7, value(2))` |
+| `MAPVALUE()` | 컬럼 추가/수정 | `MAPVALUE(1, value(0) * 2)` |
+| `MAPKEY()` | 키 수정 | `MAPKEY(strUpper(key()))` |
+| `PUSHVALUE()` | 앞쪽에 컬럼 삽입 | `PUSHVALUE(0, "new_value")` |
+| `POPVALUE()` | 컬럼 제거 | `POPVALUE(2)` |
+| `GROUP()` | 그룹화/집계 | `GROUP(by(value(0)), avg(value(1)))` |
+| `MAP_MOVAVG()` | 이동평균 계산 | `MAP_MOVAVG(6, value(2), 5, "MA5")` |
+| `MAP_DIFF()` | 차분 계산 | `MAP_DIFF(7, value(2))` |
 
 ---
 
-### SINK - Data Output
+### SINK - 데이터 출력
 
-Functions that **output or save data** (pipeline end)
+**데이터를 출력하거나 저장하는** 함수 (파이프라인 끝)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `CHART()` | Create chart | `CHART(chartOption({...}))` |
-| `CSV()` | CSV output | `CSV()` |
-| `JSON()` | JSON output | `JSON()` |
-| `INSERT()` | DB insert | `INSERT(...)` |
+| `CHART()` | 차트 생성 | `CHART(chartOption({...}))` |
+| `CSV()` | CSV 출력 | `CSV()` |
+| `JSON()` | JSON 출력 | `JSON()` |
+| `INSERT()` | DB 입력 | `INSERT(...)` |
 | `APPEND()` | DB append | `APPEND(table('example'))` |
 
 ---
 
-### CHART() Function Basic Usage
+### CHART() 함수 기본 사용법
 
-**Syntax**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
+**문법**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
 
-*Available since version 8.0.8*
+*버전 8.0.8부터 사용 가능*
 
-#### Main Options
+#### 주요 옵션
 
 **chartOption()**
 - `chartOption( { json in apache echarts options } )`
-- Pass Apache ECharts options in JSON format.
+- Apache ECharts 옵션을 JSON 형식으로 전달합니다.
 
 **size()**
 - `size(width, height)`
-- `width` *string* Chart width in HTML syntax e.g., `'800px'`
-- `height` *string* Chart height in HTML syntax e.g., `'800px'`
+- `width` *string* HTML 문법의 차트 너비, 예: `'800px'`
+- `height` *string* HTML 문법의 차트 높이, 예: `'800px'`
 
 **theme()**
 - `theme(name)`
-- `name` *string* Theme name
-- Available themes: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
+- `name` *string* 테마 이름
+- 사용 가능한 테마: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
 
 **chartJSCode()**
 - `chartJSCode( { user javascript code } )`
-- Execute custom JavaScript code.
+- 사용자 정의 JavaScript 코드를 실행합니다.
 
 **chartDispatchAction()**
 - `chartDispatchAction({ type, ...params })`
-- Trigger chart actions like zoom, highlight, brush, etc.
+- 확대, 강조, 브러시 등 차트 동작을 실행합니다.
 
 ---
 
-### Candlestick Data Format
+### 캔들스틱 데이터 형식
 
-Candlestick charts require data in the format: `[open, close, lowest, highest]`
+캔들스틱 차트는 `[open, close, lowest, highest]` 형식의 데이터가 필요합니다.
 
 Example:
 ```js
@@ -98,38 +98,38 @@ Example:
 
 ---
 
-### Key Functions
+### 핵심 함수
 
 #### value(index)
-Access values of the **current record** (used in pipeline middle)
+**현재 레코드**의 값에 접근합니다 (파이프라인 중간에서 사용)
 
-- `value(0)` = First value of current record
-- `value(1)` = Second value of current record
-- `value()` = Entire value array
+- `value(0)` = 현재 레코드의 첫 번째 값
+- `value(1)` = 현재 레코드의 두 번째 값
+- `value()` = 값 배열 전체
 
 ---
 
 #### column(index)
-Collect specific column from **all records** as array (CHART() only)
+**모든 레코드**에서 특정 컬럼을 배열로 모읍니다 (CHART() 전용)
 
-- `column(0)` = First values from all records → array
-- `column(1)` = Second values from all records → array
-- **⚠️ Only usable inside CHART()**
+- `column(0)` = 모든 레코드의 첫 번째 값 → 배열
+- `column(1)` = 모든 레코드의 두 번째 값 → 배열
+- **⚠️ CHART() 안에서만 사용 가능**
 
-**Comparison**:
+**비교**:
 
-| Function | Location | Returns | Example |
+| 함수 | 사용 위치 | 반환 | 예시 |
 |----------|----------|---------|---------|
-| `value(0)` | Pipeline middle | Single value | `10` |
-| `column(0)` | Inside CHART() | Array | `[1,2,3]` |
+| `value(0)` | 파이프라인 중간 | 단일 값 | `10` |
+| `column(0)` | CHART() 내부 | 배열 | `[1,2,3]` |
 
 ---
 
-## 1. Basic Candlestick Chart
+## 1. 기본 캔들스틱 차트
 
-Simple candlestick chart showing basic OHLC (Open-High-Low-Close) data.
+기본 OHLC(시가-고가-저가-종가) 데이터를 보여주는 단순한 캔들스틱 차트입니다.
 
-### Using SCRIPT
+### SCRIPT 사용
 
 ```js
 SCRIPT({
@@ -171,15 +171,15 @@ CHART(
 )
 ```
 
-**Description**: Basic candlestick chart displaying 4 days of stock data. Shows two approaches: using SCRIPT to directly create chart options, or using FAKE with data transformation pipeline.
+**설명**: 4일간의 주가 데이터를 표시하는 기본 캔들스틱 차트입니다. SCRIPT로 차트 옵션을 직접 만드는 방법과, FAKE로 데이터 변환 파이프라인을 쓰는 두 가지 방식을 보여줍니다.
 
-**Data Format**: Each candlestick requires `[open, close, lowest, highest]` values.
+**데이터 형식**: 캔들 하나마다 `[open, close, lowest, highest]` 값이 필요합니다.
 
 ---
 
-## 2. Stock Index with Moving Averages
+## 2. 이동평균이 있는 주가지수
 
-Candlestick chart with multiple moving average indicators.
+여러 개의 이동평균 지표를 함께 표시하는 캔들스틱 차트입니다.
 
 ```js
 //            open     close    lowest  highest
@@ -340,19 +340,19 @@ CHART(
 )
 ```
 
-**Description**: Stock index candlestick chart with 4 moving average indicators (MA5, MA10, MA20, MA30). Features dataZoom for pan/zoom functionality and custom color styling for bullish (green) and bearish (red) candles.
+**설명**: 이동평균 지표 4종(MA5, MA10, MA20, MA30)을 함께 표시하는 주가지수 캔들스틱 차트입니다. dataZoom으로 이동·확대가 가능하고, 상승(초록)과 하락(빨강) 캔들에 사용자 정의 색상을 적용합니다.
 
-**Key Points**:
-- `MAP_MOVAVG()` calculates moving averages with different windows
-- `dataZoom` enables interactive zoom with slider control
-- Custom colors distinguish rising vs falling price movements
-- Multiple line series overlay the candlestick for trend analysis
+**핵심 포인트**:
+- `MAP_MOVAVG()`가 서로 다른 구간의 이동평균을 계산합니다
+- `dataZoom`이 슬라이더로 대화형 확대를 제공합니다
+- 사용자 정의 색상으로 상승과 하락을 구분합니다
+- 여러 선 시리즈를 캔들 위에 겹쳐 추세를 분석합니다
 
 ---
 
-## 3. Dow-Jones Index with Volume
+## 3. 거래량이 있는 다우존스 지수
 
-Advanced candlestick chart with volume bar chart and technical indicators.
+거래량 막대와 기술적 지표를 함께 표시하는 고급 캔들스틱 차트입니다.
 
 ```js
 CSV( file("https://docs.machbase.com/assets/example/stock-DJI.csv") )
@@ -597,13 +597,13 @@ CHART(
 )
 ```
 
-**Description**: Professional stock chart combining candlestick price data with volume bars in a separate grid. Loads Dow-Jones Index data from external CSV file and displays multiple technical indicators with advanced interactive features.
+**설명**: 캔들스틱 가격 데이터와 별도 그리드의 거래량 막대를 결합한 전문가용 주가 차트입니다. 외부 CSV 파일에서 다우존스 지수 데이터를 불러와 여러 기술적 지표와 고급 상호작용 기능을 제공합니다.
 
-**Key Points**:
-- Dual grid layout: top for price, bottom for volume
-- `MAP_DIFF()` calculates volume change direction
-- `visualMap` colors volume bars based on price movement direction
-- Brush tool for selecting specific time ranges
-- `chartDispatchAction()` pre-selects a date range on load
-- Linked zoom/pan across both grids
-- Custom tooltip positioning function
+**핵심 포인트**:
+- 이중 그리드 배치: 위는 가격, 아래는 거래량
+- `MAP_DIFF()`가 거래량 변화 방향을 계산합니다
+- `visualMap`이 가격 변동 방향에 따라 거래량 막대에 색을 입힙니다
+- 브러시 도구로 특정 기간을 선택할 수 있습니다
+- `chartDispatchAction()`이 로드 시 날짜 범위를 미리 선택합니다
+- 두 그리드의 확대·이동이 연동됩니다
+- 툴팁 위치를 지정하는 사용자 정의 함수

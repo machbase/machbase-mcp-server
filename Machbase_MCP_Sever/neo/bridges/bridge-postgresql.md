@@ -1,40 +1,40 @@
 # Machbase Neo Bridge - PostgreSQL
 
-## Register a bridge to postgresql
+## PostgreSQL 브리지 등록
 
-Register a bridge that connects to the postgreSQL database.
+PostgreSQL 데이터베이스에 연결하는 브리지를 등록합니다.
 
 ```
 bridge add -t postgres pg host=127.0.0.1 port=5432 user=dbuser dbname=postgres sslmode=disable;
 ```
 
-Connect options
+연결 옵션
 
-| Option            | Description                            | example         |
+| 옵션            | 설명                            | 예시         |
 | :-----------      | :---------------------------------     | :-------------  |
-| `dbname`          | The name of the database to connect to |                 |
-| `user`            | The user to sign in as                 |                 |
-| `password`        | The user's password                    |                 |
-| `host`            | The host to connect to. Values that start with / are for unix domain sockets. default is localhost | `host=127.0.0.1` |
-| `port`            | The port to bind to. default is `5432` |     |
-| `sslmode`         | Whether or not to use SSL (default is `require`)  | (see below) |
-| `connect_timeout` | Maximum wait for connection, in seconds. Zero or not specified means wait indefinitely. |  |
-| `sslcert`         | Cert file location. The file must contain PEM encoded data.   |  |
-| `sslkey`          | Key file location. The file must contain PEM encoded data.    |  |
-| `sslrootcert`     | The location of the root certificate file. The file must contain PEM encoded data. |  |
+| `dbname`          | 접속할 데이터베이스 이름 |                 |
+| `user`            | 로그인할 사용자                 |                 |
+| `password`        | 사용자 비밀번호                    |                 |
+| `host`            | 접속할 호스트. /로 시작하는 값은 unix 도메인 소켓입니다. 기본값은 localhost | `host=127.0.0.1` |
+| `port`            | 바인딩할 포트. 기본값 `5432` |     |
+| `sslmode`         | SSL 사용 여부 (기본값 `require`)  | (아래 참고) |
+| `connect_timeout` | 연결 최대 대기 시간(초). 0이거나 지정하지 않으면 무한 대기합니다. |  |
+| `sslcert`         | 인증서 파일 위치. PEM 인코딩 데이터여야 합니다.   |  |
+| `sslkey`          | 키 파일 위치. PEM 인코딩 데이터여야 합니다.    |  |
+| `sslrootcert`     | 루트 인증서 파일 위치. PEM 인코딩 데이터여야 합니다. |  |
 
-Valid values for `sslmode` are:
+`sslmode`에 유효한 값은 다음과 같습니다:
 
-| sslmode       |  Description                      |
+| sslmode       |  설명                      |
 |:------------  | :---------------------------------|
 | `disable`     | No SSL                            |
-| `require`     | Always SSL (skip verification)    |
-| `verify-ca`   | Always SSL (verify that the certificate presented by the server was signed by a trusted CA) |
-| `verify-full` | Always SSL (verify that the certification presented by the server was signed by a trusted CA and the server host name matches the one in the certificate)|
+| `require`     | 항상 SSL (검증 생략)    |
+| `verify-ca`   | 항상 SSL (서버가 제시한 인증서가 신뢰된 CA의 서명인지 검증) |
+| `verify-full` | 항상 SSL (서버 인증서가 신뢰된 CA의 서명이고 서버 호스트명이 인증서와 일치하는지 검증)|
 
-## Create table
+## 테이블 생성
 
-Open machbase-neo shell and execute the command below which creates a `pg_example` table via the `pg` bridge.
+machbase-neo 셸을 열고 아래 명령을 실행해 `pg` 브리지로 `pg_example` 테이블을 만듭니다.
 
 ```sh
 bridge exec pg CREATE TABLE IF NOT EXISTS pg_example(
@@ -50,7 +50,7 @@ bridge exec pg CREATE TABLE IF NOT EXISTS pg_example(
 );
 ```
 
-Can make sure the table has been created with `psql` command line tool
+`psql` 명령행 도구로 테이블이 생성되었는지 확인할 수 있습니다
 
 ```
 postgres=# \d pg_example;
@@ -72,7 +72,7 @@ Indexes:
 
 ```
 
-## *TQL* writing on the PostgreSQL
+## PostgreSQL에 *TQL*로 쓰기
 
 ```js
 BYTES(payload() ?? `{
@@ -102,7 +102,7 @@ postgres=# select * from pg_example;
 (1 row)
 ```
 
-## *TQL* reading from the PostgreSQL
+## PostgreSQL에서 *TQL*로 읽기
 
 ```js
 SQL(bridge('pg'), "select * from pg_example")

@@ -1,6 +1,6 @@
 # Machbase Neo HTTP C# Client
 
-## Query
+## 조회
 
 ### GET CSV
 
@@ -13,7 +13,7 @@ var json = await client.GetStringAsync(
 Console.Write(json);
 ```
 
-## Write
+## 쓰기
 
 ### POST CSV
 

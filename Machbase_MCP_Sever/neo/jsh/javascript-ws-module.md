@@ -1,289 +1,259 @@
 # Machbase Neo JavaScript WebSocket Module
 
-The `ws` module (since v8.5.2) provides WebSocket client and server capabilities for JSH applications.
+`ws` 모듈(v8.5.2부터)은 JSH 애플리케이션에서 사용할 수 있는 WebSocket 클라이언트/서버 API를 제공합니다. Go 네이티브 WebSocket 위에 구현된 `WebSocket`과 `WebSocketServer` 클래스를 노출합니다.
 
 ```js
-const ws = require('@jsh/ws');
+const { WebSocket, WebSocketServer } = require('ws');
 ```
 
-## WebSocket (Client)
+## WebSocket
 
-### Constructor
+WebSocket 클라이언트 연결을 생성합니다.
+
+<h6>문법</h6>
 
 ```js
-new ws.WebSocket(url[, protocols][, options])
+new WebSocket(url)
+new WebSocket(url, protocol)
+new WebSocket(url, protocols)
 ```
 
-| Parameter | Type | Description |
-|:----------|:-----|:------------|
-| `url` | String | WebSocket server URL (`ws://` or `wss://`) |
-| `protocols` | String or Array | Optional sub-protocol(s) |
-| `options` | Object | Optional connection options |
+<h6>파라미터</h6>
 
-### Properties
+- `url` `String`: `ws://host:port/path`, `wss://host:port/path` 같은 WebSocket 서버 주소
+- `protocol` `String`: 요청할 subprotocol 하나
+- `protocols` `String[]`: 요청할 subprotocol 목록
 
-| Property | Type | Description |
-|:---------|:-----|:------------|
-| `readyState` | Number | Current connection state |
-| `protocol` | String | Negotiated sub-protocol |
-| `url` | String | The URL used to create the connection |
-| `bufferedAmount` | Number | Bytes queued for transmission |
+`url`이 없거나 문자열이 아니면 constructor는 `TypeError`를 발생시킵니다.
 
-### readyState Values
+## 속성
 
-| Constant | Value | Description |
-|:---------|:------|:------------|
-| `ws.CONNECTING` | 0 | Connection not yet open |
-| `ws.OPEN` | 1 | Connection is open and ready |
-| `ws.CLOSING` | 2 | Connection is closing |
-| `ws.CLOSED` | 3 | Connection is closed |
+| 속성 | 타입 | 설명 |
+|:-----|:-----|:-----|
+| `url` | String | constructor에 전달한 원래 WebSocket URL |
+| `protocol` | String | 협상된 subprotocol. 없으면 빈 문자열 |
+| `readyState` | Number | 현재 연결 상태 |
 
-### Message Type Constants
+### readyState 값
 
-| Constant | Description |
-|:---------|:------------|
-| `ws.TEXT` | Text message |
-| `ws.BINARY` | Binary message |
-| `ws.PING` | Ping frame |
-| `ws.PONG` | Pong frame |
+- `WebSocket.CONNECTING` = `0`
+- `WebSocket.OPEN` = `1`
+- `WebSocket.CLOSING` = `2`
+- `WebSocket.CLOSED` = `3`
 
-### send(data[, options])
+### 메시지 타입 상수
 
-Sends data through the WebSocket connection.
+- `WebSocket.TextMessage` = `1`
+- `WebSocket.BinaryMessage` = `2`
 
-**Syntax**
+## send()
+
+서버로 메시지를 전송합니다.
+
+<h6>문법</h6>
 
 ```js
-socket.send(data[, options])
+ws.send(data)
 ```
 
-**Parameters**
+<h6>파라미터</h6>
 
-| Parameter | Type | Description |
-|:----------|:-----|:------------|
-| `data` | String, ArrayBuffer, Buffer | Data to send |
-| `options` | Object | Optional send options |
-| `options.compress` | Boolean | Whether to compress the data |
-| `options.binary` | Boolean | Whether data is binary |
-| `options.fin` | Boolean | Whether this is the final fragment |
+- `data` `String`: 전송할 텍스트 메시지
 
-**Usage example**
+현재 JSH 구현에서 `send()`는 텍스트 메시지 사용을 기준으로 설계되어 있습니다.
+
+소켓이 아직 열려 있지 않으면 `error` 이벤트가 발생합니다.
+
+<h6>사용 예제</h6>
 
 ```js
-const socket = new ws.WebSocket('ws://127.0.0.1:5654/ws');
+const { WebSocket } = require('ws');
 
-socket.on('open', function() {
-    socket.send('Hello Server!');
-    socket.send(JSON.stringify({ type: 'greeting', msg: 'hello' }));
-});
-
-socket.on('message', function(evt) {
-    console.log('Received:', evt.data);
+const ws = new WebSocket('ws://127.0.0.1:8080');
+ws.on('open', () => {
+    ws.send('Hello, server');
 });
 ```
 
-### close([code[, reason]])
+## close()
 
-Closes the WebSocket connection.
+현재 연결을 종료합니다.
 
-| Parameter | Type | Description |
-|:----------|:-----|:------------|
-| `code` | Number | Optional status code (default: 1000) |
-| `reason` | String | Optional human-readable reason |
-
-### Events
-
-#### open
-
-Emitted when the connection is established.
+<h6>문법</h6>
 
 ```js
-socket.on('open', function() {
-    console.log('Connected');
+ws.close()
+```
+
+`close()`를 호출하면 소켓은 `CLOSING`을 거쳐 `CLOSED`로 전환되고 `close` 이벤트를 emit합니다.
+
+## 이벤트
+
+`WebSocket`은 `EventEmitter`를 상속하므로 `on()`, `addListener()` 같은 일반적인 이벤트 리스너 패턴을 사용할 수 있습니다.
+
+### open
+
+클라이언트 연결이 성공한 뒤 발생합니다.
+
+```js
+ws.on('open', () => {
+    console.println('connected');
 });
 ```
 
-#### close
+### close
 
-Emitted when the connection is closed.
+연결이 종료되면 발생합니다.
 
 ```js
-socket.on('close', function(evt) {
-    console.log('Closed:', evt.code, evt.reason);
+ws.on('close', () => {
+    console.println('closed');
 });
 ```
 
-#### message
+### message
 
-Emitted when a message is received.
+서버에서 메시지가 도착하면 발생합니다. callback은 다음 필드를 가진 event 비슷한 객체를 받습니다.
 
-| Field | Type | Description |
-|:------|:-----|:------------|
-| `evt.data` | String or Buffer | The message payload |
-| `evt.type` | Number | Message type constant |
-| `evt.isBinary` | Boolean | Whether the message is binary |
+| 필드 | 타입 | 설명 |
+|:-----|:-----|:-----|
+| `type` | Number | `WebSocket.TextMessage`, `WebSocket.BinaryMessage` 같은 메시지 타입 |
+| `data` | String 또는 byte data | 메시지 payload. 텍스트 메시지는 문자열로 노출됩니다. |
 
 ```js
-socket.on('message', function(evt) {
-    if (evt.isBinary) {
-        console.log('Binary message, length:', evt.data.length);
-    } else {
-        console.log('Text message:', evt.data);
-    }
+const { WebSocket } = require('ws');
+
+const ws = new WebSocket('ws://127.0.0.1:8080');
+ws.on('message', (evt) => {
+    console.println(evt.data);
 });
 ```
 
-#### error
+### error
 
-Emitted when an error occurs.
+연결 또는 전송 작업이 실패하면 발생합니다.
 
 ```js
-socket.on('error', function(err) {
-    console.error('WebSocket error:', err);
+ws.on('error', (err) => {
+    console.println(err.message);
 });
 ```
 
 ## WebSocketServer
 
-Creates a WebSocket server that listens for incoming connections.
+WebSocket 서버를 생성해 기존 `http.Server`에 연결합니다.
 
-### Syntax
+<h6>문법</h6>
 
 ```js
-new ws.WebSocketServer(options[, callback])
+new WebSocketServer(options)
 ```
 
-### Options
+<h6>주요 옵션</h6>
 
-| Option | Type | Default | Description |
-|:-------|:-----|:--------|:------------|
-| `server` | Object | - | An existing HTTP server to attach to |
-| `path` | String | - | Accept connections only on this path |
-| `clientTracking` | Boolean | true | Whether to track connected clients |
-| `verifyClient` | Function | - | Function to validate incoming connections |
-| `handleProtocols` | Function | - | Function to handle sub-protocol negotiation |
+- `server`: 연결할 `http.Server` 인스턴스. 필수.
+- `path`: 수락할 WebSocket path. 기본값은 `/`.
+- `clientTracking`: `true`면 `clients` 집합을 유지합니다. 기본값은 `true`.
+- `verifyClient({ origin, req })`: handshake 수락 여부를 동기적으로 결정합니다. `false`를 반환하면 요청을 거부합니다.
+- `handleProtocols(protocols, req)`: 요청된 subprotocol 목록에서 선택할 값을 반환합니다.
 
-### Properties
+<h6>속성</h6>
 
-| Property | Type | Description |
-|:---------|:-----|:------------|
-| `clients` | Set | Set of connected clients (when `clientTracking` is true) |
-| `path` | String | The path the server is listening on |
+| 속성 | 타입 | 설명 |
+|:-----|:-----|:-----|
+| `server` | http.Server | 연결된 HTTP 서버 |
+| `path` | String | 수락할 WebSocket path |
+| `clients` | Set | 연결된 client 집합. `clientTracking === false`이면 `null` |
 
-### Events
+### WebSocketServer 이벤트
 
-#### connection
+- `connection(socket, request)`
+- `error(err)`
+- `close()`
 
-Emitted when a new client connects.
+### connection request 객체
 
-```js
-wss.on('connection', function(socket, request) {
-    console.log('Client connected from:', request.remoteAddress);
-    socket.on('message', function(evt) {
-        console.log('Received:', evt.data);
-    });
-});
-```
+`connection` 이벤트의 `request`는 Node.js의 `IncomingMessage`와 비슷한 helper 객체입니다.
 
-#### error
+주요 속성:
 
-Emitted when a server error occurs.
+- `url`
+- `method`
+- `headers`
+- `rawHeaders`
+- `path`
+- `host`
+- `requestUri`
+- `httpVersion`
+- `complete`
+- `remoteAddress`
+- `socket.remoteAddress`
 
-```js
-wss.on('error', function(err) {
-    console.error('Server error:', err);
-});
-```
+주요 메서드:
 
-#### close
+- `query(name)`
+- `getHeader(name)`
+- `hasHeader(name)`
 
-Emitted when the server is closed.
-
-```js
-wss.on('close', function() {
-    console.log('Server closed');
-});
-```
-
-### Connection Request Object
-
-The `request` object passed to the `connection` event has the following properties and methods:
-
-| Property/Method | Type | Description |
-|:----------------|:-----|:------------|
-| `remoteAddress` | String | Client IP address |
-| `headers` | Object | HTTP request headers |
-| `url` | String | Request URL |
-
-## Full Usage Example (Server)
+<h6>사용 예제</h6>
 
 ```js
-const ws = require('@jsh/ws');
-const http = require('@jsh/http');
+const http = require('http');
+const { WebSocketServer } = require('ws');
 
-const server = http.createServer(function(req, res) {
-    res.writeHead(200);
-    res.end('WebSocket server running');
+const server = new http.Server({ network: 'tcp', address: '127.0.0.1:8080' });
+const wss = new WebSocketServer({
+    server,
+    path: '/ws',
+    verifyClient: ({ req }) => req.query('token') === 'allow',
+    handleProtocols: (protocols) => {
+        if (protocols.indexOf('machbase.rpc') >= 0) {
+            return 'machbase.rpc';
+        }
+        return false;
+    },
 });
 
-const wss = new ws.WebSocketServer({ server: server, path: '/ws' });
-
-wss.on('connection', function(socket, request) {
-    console.log('New client connected');
-
-    socket.on('message', function(evt) {
-        // Echo message back to client
-        socket.send('Echo: ' + evt.data);
-
-        // Broadcast to all clients
-        wss.clients.forEach(function(client) {
-            if (client !== socket && client.readyState === ws.OPEN) {
-                client.send(evt.data);
-            }
-        });
-    });
-
-    socket.on('close', function() {
-        console.log('Client disconnected');
+wss.on('connection', (socket, request) => {
+    console.println(request.path, request.httpVersion, socket.protocol);
+    socket.on('message', (event) => {
+        socket.send('echo:' + event.data);
     });
 });
 
-server.listen(9090, function() {
-    console.log('Server listening on port 9090');
-});
+server.serve();
 ```
 
-## Client Usage Example
+## 클라이언트 사용 예제
 
 ```js
-const ws = require('@jsh/ws');
+const { WebSocket } = require('ws');
 
-const socket = new ws.WebSocket('ws://127.0.0.1:9090/ws');
+const ws = new WebSocket('ws://127.0.0.1:8080');
 
-socket.on('open', function() {
-    console.log('Connected to server');
-    socket.send('Hello from client!');
+ws.on('open', () => {
+    console.println('websocket open');
+    ws.send('test message');
 });
 
-socket.on('message', function(evt) {
-    console.log('Server says:', evt.data);
+ws.on('message', (evt) => {
+    console.println(evt.data);
+    ws.close();
 });
 
-socket.on('close', function(evt) {
-    console.log('Disconnected:', evt.code, evt.reason);
-});
-
-socket.on('error', function(err) {
-    console.error('Connection error:', err);
+ws.on('close', () => {
+    console.println('websocket closed');
 });
 ```
 
-## Behavior notes
+## 동작 참고
 
-- The WebSocket module follows the standard WebSocket API pattern adapted for JSH.
-- Both text and binary messages are supported.
-- The `WebSocketServer` can be attached to an existing HTTP server or run standalone.
-- Client tracking is enabled by default and can be used for broadcasting.
-- The `verifyClient` callback can be used to implement authentication and authorization.
-- Connections are automatically cleaned up when scripts terminate.
-- The `setInterval` keepalive pattern is recommended for long-running WebSocket workers to prevent premature script termination.
+- 클라이언트 연결 시작은 constructor 내부에서 비동기적으로 진행됩니다.
+- 연결 실패는 `error` 이벤트로 보고됩니다.
+- 수신 메시지는 text 또는 binary일 수 있지만, JavaScript의 `send()` 메서드는 텍스트 메시지 용도로 사용하는 것이 안전합니다.
+- `WebSocketServer`는 저수준 `upgrade` 이벤트 대신 `http.Server`에 연결되는 상위 수준 API를 제공합니다.
+- `verifyClient()`와 `handleProtocols()`는 동기적으로 동작합니다. 이 안에서 Promise/`await` 기반 비동기 흐름은 사용할 수 없습니다.
+- `request`는 Node.js의 완전한 `IncomingMessage` 구현이 아니라 `url`, `headers`, `query()`, `getHeader()` 같은 주요 필드/메서드만 제공하는 helper 객체입니다.
+- `clientTracking`은 `clients` 집합을 유지하지만, 저수준 소켓 제어 API를 추가로 제공하지는 않습니다.
+- 저수준 `upgrade`, `handleUpgrade()`, `noServer` 같은 API는 현재 제공하지 않습니다.
+- 장시간 동작하는 WebSocket 워커는 스크립트가 조기 종료되지 않도록 `setInterval` keepalive 패턴을 쓰는 것이 좋습니다.

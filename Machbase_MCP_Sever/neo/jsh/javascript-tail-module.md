@@ -1,149 +1,147 @@
 # Machbase Neo JavaScript Tail Module
 
-The `util/tail` module provides file-tailing functionality for JSH applications, enabling real-time monitoring of log files and other continuously-appended files.
+`util/tail` 모듈은 단일 파일을 `tail -F`처럼 추적하기 위한 polling 기반 tailer를 제공합니다. 이 모듈은 호출자가 `setInterval()`로 `poll()`을 주기적으로 호출하는 패턴을 기준으로 설계되었습니다.
 
 ```js
-const tail = require('@jsh/util/tail');
+const tail = require('util/tail');
 ```
 
 ## tail.create()
 
-Creates a tail watcher for a file.
+tailer 인스턴스를 생성합니다.
 
-### Syntax
-
-```js
-tail.create(path[, options])
-```
-
-### Parameters
-
-| Parameter | Type | Description |
-|:----------|:-----|:------------|
-| `path` | String | Absolute path to the file to tail |
-| `options` | Object | Optional configuration |
-| `options.fromBeginning` | Boolean | Start reading from the beginning of the file (default: false) |
-| `options.follow` | Boolean | Continue watching for new data (default: true) |
-| `options.encoding` | String | File encoding (default: `"utf-8"`) |
-| `options.separator` | String | Line separator (default: `"\n"`) |
-
-### Returned Object
-
-| Property/Method | Type | Description |
-|:----------------|:-----|:------------|
-| `on(event, callback)` | Function | Registers an event listener |
-| `close()` | Function | Stops tailing and releases resources |
-| `path` | String | The file path being tailed |
-
-### Events
-
-| Event | Callback Signature | Description |
-|:------|:-------------------|:------------|
-| `line` | `function(line)` | Emitted for each new line |
-| `error` | `function(err)` | Emitted on error |
-| `close` | `function()` | Emitted when tailing stops |
-
-### Basic Usage Example
+<h6>문법</h6>
 
 ```js
-const tail = require('@jsh/util/tail');
-
-const watcher = tail.create('/var/log/machbase-neo.log', {
-    fromBeginning: false,
-    follow: true
-});
-
-watcher.on('line', function(line) {
-    console.log('New line:', line);
-});
-
-watcher.on('error', function(err) {
-    console.error('Tail error:', err);
-});
-
-watcher.on('close', function() {
-    console.log('Tailing stopped');
-});
-
-// Stop tailing after 60 seconds
-setTimeout(function() {
-    watcher.close();
-}, 60000);
+tail.create(path, options)
 ```
 
-## SSE Adapter
+<h6>파라미터</h6>
 
-The `tail/sse` sub-module provides a Server-Sent Events adapter for streaming tail output to HTTP clients.
+- `path` `String`: 추적할 파일 경로
+- `options` `Object`:
+  - `fromStart` `Boolean` (기본값: `false`)
+    - `false`: 생성 시점의 파일 끝부터 추적
+    - `true`: 생성 시점 파일 시작부터 읽기
+
+<h6>반환 객체</h6>
+
+| 메서드/필드 | 타입 | 설명 |
+|:------------|:-----|:-----|
+| `path` | String | 생성에 사용한 경로 |
+| `poll(callback?)` | Function | 새 줄을 읽어 `String[]`로 반환 |
+| `close()` | Function | 파일 핸들을 닫고 tailer 종료 |
+
+`poll(callback?)` 동작:
+
+- 반환값: 새로 감지된 줄 배열 (`String[]`)
+- `callback`을 전달하면 동일한 배열을 callback 인자로도 전달
+- 읽을 새 줄이 없으면 빈 배열 반환
+- 파일 truncate/rotation 상황을 polling 시점에 반영
+
+## 기본 사용 예제
+
+```js
+const tail = require('util/tail');
+
+const follower = tail.create('/tmp/app.log', { fromStart: false });
+
+const tm = setInterval(function () {
+    const lines = follower.poll(function (arr) {
+        // arr is String[]
+    });
+
+    for (let i = 0; i < lines.length; i++) {
+        console.println(lines[i]);
+    }
+}, 500);
+
+// cleanup example
+setTimeout(function () {
+    clearInterval(tm);
+    follower.close();
+}, 10_000);
+```
+
+## SSE 어댑터
+
+`util/tail/sse`는 tail 결과를 SSE 형식으로 출력하기 위한 어댑터입니다.
+
+- `require('util/tail/sse')`
+- `require('util/tail').sse`
 
 ### tail/sse.create()
 
-Creates an SSE-compatible tail stream.
-
-### Syntax
+<h6>문법</h6>
 
 ```js
-const tailSSE = require('@jsh/util/tail/sse');
-tailSSE.create(path, response[, options])
+tailSSE.create(path, options)
 ```
 
-### Parameters
+<h6>파라미터</h6>
 
-| Parameter | Type | Description |
-|:----------|:-----|:------------|
-| `path` | String | Absolute path to the file to tail |
-| `response` | Object | HTTP response object (from CGI or HTTP server) |
-| `options` | Object | Optional configuration |
-| `options.fromBeginning` | Boolean | Start from beginning of file (default: false) |
-| `options.event` | String | SSE event name (default: `"message"`) |
-| `options.retry` | Number | SSE retry interval in milliseconds |
+- `path` `String`: 추적할 파일 경로
+- `options` `Object`:
+  - `fromStart` `Boolean` (기본값: `false`)
+  - `event` `String` (기본값: 빈 문자열)
+  - `retryMs` `Number` (선택)
+  - `write` `Function` (선택). 출력 함수를 지정하지 않으면 `process.stdout.write()`를 사용합니다.
 
-### Returned Object
+<h6>반환 객체</h6>
 
-| Property/Method | Type | Description |
-|:----------------|:-----|:------------|
-| `close()` | Function | Stops the SSE stream |
-| `on(event, callback)` | Function | Registers an event listener |
+| 메서드 | 설명 |
+|:-------|:-----|
+| `writeHeaders()` | SSE 응답 헤더 출력 |
+| `poll()` | 새 줄을 읽어 `event/data` 프레임 출력 후 `String[]` 반환 |
+| `send(data, event?)` | 임의 데이터 1건을 SSE 프레임으로 출력 |
+| `comment(text)` | SSE comment 프레임(`: ...`) 출력 |
+| `close()` | 내부 tailer 종료 |
 
-### cgi-bin SSE Example
+## cgi-bin SSE 예제
 
 ```js
-#!/usr/bin/env jsh
-// cgi-bin/tail-log.js
+const tailSSE = require('util/tail/sse');
+const process = require('process');
 
-const tailSSE = require('@jsh/util/tail/sse');
-const path = '/data/logs/machbase-neo.log';
+const path = process.env.get('SCRIPT_NAME');
+const target = '/work/'+path.substring(0, path.lastIndexOf('/')) + '/app.log';
 
-// Set SSE headers
-console.write('Content-Type: text/event-stream\r\n');
-console.write('Cache-Control: no-cache\r\n');
-console.write('Connection: keep-alive\r\n');
-console.write('\r\n');
+const intervalMs = Number(process.env.QUERY_INTERVAL_MS || 500);
 
-const stream = tailSSE.create(path, {
-    fromBeginning: false,
-    event: 'log'
+const adapter = tailSSE.create(target, {
+    fromStart: false,
+    event: 'log',
+    retryMs: 1500,
 });
 
-stream.on('error', function(err) {
-    console.error('SSE tail error:', err);
-    stream.close();
+adapter.writeHeaders();
+
+const timer = setInterval(function () {
+    try {
+        adapter.poll();
+    } catch (err) {
+        adapter.send(String(err), 'error');
+        clearInterval(timer);
+        adapter.close();
+        process.exit(0);
+    }
+}, intervalMs);
+
+process.on('SIGINT', function () {
+    clearInterval(timer);
+    adapter.close();
+    process.exit(0);
 });
 
-// Keep the CGI process alive
-const keepalive = setInterval(function() {}, 30000);
-
-// Clean up on exit
-process.on('exit', function() {
-    clearInterval(keepalive);
-    stream.close();
+process.on('SIGTERM', function () {
+    clearInterval(timer);
+    adapter.close();
+    process.exit(0);
 });
 ```
 
-## Behavior notes
+## 동작 참고
 
-- The tail module uses filesystem watchers internally and efficiently detects file changes.
-- When `follow` is true, the watcher continues monitoring even after reaching the end of the file.
-- File truncation is detected automatically; tailing restarts from the beginning of the truncated file.
-- The SSE adapter automatically formats output as Server-Sent Events, including `data:` prefixes and double-newline terminators.
-- In CGI mode, a `setInterval` keepalive is required to prevent the process from terminating while the tail stream is active.
-- Resources are released when `close()` is called; always call `close()` to prevent file descriptor leaks.
+- polling 주기와 생명주기(종료·정리)는 호출자가 제어합니다.
+- 파일이 없으면 `poll()`은 빈 배열을 반환하며, 파일이 생성된 이후 다음 polling에서 추적을 시작합니다.
+- rotation/truncate는 polling 시점에 감지되어 반영됩니다.

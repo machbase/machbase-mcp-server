@@ -1,25 +1,25 @@
 # Machbase Go Client
 
-## Overview
+## 개요
 
-The `machgo` package is a pure Go client for Machbase native protocol access.
-It provides the same API style as `machcli`, but without depending on CGo.
-If you need native-port performance with a fully Go toolchain, `machgo` is a good choice.
+`machgo` 패키지는 Machbase 네이티브 프로토콜 접근을 위한 순수 Go 클라이언트입니다.
+`machcli`와 같은 API 스타일을 제공하지만 CGo에 의존하지 않습니다.
+순수 Go 툴체인으로 네이티브 포트 성능이 필요하다면 `machgo`가 좋은 선택입니다.
 
-### Why use machgo?
+### machgo를 쓰는 이유
 
-- **No CGo dependency**: Build and deploy with a pure Go environment
-- **Native protocol access**: Connect through the Machbase native port (default `5656`)
-- **API compatibility with machcli**: Reuse the same connection/query/appender patterns
-- **Production-friendly**: Good fit for containerized and cross-platform Go deployments
+- **CGo 의존성 없음**: 순수 Go 환경으로 빌드·배포
+- **네이티브 프로토콜 접근**: Machbase 네이티브 포트(기본 `5656`)로 접속
+- **machcli와 API 호환**: 동일한 연결/조회/appender 패턴을 그대로 사용
+- **운영 친화적**: 컨테이너·크로스 플랫폼 Go 배포에 적합
 
-### Prerequisites
+### 사전 준비
 
-- **Machbase Neo Server**: A running Machbase Neo server instance
-- **Go 1.22+**: Recent Go version recommended
-- **Network access**: Reachable native port (`5656` by default)
+- **Machbase Neo 서버**: 실행 중인 Machbase Neo 서버 인스턴스
+- **Go 1.22+**: 최신 Go 버전 권장
+- **네트워크 접근**: 접근 가능한 네이티브 포트(기본 `5656`)
 
-## Getting Started
+## 시작하기
 
 ### Install
 
@@ -29,7 +29,7 @@ go get github.com/machbase/neo-client@latest
 
 ### Import
 
-Import the API package and `machgo` client package:
+API 패키지와 `machgo` 클라이언트 패키지를 임포트합니다:
 
 ```go
 import (
@@ -42,9 +42,9 @@ import (
 )
 ```
 
-### Configuration
+### 설정
 
-Use `machgo.Config` to configure host/port and concurrency options:
+`machgo.Config`로 호스트/포트와 동시성 옵션을 설정합니다:
 
 ```go
 conf := &machgo.Config{
@@ -62,19 +62,19 @@ if err != nil {
 }
 ```
 
-#### Configuration Parameters
+#### 설정 Parameters
 
-| Parameter | Description | Values |
+| 파라미터 | 설명 | Values |
 |-----------|-------------|--------|
-| `MaxOpenConn` | Maximum open connections | `< 0`: unlimited<br>`0`: CPU count × factor<br>`> 0`: specified limit |
-| `MaxOpenConnFactor` | Multiplier when MaxOpenConn is 0 | Default: 1.5 |
-| `MaxOpenQuery` | Maximum concurrent queries | `< 0`: unlimited<br>`0`: CPU count × factor<br>`> 0`: specified limit |
-| `MaxOpenQueryFactor` | Multiplier when MaxOpenQuery is 0 | Default: 1.5 |
+| `MaxOpenConn` | 최대 열린 연결 수 | `< 0`: 무제한<br>`0`: CPU 수 × 계수<br>`> 0`: 지정한 제한 |
+| `MaxOpenConnFactor` | MaxOpenConn이 0일 때의 배수 | 기본값: 1.5 |
+| `MaxOpenQuery` | 최대 동시 쿼리 수 | `< 0`: 무제한<br>`0`: CPU 수 × 계수<br>`> 0`: 지정한 제한 |
+| `MaxOpenQueryFactor` | MaxOpenQuery가 0일 때의 배수 | 기본값: 1.5 |
 
-#### FlowControl behavior
+#### FlowControl 동작
 
-`MaxOpenConn` and `MaxOpenQuery` are flow-control limits.
-If you set either value to `-1`, that limit is disabled (no FlowControl on that dimension).
+`MaxOpenConn`과 `MaxOpenQuery`는 흐름 제어 제한값입니다.
+값을 `-1`로 설정하면 해당 제한이 비활성화됩니다(그 차원에는 FlowControl이 적용되지 않음).
 
 ```go
 conf := &machgo.Config{
@@ -85,7 +85,7 @@ conf := &machgo.Config{
 }
 ```
 
-### Establishing Connection
+### 연결 수립
 
 ```go
 ctx := context.Background()
@@ -96,21 +96,21 @@ if err != nil {
 defer conn.Close()
 ```
 
-Authentication options:
+인증 옵션:
 
 - `api.WithPassword(user, password)`
 
-### Connection-level tuning options
+### 연결 수준 튜닝 옵션
 
-`machgo` supports per-connection overrides at `Connect()` time.
-This lets you keep global defaults in `machgo.Config`, while tuning each connection differently.
+`machgo`는 `Connect()` 시점에 연결별 재정의를 지원합니다.
+이렇게 하면 전역 기본값은 `machgo.Config`에 두고 연결마다 다르게 조정할 수 있습니다.
 
-#### StatementCache for repeated SQL
+#### 반복 SQL을 위한 StatementCache
 
-For the same SQL used repeatedly during a single connection lifetime,
-statement reuse can improve performance by reusing prepared statements.
+하나의 연결 수명 동안 같은 SQL을 반복해서 쓴다면,
+prepared statement를 재사용해 성능을 높일 수 있습니다.
 
-You can set a default mode in `machgo.Config.StatementCache`, and override per connection with `api.WithStatementCache(...)`.
+`machgo.Config.StatementCache`에 기본 모드를 설정하고 연결별로 `api.WithStatementCache(...)`로 재정의할 수 있습니다.
 
 ```go {linenos=table,linenostart=1,hl_lines=[5,16]}
 // Connection A: aggressive statement reuse
@@ -136,16 +136,15 @@ if err != nil {
 defer connB.Close()
 ```
 
-#### FetchRows pre-fetch size
+#### FetchRows 선반입 크기
 
-`FetchRows` controls the maximum number of records pre-fetched from server in one fetch round.
-Set `machgo.Config.FetchRows` as the default, and override per connection via `api.WithFetchRows(...)`.
-The default value is `1000`.
+`FetchRows`는 한 번의 fetch에서 서버로부터 미리 가져올 최대 레코드 수를 제어합니다.
+`machgo.Config.FetchRows`를 기본값으로 설정하고, 연결별로 `api.WithFetchRows(...)`로 재정의합니다.
+기본값은 `1000`입니다.
 
-{{< callout type="warning" >}}
-Avoid setting `FetchRows` to excessively large or small values without workload validation.
-Depending on network latency and query characteristics, an improper value can cause significant performance degradation and increased memory consumption.
-{{< /callout >}}
+> **주의**
+> 워크로드 검증 없이 `FetchRows`를 지나치게 크거나 작게 설정하지 마세요.
+> 네트워크 지연과 쿼리 특성에 따라 부적절한 값은 심각한 성능 저하와 메모리 소비 증가를 유발할 수 있습니다.
 
 ```go {linenos=table,linenostart=1,hl_lines=[5]}
 // Connection C: larger pre-fetch for scan-heavy workloads
@@ -160,15 +159,14 @@ if err != nil {
 defer connC.Close()
 ```
 
-{{< callout type="warning" >}}
-Always call `Close()` on connections to release resources.
-{{< /callout >}}
+> **주의**
+> 자원을 해제하려면 연결에 항상 `Close()`를 호출하세요.
 
-## Database Operations
+## 데이터베이스 작업
 
-### Single Row Query (`QueryRow`)
+### 단일 행 조회 (`QueryRow`)
 
-Use `QueryRow` when exactly one row is expected.
+정확히 한 행이 예상될 때 `QueryRow`를 사용하세요.
 
 ```go
 var name = "tag1"
@@ -190,9 +188,9 @@ if err := row.Scan(&tm, &val); err != nil {
 fmt.Println("name:", name, "time:", tm.Local(), "value:", val)
 ```
 
-### Multiple Row Query (`Query`)
+### 다중 행 조회 (`Query`)
 
-Use `Query` for multi-row results.
+여러 행 결과에는 `Query`를 사용하세요.
 
 ```go
 rows, err := conn.Query(
@@ -216,9 +214,9 @@ for rows.Next() {
 }
 ```
 
-### Data Modification (`Exec`)
+### 데이터 변경 (`Exec`)
 
-Use `Exec` for INSERT, DELETE, and DDL statements.
+INSERT, DELETE, DDL 문에는 `Exec`를 사용하세요.
 
 ```go
 result := conn.Exec(
@@ -234,9 +232,9 @@ fmt.Println("RowsAffected:", result.RowsAffected())
 fmt.Println("Message:", result.Message())
 ```
 
-## High-Performance Bulk Insert (`Appender`)
+## 고성능 대량 입력 (`Appender`)
 
-For high-throughput ingestion, use `Appender` with a dedicated connection.
+대량 적재에는 전용 연결과 함께 `Appender`를 사용하세요.
 
 ```go
 apd, err := conn.Appender(ctx, "example_table")
@@ -252,16 +250,16 @@ for i := range 10_000 {
 }
 ```
 
-You can tune the client-side transfer buffer threshold to server with:
+서버로 보내는 클라이언트 측 전송 버퍼 임계값을 다음으로 조정할 수 있습니다:
 
-The appender accumulates data from `Append()` calls in an internal buffer and sends it to the server only when configured thresholds are reached.
-You can configure thresholds by byte size, row count, and delay (the time gap between the oldest buffered record and the newest one).
-If any one of these thresholds is exceeded, the buffered data is sent to the server.
+appender는 `Append()` 호출의 데이터를 내부 버퍼에 쌓아두었다가 설정된 임계값에 도달했을 때만 서버로 보냅니다.
+바이트 크기, 행 수, 지연(버퍼의 가장 오래된 레코드와 가장 새로운 레코드의 시간 차)으로 임계값을 설정할 수 있습니다.
+이 임계값 중 하나라도 넘으면 버퍼의 데이터가 서버로 전송됩니다.
 
-- `WithBatchMaxRows(rows)` : default `512`, minimum `1`
-- `WithBatchMaxBytes(bytes)`: default `512KB`, minimum `4KB`
-- `WithBatchMaxDelay(duration)` : default `5ms`, minimum `1ms`
-- `WithBatchMaxDelay(0)` disables the time-based threshold
+- `WithBatchMaxRows(rows)` : 기본값 `512`, 최소 `1`
+- `WithBatchMaxBytes(bytes)`: 기본값 `512KB`, 최소 `4KB`
+- `WithBatchMaxDelay(duration)` : 기본값 `5ms`, 최소 `1ms`
+- `WithBatchMaxDelay(0)`은 시간 기반 임계값을 비활성화합니다
 
 ```go
 apd, err := conn.Appender(ctx, "example_table")
@@ -275,10 +273,10 @@ apd.WithBatchMaxBytes(1024 * 1024).    // 1 MB threshold
     WithBatchMaxDelay(500 * time.Millisecond) // max delay threshold
 ```
 
-Appender flush example:
+Appender flush 예제:
 
-`Flush()` is a programmatic flush method.
-Unlike threshold-based auto flush behavior, it forces buffered records to be sent immediately regardless of configured byte/row/delay thresholds.
+`Flush()`는 프로그램에서 직접 호출하는 플러시 메서드입니다.
+임계값 기반 자동 플러시와 달리, 설정된 바이트/행/지연 임계값과 무관하게 버퍼의 레코드를 즉시 전송합니다.
 
 ```go
 if flusher, ok := apd.(api.Flusher); ok {
@@ -286,12 +284,11 @@ if flusher, ok := apd.(api.Flusher); ok {
 }
 ```
 
-{{< callout type="warning" >}}
-Do not run regular queries on a connection that currently owns an active appender.
-Use a separate connection for append workloads.
-{{< /callout >}}
+> **주의**
+> 활성 appender를 보유한 연결에서는 일반 쿼리를 실행하지 마세요.
+> append 작업에는 별도의 연결을 사용하세요.
 
-## Complete Example
+## 전체 예제
 
 ```go
 package main
@@ -371,4 +368,4 @@ func main() {
 }
 ```
 
-This workflow is intentionally identical to `machcli` so existing code can be migrated with minimal changes.
+이 작업 흐름은 기존 코드를 최소한의 변경으로 이전할 수 있도록 의도적으로 `machcli`와 동일하게 설계되었습니다.

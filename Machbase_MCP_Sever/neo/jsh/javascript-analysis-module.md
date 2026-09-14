@@ -2,10 +2,10 @@
 
 ## sort()
 
-The `sort` function sorts the elements of an array in ascending order.
-It is useful for organizing data or preparing it for further analysis.
+`sort` 함수는 배열의 요소를 오름차순으로 정렬합니다.
+데이터를 정리하거나 추가 분석을 준비할 때 유용합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -14,10 +14,10 @@ console.log(ana.sort([1.3, 1.2, 1.1])) // [1.1, 1.2, 1.3]
 
 ## sum()
 
-The `sum` function calculates the total sum of all numbers in an array.
-It is commonly used in statistical and mathematical computations.
+`sum` 함수는 배열에 있는 모든 숫자의 총합을 계산합니다.
+통계 및 수학 계산에서 흔히 사용됩니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -27,22 +27,22 @@ console.log(ana.sum([1.3, 1.2, 1.1])) // 3.6
 
 ## cdf()
 
-The `cdf` function calculates the cumulative distribution function (CDF) for a given dataset `x` 
-that is the fraction of the samples less than or equal to `q`.
-It represents the probability that a random variable takes on a value less than or equal to a specified value. 
-This function is commonly used in statistical analysis and probability theory to understand the distribution of data.
+`cdf` 함수는 주어진 데이터셋 `x`에 대한 누적분포함수(CDF)를 계산합니다 
+즉 `q` 이하인 표본의 비율입니다.
+확률 변수가 지정한 값 이하의 값을 가질 확률을 나타냅니다. 
+이 함수는 데이터 분포를 이해하기 위해 통계 분석과 확률론에서 흔히 사용됩니다.
 
-**Syntax**
+**문법**
 
 ```js
 cdf(q, x, weights)
 ```
 
 - `q` `Number`
-- `x` `Number[]` The `x` data must be sorted in increasing order.
-- `weights` `Number[]` If weights is not specified then all of the weights are 1. If weights is specified, then length of `x` must equal length of `weights`.
+- `x` `Number[]` `x` 데이터는 오름차순으로 정렬되어 있어야 합니다.
+- `weights` `Number[]` 가중치를 지정하지 않으면 모든 가중치가 1입니다. 지정하면 `x`의 길이와 `weights`의 길이가 같아야 합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -56,11 +56,11 @@ console.log(ana.cdf(1.0, x)); // 0.01
 
 ## mean()
 
-The `mean` function calculates the arithmetic mean (average) of a given array of numbers. 
-It is computed by summing all the elements in the array and dividing by the total number of elements. 
-This function is commonly used in statistical analysis to determine the central tendency of a dataset.
+`mean` 함수는 주어진 숫자 배열의 산술 평균을 계산합니다. 
+배열의 모든 요소를 더한 뒤 요소 개수로 나누어 구합니다. 
+이 함수는 데이터셋의 중심 경향을 파악하기 위해 통계 분석에서 흔히 사용됩니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -70,11 +70,11 @@ console.log(ana.mean([10, 20, 30]))     // 20
 
 ## circularMean()
 
-The `circularMean` function calculates the mean of angles measured in radians, taking into account the circular nature of angles. 
-It is particularly useful for datasets where values wrap around, such as angles or time of day. 
-Optionally, weights can be provided to compute a weighted circular mean.
+`circularMean` 함수는 각도의 순환성을 고려해 라디안 단위 각도의 평균을 계산합니다. 
+각도나 하루 중 시각처럼 값이 순환하는 데이터셋에 특히 유용합니다. 
+선택적으로 가중치를 주면 가중 순환 평균을 계산합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -86,12 +86,12 @@ console.log(ana.circularMean(x, w).toFixed(4))  // 1.3704
 
 ## correlation()
 
-The `correlation` function calculates the Pearson correlation coefficient between two datasets.
-It measures the linear relationship between the datasets,
-with values ranging from -1 (perfect negative correlation) to 1 (perfect positive correlation).
-Optionally, weights can be provided to compute a weighted correlation.
+`correlation` 함수는 두 데이터셋 간의 피어슨 상관계수를 계산합니다.
+데이터셋 간의 선형 관계를 측정하며,
+값은 -1(완전한 음의 상관)에서 1(완전한 양의 상관) 사이입니다.
+선택적으로 가중치를 주면 가중 상관계수를 계산합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -104,12 +104,12 @@ console.log(ana.correlation(x, y, w).toFixed(5))  // 0.59915
 
 ## covariance()
 
-The `covariance` function calculates the covariance between two datasets.
-Covariance is a measure of how much two random variables vary together.
-A positive covariance indicates that the variables tend to increase together,
-while a negative covariance indicates that one variable tends to increase as the other decreases.
+`covariance` 함수는 두 데이터셋 간의 공분산을 계산합니다.
+공분산은 두 확률 변수가 함께 얼마나 변하는지를 나타내는 척도입니다.
+양의 공분산은 두 변수가 함께 증가하는 경향을,
+음의 공분산은 한 변수가 증가할 때 다른 변수가 감소하는 경향을 나타냅니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -123,11 +123,11 @@ console.log(ana.variance(x).toFixed(4))       // 37.7000
 
 ## entropy()
 
-The `entropy` function calculates the Shannon entropy of a probability distribution.
-Entropy is a measure of uncertainty or randomness in the distribution.
-It is commonly used in information theory and statistics.
+`entropy` 함수는 확률 분포의 섀넌 엔트로피를 계산합니다.
+엔트로피는 분포의 불확실성 또는 무작위성을 나타내는 척도입니다.
+정보 이론과 통계에서 흔히 사용됩니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -139,11 +139,11 @@ console.log(ana.entropy([0, 0, 1, 0]).toFixed(4));           // 0.0000
 
 ## geometricMean()
 
-The `geometricMean` function calculates the geometric mean of a given array of positive numbers. 
-It is computed by multiplying all the elements in the array and then taking the nth root, where n is the total number of elements. 
-This function is commonly used in financial and statistical analysis to determine the average rate of return or growth.
+`geometricMean` 함수는 주어진 양수 배열의 기하 평균을 계산합니다. 
+배열의 모든 요소를 곱한 뒤 요소 개수 n에 대한 n제곱근을 취해 구합니다. 
+이 함수는 평균 수익률이나 성장률을 구하기 위해 금융·통계 분석에서 흔히 사용됩니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -153,11 +153,11 @@ console.log(ana.geometricMean([2, 8, 32]).toFixed(4)) // 8.0000
 
 ## harmonicMean()
 
-The `harmonicMean` function calculates the harmonic mean of a given array of positive numbers. 
-It is computed as the reciprocal of the arithmetic mean of the reciprocals of the elements. 
-This function is particularly useful for datasets involving rates or ratios, such as speeds or densities.
+`harmonicMean` 함수는 주어진 양수 배열의 조화 평균을 계산합니다. 
+각 요소의 역수의 산술 평균의 역수로 구합니다. 
+이 함수는 속도나 밀도처럼 비율을 다루는 데이터셋에 특히 유용합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -167,14 +167,14 @@ console.log(ana.harmonicMean([10, 20, 30]).toFixed(4)) // 16.3636
 
 ## median()
 
-The `median` function calculates the median of a given array of numbers. 
-The median is the middle value when the numbers are sorted in ascending order. 
-If the array has an even number of elements, the median is the average of the two middle values. 
-This function is commonly used in statistical analysis to determine the central value of a dataset.
+`median` 함수는 주어진 숫자 배열의 중앙값을 계산합니다. 
+중앙값은 숫자를 오름차순으로 정렬했을 때 가운데 값입니다. 
+요소 개수가 짝수이면 가운데 두 값의 평균이 중앙값입니다. 
+이 함수는 데이터셋의 중심값을 파악하기 위해 통계 분석에서 흔히 사용됩니다.
 
-The input array should be sorted, otherwise it throws exception.
+입력 배열은 정렬되어 있어야 하며, 그렇지 않으면 예외가 발생합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -184,9 +184,9 @@ console.log(ana.median(ana.sort([10, 20, 30, 40, 50]))) // 30
 
 ## medianInterp()
 
-The `medianInterp` function is same as `median` except it returns the linear interpolated value.
+`medianInterp` 함수는 선형 보간된 값을 반환한다는 점만 빼면 `median`과 같습니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -196,21 +196,21 @@ console.log(ana.medianInterp(ana.sort([10, 20, 30, 40, 50]))) // 25
 
 ## quantile()
 
-The `quantile` function calculates the quantile of a given dataset for a specified probability. 
-Quantiles divide the dataset into intervals with equal probabilities, such as quartiles (4 intervals) or percentiles (100 intervals). 
-This function is useful for understanding the distribution of data.
+`quantile` 함수는 지정한 확률에 대한 데이터셋의 분위수를 계산합니다. 
+분위수는 데이터셋을 사분위수(4구간)나 백분위수(100구간)처럼 같은 확률의 구간으로 나눕니다. 
+이 함수는 데이터 분포를 이해하는 데 유용합니다.
 
-**Syntax**
+**문법**
 
 ```js
 quantile(p, x, weights)
 ```
 
 - `p` `Number`
-- `x` `Number[]` The `x` data must be sorted in increasing order.
-- `weights` `Number[]` If weights is not specified then all of the weights are 1. If weights is specified, then length of `x` must equal length of `weights`.
+- `x` `Number[]` `x` 데이터는 오름차순으로 정렬되어 있어야 합니다.
+- `weights` `Number[]` 가중치를 지정하지 않으면 모든 가중치가 1입니다. 지정하면 `x`의 길이와 `weights`의 길이가 같아야 합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -222,19 +222,19 @@ console.log(ana.quantile(0.74, data)) // 8
 
 ## quantileInterp()
 
-The `quantileInterp` function is same as `quantile` except it returns the linear interpolated value.
+`quantileInterp` 함수는 선형 보간된 값을 반환한다는 점만 빼면 `quantile`과 같습니다.
 
-**Syntax**
+**문법**
 
 ```js
 quantileInterp(p, x, weights)
 ```
 
 - `p` `Number`
-- `x` `Number[]` The `x` data must be sorted in increasing order.
-- `weights` `Number[]` If weights is not specified then all of the weights are 1. If weights is specified, then length of `x` must equal length of `weights`.
+- `x` `Number[]` `x` 데이터는 오름차순으로 정렬되어 있어야 합니다.
+- `weights` `Number[]` 가중치를 지정하지 않으면 모든 가중치가 1입니다. 지정하면 `x`의 길이와 `weights`의 길이가 같아야 합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -246,11 +246,11 @@ console.log(ana.quantileInterp(0.74, data)) // 7.4
 
 ## meanStdDev()
 
-The `meanStdDev` function calculates both the mean and the standard deviation of a given array of numbers. 
-The mean represents the central tendency, while the standard deviation measures the spread or dispersion of the data. 
-This function is useful for summarizing datasets in statistical analysis.
+`meanStdDev` 함수는 주어진 숫자 배열의 평균과 표준편차를 함께 계산합니다. 
+평균은 중심 경향을, 표준편차는 데이터의 퍼짐 정도를 나타냅니다. 
+이 함수는 통계 분석에서 데이터셋을 요약할 때 유용합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -262,22 +262,22 @@ console.log(result.stdDev.toFixed(2)) // 1.58
 
 ## mode()
 
-The `mode` function calculates the mode of a given array of numbers. 
-The mode is the value that appears most frequently in the dataset. 
-If there are multiple modes, the function may return all of them or handle it based on implementation.
+`mode` 함수는 주어진 숫자 배열의 최빈값을 계산합니다. 
+최빈값은 데이터셋에서 가장 자주 나타나는 값입니다. 
+최빈값이 여러 개면 함수가 전부 반환하거나 구현에 따라 처리합니다.
 
 It returns `{value: number, count: number}`.
 
-**Syntax**
+**문법**
 
 ```js
 mode(x, weights)
 ```
 
-- `x` `Number[]` The `x` data must be sorted in increasing order.
-- `weights` `Number[]` If weights is not specified then all of the weights are 1. If weights is specified, then length of `x` must equal length of `weights`.
+- `x` `Number[]` `x` 데이터는 오름차순으로 정렬되어 있어야 합니다.
+- `weights` `Number[]` 가중치를 지정하지 않으면 모든 가중치가 1입니다. 지정하면 `x`의 길이와 `weights`의 길이가 같아야 합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -289,10 +289,10 @@ console.log(ana.mode(data)) // {value:1, count:2}
 
 ## moment()
 
-The `moment` function calculates the nth moment of a dataset about a specified point. 
-Moments are used in statistics to describe the shape of a distribution, such as skewness (3rd moment) or kurtosis (4th moment).
+`moment` 함수는 지정한 지점을 기준으로 데이터셋의 n차 적률을 계산합니다. 
+적률은 왜도(3차 적률)나 첨도(4차 적률)처럼 분포의 형태를 설명하는 데 사용됩니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -303,11 +303,11 @@ console.log(ana.moment(4, data).toFixed(4)) // 6.8000
 
 ## stdDev()
 
-The `stdDev` function calculates the standard deviation of a given array of numbers. 
-Standard deviation measures the amount of variation or dispersion in a dataset. 
-A low standard deviation indicates that the data points are close to the mean, while a high standard deviation indicates greater spread.
+`stdDev` 함수는 주어진 숫자 배열의 표준편차를 계산합니다. 
+표준편차는 데이터셋의 변동 또는 분산 정도를 측정합니다. 
+표준편차가 낮으면 데이터가 평균에 가깝고, 높으면 더 넓게 퍼져 있음을 의미합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -317,11 +317,11 @@ console.log(ana.stdDev([10, 20, 30, 40, 50]).toFixed(4)) // 15.8114
 
 ## stdErr()
 
-The `stdErr` function calculates the standard error of the mean for a given array of numbers. 
-The standard error measures the accuracy with which a sample mean represents the population mean. 
-It is computed as the standard deviation divided by the square root of the sample size.
+`stdErr` 함수는 주어진 숫자 배열에 대한 평균의 표준오차를 계산합니다. 
+표준오차는 표본 평균이 모집단 평균을 얼마나 정확히 대표하는지를 측정합니다. 
+표준편차를 표본 크기의 제곱근으로 나누어 구합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -332,13 +332,13 @@ console.log(ana.stdErr(stddev, sampleSize).toFixed(4)) // 0.7071
 
 ## linearRegression()
 
-The `linearRegression` function performs a linear regression analysis on two datasets. 
-It calculates the best-fit line that minimizes the sum of squared residuals between the observed and predicted values. 
-This function is commonly used in predictive modeling and trend analysis.
+`linearRegression` 함수는 두 데이터셋에 선형 회귀 분석을 수행합니다. 
+관측값과 예측값의 잔차 제곱합을 최소화하는 최적합 직선을 계산합니다. 
+이 함수는 예측 모델링과 추세 분석에서 흔히 사용됩니다.
 
-It returns `{slope: alpha, intercept: beta}` where `y = alpha*x + beta`.
+`y = alpha*x + beta` 에서 `{slope: alpha, intercept: beta}` 를 반환합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -351,22 +351,22 @@ console.log(result.intercept.toFixed(4)) // 0.0000
 
 ## fft()
 
-The `fft` function performs a Fast Fourier Transform (FFT) on a given dataset. 
-FFT is used to analyze the frequency components of a signal, making it useful in signal processing and data analysis.
+`fft` 함수는 주어진 데이터셋에 고속 푸리에 변환(FFT)을 수행합니다. 
+FFT는 신호의 주파수 성분을 분석하는 데 사용되어 신호 처리와 데이터 분석에 유용합니다.
 
 ```js
 fft(times, amplitudes)
 ```
 
-The length of times and amplitudes should be equal.
+times와 amplitudes의 길이는 같아야 합니다.
 
 ## PiecewiseConstant
 
-The `PiecewiseConstant` performs piecewise constant interpolation on a dataset. 
-It approximates the value of a function by using the nearest data point in each interval. 
-This method is useful for step-like data.
+`PiecewiseConstant`는 데이터셋에 구간별 상수 보간을 수행합니다. 
+각 구간에서 가장 가까운 데이터 점을 사용해 함숫값을 근사합니다. 
+계단 형태의 데이터에 유용한 방법입니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 x = [1, 2, 3, 4]
@@ -378,11 +378,11 @@ console.log(interp.predict(2.5)); // 30
 
 ## PiecewiseLinear
 
-The `PiecewiseLinear` performs piecewise linear interpolation on a dataset. 
-It approximates the value of a function by connecting data points with straight lines. 
-This method is useful for smooth transitions between data points.
+`PiecewiseLinear`는 데이터셋에 구간별 선형 보간을 수행합니다. 
+데이터 점들을 직선으로 이어 함숫값을 근사합니다. 
+데이터 점 사이를 부드럽게 잇는 데 유용한 방법입니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -395,10 +395,10 @@ console.log(interp.predict(2.5)); // 25
 
 ## AkimaSpline
 
-The `AkimaSpline` performs Akima spline interpolation on a dataset. 
-This method creates a smooth curve that passes through the data points, avoiding oscillations in regions with sparse data.
+`AkimaSpline`은 데이터셋에 Akima 스플라인 보간을 수행합니다. 
+데이터 점들을 지나는 부드러운 곡선을 만들며, 데이터가 드문 구간에서 진동을 피합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -411,10 +411,10 @@ console.log(interp.predict(2.5)); // 25
 
 ## FritschButland
 
-The `FritschButland` performs Fritsch-Butland interpolation on a dataset. 
-This method ensures monotonicity in the interpolated values, making it suitable for datasets where preserving order is important.
+`FritschButland`는 데이터셋에 Fritsch-Butland 보간을 수행합니다. 
+보간 값의 단조성을 보장하므로 순서 보존이 중요한 데이터셋에 적합합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -427,10 +427,10 @@ console.log(interp.predict(2.5)); // 25
 
 ## LinearRegression
 
-The `LinearRegression` performs linear regression-based interpolation on a dataset. 
-It predicts the value of a function at a given point using the best-fit line derived from the data.
+`LinearRegression`은 데이터셋에 선형 회귀 기반 보간을 수행합니다. 
+데이터에서 도출한 최적합 직선을 사용해 주어진 지점의 함숫값을 예측합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -443,10 +443,10 @@ console.log(interp.predict(2.5)); // 25
 
 ## ClampedCubic
 
-The `ClampedCubic` performs linear clamped-cubic interpolation on a dataset. 
-It predicts the value of a function at a given point using the best-fit line derived from the data.
+`ClampedCubic`은 데이터셋에 clamped-cubic 보간을 수행합니다. 
+데이터에서 도출한 최적합 직선을 사용해 주어진 지점의 함숫값을 예측합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -459,10 +459,10 @@ console.log(interp.predict(2.5)); // 25
 
 ## NaturalCubic
 
-The `NaturalCubic` performs linear natural-cubic interpolation on a dataset. 
-It predicts the value of a function at a given point using the best-fit line derived from the data.
+`NaturalCubic`은 데이터셋에 natural-cubic 보간을 수행합니다. 
+데이터에서 도출한 최적합 직선을 사용해 주어진 지점의 함숫값을 예측합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")
@@ -475,10 +475,10 @@ console.log(interp.predict(2.5)); // 25
 
 ## NotAKnotCubic
 
-The `NotAKnotCubic` performs linear not-a-knot cubic spline interpolation on a dataset. 
-It predicts the value of a function at a given point using the best-fit line derived from the data.
+`NotAKnotCubic`은 데이터셋에 not-a-knot 3차 스플라인 보간을 수행합니다. 
+데이터에서 도출한 최적합 직선을 사용해 주어진 지점의 함숫값을 예측합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const ana = require("@jsh/analysis")

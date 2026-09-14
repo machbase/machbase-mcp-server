@@ -1,32 +1,32 @@
 # Machbase Neo Bridge - MSSQL
 
-## Register a bridge to MSSQL
+## MSSQL 브리지 등록
 
-Register a bridge that connects to the MSSQL database.
+MSSQL 데이터베이스에 연결하는 브리지를 등록합니다.
 
-The connection string is according to the MSSQL specification.
+연결 문자열은 MSSQL 사양을 따릅니다.
 
 ```
 bridge add -t mssql  ms server=127.0.0.1:1433 user=sa pass=changeme database=master encrypt=disable
 ```
 
-**Connect options**
+**연결 옵션**
 
-| Option               | Aliases                |Description                            | example                 |
+| 옵션               | 별칭                |설명                            | 예시                 |
 | :-----------         | :-----------           |:---------------------------------     | :-------------          |
-| `server`             |                        | MSSQL Server address                  | `server=127.0.0.1:1433` |
-| `database`           |                        | Database name                         | `database=master`       |
+| `server`             |                        | MSSQL 서버 주소                  | `server=127.0.0.1:1433` |
+| `database`           |                        | 데이터베이스 이름                         | `database=master`       |
 | `user id`            | `user`, `user-id`      | User                                  | `user=sa`               |
-| `password`           | `pass`                 | The user's password                   | `password=changeme`     |
-| `connection timeout` | `connection-timeout`   | DB connection timeout in seconds      | `connection-timeout=5`  |
-| `dial timeout`       | `dial-timeout`         | TCP handshake in seconds              | `dial-timeout=3`        |
-| `app name`           | `app-name`             | App name (default is `neo-bridge`)    |                         |
-| `encrypt`            |                        | Encryption Mode (`disable`, `true`, `false`)  | (see below)  |
+| `password`           | `pass`                 | 사용자 비밀번호                   | `password=changeme`     |
+| `connection timeout` | `connection-timeout`   | DB 연결 타임아웃(초)      | `connection-timeout=5`  |
+| `dial timeout`       | `dial-timeout`         | TCP 핸드셰이크(초)              | `dial-timeout=3`        |
+| `app name`           | `app-name`             | 앱 이름 (기본값 `neo-bridge`)    |                         |
+| `encrypt`            |                        | 암호화 모드 (`disable`, `true`, `false`)  | (아래 참고)  |
 
 - `encrypt`
-  - `disable` Data send between client and server is not encrypted.
-  - `false` Data sent between client and server is not encrypted beyond the login packet. 
-  - `true` Data sent between client and server is encrypted.
+  - `disable` 클라이언트와 서버 간 데이터를 암호화하지 않습니다.
+  - `false` 로그인 패킷 외에는 클라이언트와 서버 간 데이터를 암호화하지 않습니다. 
+  - `true` 클라이언트와 서버 간 데이터를 암호화합니다.
 
 ```
 machbase-neo» bridge list;
@@ -37,16 +37,16 @@ machbase-neo» bridge list;
 ╰────────┴──────────┴───────────────────────────────────────────────────────────╯
 ```
 
-Test connectivity
+연결 확인
 
 ```
 machbase-neo» bridge test ms;
 Test bridge ms connectivity... success 3.042458ms
 ```
 
-## Create table
+## 테이블 생성
 
-Open machbase-neo shell and execute the command below which creates a `ms_example` table via the `ms` bridge.
+machbase-neo 셸을 열고 아래 명령을 실행해 `ms` 브리지로 `ms_example` 테이블을 만듭니다.
 
 ```sh
 bridge exec ms CREATE TABLE ms_example(
@@ -71,7 +71,7 @@ machbase-neo» bridge query ms select * from ms_example;
 ╰────┴─────────┴──────────┴──────────┴───────────┴──────┴───────┴──────┴────────────╯
 ```
 
-## *TQL* writing on the MSSQL
+## MSSQL에 *TQL*로 쓰기
 
 ```js
 BYTES(payload() ?? `{
@@ -103,7 +103,7 @@ machbase-neo» bridge query ms select id, company, employee, created_on from ms_
 ╰────┴─────────┴──────────┴───────────────────────────────────╯
 ```
 
-## *TQL* reading from the MSSQL
+## MSSQL에서 *TQL*로 읽기
 
 ```js
 SQL(bridge('ms'), "select * from ms_example")

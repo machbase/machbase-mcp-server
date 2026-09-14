@@ -1,117 +1,117 @@
 # Machbase Neo GeoJSON Chart
 
-## Quick Reference
+## 빠른 참조
 
-### TQL Pipeline Structure
+### TQL 파이프라인 구조
 
-TQL operates in a **data flow (pipeline)** manner:
+TQL은 **데이터 흐름(파이프라인)** 방식으로 동작합니다:
 
 ```
-SRC (Data Source) → MAP (Transform) → SINK (Output)
+SRC (데이터 소스) → MAP (변환) → SINK (출력)
 ```
 
 ---
 
-### SRC - Data Sources
+### SRC - 데이터 소스
 
-Functions that **generate or fetch data** (pipeline start)
+**데이터를 생성하거나 가져오는** 함수 (파이프라인 시작)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `FAKE()` | Generate test data | `FAKE(linspace(0, 100, 10))` |
-| `SQL()` | Database query | `SQL('SELECT time, value FROM example')` |
-| `CSV()` | Read CSV file | `CSV(file('/path/to/data.csv'))` |
-| `SCRIPT()` | JavaScript code | `SCRIPT({ $.yield(1, 2, 3) })` |
+| `FAKE()` | 테스트 데이터 생성 | `FAKE(linspace(0, 100, 10))` |
+| `SQL()` | 데이터베이스 쿼리 | `SQL('SELECT time, value FROM example')` |
+| `CSV()` | CSV 파일 읽기 | `CSV(file('/path/to/data.csv'))` |
+| `SCRIPT()` | JavaScript 코드 | `SCRIPT({ $.yield(1, 2, 3) })` |
 
 ---
 
-### MAP - Data Transformation
+### MAP - 데이터 변환
 
-Functions that **process and transform data** (pipeline middle)
+**데이터를 가공하고 변환하는** 함수 (파이프라인 중간)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `MAPVALUE()` | Add/modify column | `MAPVALUE(1, value(0) * 2)` |
-| `MAPKEY()` | Modify key | `MAPKEY(strUpper(key()))` |
-| `PUSHVALUE()` | Insert column at front | `PUSHVALUE(0, "new_value")` |
-| `POPVALUE()` | Remove column | `POPVALUE(2)` |
-| `GROUP()` | Group/aggregate | `GROUP(by(value(0)), avg(value(1)))` |
-| `SCRIPT()` | JavaScript processing | `SCRIPT({}, { /* process */ }, {})` |
+| `MAPVALUE()` | 컬럼 추가/수정 | `MAPVALUE(1, value(0) * 2)` |
+| `MAPKEY()` | 키 수정 | `MAPKEY(strUpper(key()))` |
+| `PUSHVALUE()` | 앞쪽에 컬럼 삽입 | `PUSHVALUE(0, "new_value")` |
+| `POPVALUE()` | 컬럼 제거 | `POPVALUE(2)` |
+| `GROUP()` | 그룹화/집계 | `GROUP(by(value(0)), avg(value(1)))` |
+| `SCRIPT()` | JavaScript 처리 | `SCRIPT({}, { /* process */ }, {})` |
 
 ---
 
-### SINK - Data Output
+### SINK - 데이터 출력
 
-Functions that **output or save data** (pipeline end)
+**데이터를 출력하거나 저장하는** 함수 (파이프라인 끝)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `CHART()` | Create chart | `CHART(chartOption({...}))` |
-| `CSV()` | CSV output | `CSV()` |
-| `JSON()` | JSON output | `JSON()` |
-| `INSERT()` | DB insert | `INSERT(...)` |
+| `CHART()` | 차트 생성 | `CHART(chartOption({...}))` |
+| `CSV()` | CSV 출력 | `CSV()` |
+| `JSON()` | JSON 출력 | `JSON()` |
+| `INSERT()` | DB 입력 | `INSERT(...)` |
 | `APPEND()` | DB append | `APPEND(table('example'))` |
 
 ---
 
-### CHART() Function Basic Usage
+### CHART() 함수 기본 사용법
 
-**Syntax**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
+**문법**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
 
-*Available since version 8.0.8*
+*버전 8.0.8부터 사용 가능*
 
-#### Main Options
+#### 주요 옵션
 
 **chartOption()**
 - `chartOption( { json in apache echarts options } )`
-- Pass Apache ECharts options in JSON format.
+- Apache ECharts 옵션을 JSON 형식으로 전달합니다.
 
 **size()**
 - `size(width, height)`
-- `width` *string* Chart width in HTML syntax e.g., `'800px'`
-- `height` *string* Chart height in HTML syntax e.g., `'800px'`
+- `width` *string* HTML 문법의 차트 너비, 예: `'800px'`
+- `height` *string* HTML 문법의 차트 높이, 예: `'800px'`
 
 **theme()**
 - `theme(name)`
-- `name` *string* Theme name
-- Available themes: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
+- `name` *string* 테마 이름
+- 사용 가능한 테마: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
 
 **chartJSCode()**
 - `chartJSCode( { user javascript code } )`
-- Execute custom JavaScript code.
+- 사용자 정의 JavaScript 코드를 실행합니다.
 
 ---
 
-### Key Functions
+### 핵심 함수
 
 #### value(index)
-Access values of the **current record** (used in pipeline middle)
+**현재 레코드**의 값에 접근합니다 (파이프라인 중간에서 사용)
 
-- `value(0)` = First value of current record
-- `value(1)` = Second value of current record
-- `value()` = Entire value array
+- `value(0)` = 현재 레코드의 첫 번째 값
+- `value(1)` = 현재 레코드의 두 번째 값
+- `value()` = 값 배열 전체
 
 ---
 
 #### column(index)
-Collect specific column from **all records** as array (CHART() only)
+**모든 레코드**에서 특정 컬럼을 배열로 모읍니다 (CHART() 전용)
 
-- `column(0)` = First values from all records → array
-- `column(1)` = Second values from all records → array
-- **⚠️ Only usable inside CHART()**
+- `column(0)` = 모든 레코드의 첫 번째 값 → 배열
+- `column(1)` = 모든 레코드의 두 번째 값 → 배열
+- **⚠️ CHART() 안에서만 사용 가능**
 
-**Comparison**:
+**비교**:
 
-| Function | Location | Returns | Example |
+| 함수 | 사용 위치 | 반환 | 예시 |
 |----------|----------|---------|---------|
-| `value(0)` | Pipeline middle | Single value | `10` |
-| `column(0)` | Inside CHART() | Array | `[1,2,3]` |
+| `value(0)` | 파이프라인 중간 | 단일 값 | `10` |
+| `column(0)` | CHART() 내부 | 배열 | `[1,2,3]` |
 
 ---
 
-## GeoJSON Map Chart - Seoul Districts
+## GeoJSON 지도 차트 - 서울 자치구
 
-Choropleth map visualization using GeoJSON data for Seoul districts.
+서울 자치구 GeoJSON 데이터를 사용한 단계구분도(choropleth) 시각화입니다.
 
 ```js
 FAKE(json({
@@ -174,39 +174,39 @@ CHART(
 )
 ```
 
-**Description**: Choropleth map of Seoul's 25 districts (구) with color-coded percentage values. Loads GeoJSON geographic boundaries and maps data values to colors using a visual gradient.
+**설명**: 서울 25개 자치구를 백분율 값에 따라 색으로 구분한 단계구분도입니다. GeoJSON 경계 데이터를 불러와 데이터 값을 색상 그라데이션에 매핑합니다.
 
-**Key Points**:
+**핵심 포인트**:
 
-**Data Preparation**:
-- `FAKE(json({...}))` creates district name and value pairs
-- `SCRIPT()` transforms data into `{name, value}` objects
-- Three-stage SCRIPT: initialize, process each record, finalize
+**데이터 준비**:
+- `FAKE(json({...}))`로 자치구 이름과 값의 쌍을 만듭니다
+- `SCRIPT()`가 데이터를 `{name, value}` 객체로 변환합니다
+- 3단계 SCRIPT: 초기화, 레코드별 처리, 마무리
 
-**GeoJSON Integration**:
-- `fetch()` loads GeoJSON file containing Seoul district boundaries
-- `echarts.registerMap()` registers the geographic data
-- Map name "seoul_gu" links chartOption to registered GeoJSON
+**GeoJSON 연동**:
+- `fetch()`로 서울 자치구 경계가 담긴 GeoJSON 파일을 불러옵니다
+- `echarts.registerMap()`으로 지리 데이터를 등록합니다
+- "seoul_gu"라는 지도 이름이 chartOption과 등록된 GeoJSON을 연결합니다
 
-**Visual Mapping**:
-- `visualMap` creates color legend (0-100%)
-- `inRange.color` defines gradient from light blue (#89b6fe) to dark blue (#25529a)
-- `calculable: true` enables interactive range adjustment
+**시각적 매핑**:
+- `visualMap`이 색상 범례(0~100%)를 만듭니다
+- `inRange.color`가 연한 파랑(#89b6fe)에서 진한 파랑(#25529a)까지의 그라데이션을 정의합니다
+- `calculable: true`로 범위를 대화형으로 조정할 수 있습니다
 
-**Map Configuration**:
-- `geo.map` references registered GeoJSON map
-- `zoom: 1.2` sets initial zoom level
-- `roam: true` enables pan and zoom interactions
-- `itemStyle.areaColor` sets default area color
+**지도 설정**:
+- `geo.map`이 등록된 GeoJSON 지도를 참조합니다
+- `zoom: 1.2`로 초기 확대 수준을 설정합니다
+- `roam: true`로 이동·확대 조작을 활성화합니다
+- `itemStyle.areaColor`가 기본 영역 색상을 지정합니다
 
-**Data Binding**:
-- `series[0].type: "map"` creates map series
-- `geoIndex: 0` links series to geo component
-- `data: column(0)[0]` binds district values to map regions
-- Region names in data must match GeoJSON feature names
+**데이터 바인딩**:
+- `series[0].type: "map"`으로 지도 시리즈를 만듭니다
+- `geoIndex: 0`으로 시리즈를 geo 컴포넌트에 연결합니다
+- `data: column(0)[0]`으로 자치구 값을 지도 영역에 바인딩합니다
+- 데이터의 지역 이름은 GeoJSON의 feature 이름과 일치해야 합니다
 
-**Usage Pattern**:
-1. Prepare data with geographic region names
-2. Fetch and register GeoJSON file
-3. Configure visual mapping for value-to-color conversion
-4. Link data to map regions by name matching
+**사용 패턴**:
+1. 지리적 지역 이름이 포함된 데이터를 준비합니다
+2. GeoJSON 파일을 불러와 등록합니다
+3. 값을 색상으로 변환하는 시각적 매핑을 설정합니다
+4. 이름 일치를 통해 데이터를 지도 영역에 연결합니다

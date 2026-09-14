@@ -1,100 +1,100 @@
 # Machbase Neo Installation & Getting Started Guide
 
-## Platform & Architecture Support
+## 플랫폼 및 아키텍처 지원
 
-- **Raspberry Pi**: Ubuntu 22.04 with Raspberry Pi 4
+- **Raspberry Pi**: Raspberry Pi 4 + Ubuntu 22.04
 - **Linux arm64**: Ubuntu 22.04, 24.04
 - **Linux amd64**: Ubuntu 20.04, 22.04, 24.04
-- **macOS**: Intel CPU (macOS 13), Apple Silicon (macOS 14, 15)
-- **Windows**: Windows 10 Fall 2018 or newer, Windows 11
+- **macOS**: Intel CPU(macOS 13), Apple Silicon(macOS 14, 15)
+- **Windows**: Windows 10 Fall 2018 이상, Windows 11
 
-## Direct Installation
+## 직접 설치
 
-### Setup Process
+### 설정 절차
 
-1. **Download (recommended)**
+1. **다운로드(권장)**
    
-   One-line instant script:
+   한 줄 설치 스크립트:
    ```bash
    sh -c "$(curl -fsSL https://docs.machbase.com/install.sh)"
    ```
    
-   Or download the latest version for your platform from https://docs.machbase.com/neo/releases/
+   또는 https://docs.machbase.com/neo/releases/ 에서 플랫폼에 맞는 최신 버전을 내려받습니다.
 
-2. **Extract Archive**
+2. **압축 해제**
    ```bash
-   unzip machbase-neo-v8.0.58-linux-amd64.zip
+   unzip machbase-neo-v8.5.9-linux-amd64.zip
    ```
    
    **By platform:**
    ```bash
    # Linux ARM64
-   unzip machbase-neo-v8.0.58-linux-arm64.zip
+   unzip machbase-neo-v8.5.9-linux-arm64.zip
    
    # macOS Apple Silicon
-   unzip machbase-neo-v8.0.58-darwin-arm64.zip
+   unzip machbase-neo-v8.5.9-darwin-arm64.zip
    
    # macOS Intel
-   unzip machbase-neo-v8.0.58-darwin-amd64.zip
+   unzip machbase-neo-v8.5.9-darwin-amd64.zip
    
    # Windows
-   unzip machbase-neo-v8.0.58-windows-amd64.zip
+   unzip machbase-neo-v8.5.9-windows-amd64.zip
    ```
 
-3. **Confirm Executable**
+3. **실행 파일 확인**
    ```bash
    machbase-neo version
    ```
 
-## Docker Installation
+## Docker 설치
 
-### Prerequisites
+### 사전 준비
 - Docker
 
 ### Docker Pull
 
-To install the latest version of machbase-neo with Docker, enter the following command in terminal:
+Docker로 최신 버전 machbase-neo를 설치하려면 터미널에 다음 명령을 입력합니다:
 
 ```bash
 $ docker pull machbase/machbase-neo
 ```
 
-If you want a specific version, add a tag:
+특정 버전을 원하면 태그를 붙입니다:
 
 ```bash
-$ docker pull machbase/machbase-neo:v8.0.58
+$ docker pull machbase/machbase-neo:v8.5.9
 ```
 
-> **Note**: To find different Docker versions, check https://hub.docker.com/r/machbase/machbase-neo/
+> **참고**: 다른 Docker 버전은 https://hub.docker.com/r/machbase/machbase-neo/ 에서 확인하세요.
 
 ### Docker Run
 
-#### Foreground Execution
+#### 포그라운드 실행
 ```bash
 $ docker run -it machbase/machbase-neo
 ```
 
 **Options:**
-- `-i`, `--interactive`: Keep STDIN open
-- `-t`, `--tty`: Allocate a pseudo-TTY
+- `-i`, `--interactive`: STDIN을 열어 둠
+- `-t`, `--tty`: 의사 TTY 할당
 
-If running in foreground, you can exit directly with `Ctrl + c`.
+포그라운드로 실행 중이라면 `Ctrl + c`로 바로 종료할 수 있습니다.
 
-#### Background Execution
+#### 백그라운드 실행
 ```bash
 $ docker run -d machbase/machbase-neo
 ```
 
 **Options:**
-- `-d`, `--detach`: Run container in background and print container ID
+- `-d`, `--detach`: 컨테이너를 백그라운드로 실행하고 컨테이너 ID를 출력
 
-If running in background, you can exit with the following command:
+백그라운드로 실행 중이라면 다음 명령으로 종료할 수 있습니다:
 
 ```bash
 $ docker stop $(docker ps | grep machbase-neo | awk '{print $1}')
 ```
 
-If using multiple machbase-neo images, it's recommended to stop by entering the Container ID directly:
+여러 machbase-neo 이미지를 사용 중이라면 Container ID를 직접 지정해 정지하는 것을 권장합니다:
 
 ```bash
 $ docker ps
@@ -104,10 +104,10 @@ CONTAINER ID   IMAGE                   COMMAND                   CREATED        
 $ docker stop 92382cf7b738
 ```
 
-### Docker Configuration
+### Docker 설정
 
-#### Volume Binding
-You can bind host directories to machbase-neo home path in docker:
+#### 볼륨 바인딩
+호스트 디렉토리를 도커 안의 machbase-neo 홈 경로에 바인딩할 수 있습니다:
 
 ```bash
 docker run -d \
@@ -117,21 +117,21 @@ docker run -d \
 ```
 
 **Paths:**
-- `/data`: machbase-neo home path in docker
-- `/file`: machbase-neo tql path in docker
-- `-v`, `--volume`: Bind mount a volume
+- `/data`: 도커 안의 machbase-neo 홈 경로
+- `/file`: 도커 안의 machbase-neo tql 경로
+- `-v`, `--volume`: 볼륨을 바인드 마운트
 
-#### Port Configuration
-Machbase-neo exposes several ports in Docker:
+#### 포트 설정
+machbase-neo는 Docker에서 여러 포트를 노출합니다:
 
-| Port | Description |
+| 포트 | 설명 |
 |:-----|:------------|
 | 5652 | sshd |
 | 5653 | mqtt |
 | 5654 | http |
-| 5656 | database engine |
+| 5656 | 데이터베이스 엔진 |
 
-#### Port Mapping (Forwarding)
+#### 포트 매핑(포워딩)
 ```bash
 $ docker run -d -p <host port>:<container port>/<protocol> machbase/machbase-neo
 ```
@@ -144,14 +144,14 @@ $ docker run -d \
              machbase/machbase-neo
 ```
 
-#### Remote Access Using SSH Key
+#### SSH 키를 사용한 원격 접속
 
-1. **Generate SSH key:**
+1. **SSH 키 생성:**
    ```bash
    $ ssh-keygen -t rsa
    ```
 
-2. **Run machbase-neo:**
+2. **machbase-neo 실행:**
    ```bash
    $ docker pull machbase/machbase-neo
    $ docker run -d \
@@ -160,14 +160,14 @@ $ docker run -d \
                 machbase/machbase-neo
    ```
 
-3. **Register SSH key:**
+3. **SSH 키 등록:**
    ```bash
    $ ssh -l sys -p 5652 192.168.0.116 ssh-key add `cat ~/.ssh/id_rsa.pub`
    sys@192.168.0.116's password? manager
    Add sshkey success
    ```
 
-#### Using Docker Compose
+#### Docker Compose 사용
 
 Create `docker-compose.yml` file:
 
@@ -201,7 +201,7 @@ $ docker compose -f docker-compose.yml up -d
 $ docker compose down
 ```
 
-## Start and Stop
+## 시작과 정지
 
 ### Linux & macOS
 
@@ -210,34 +210,34 @@ $ docker compose down
 machbase-neo serve
 ```
 
-#### Expose Ports
-By default, machbase-neo runs only on localhost for security reasons. To allow remote client access:
+#### 포트 노출
+machbase-neo는 보안상 기본적으로 localhost에서만 동작합니다. 원격 클라이언트 접속을 허용하려면:
 
-**Allow access from all addresses:**
+**모든 주소에서 접속 허용:**
 ```bash
 machbase-neo serve --host 0.0.0.0
 ```
 
-**Allow specific address only:**
+**특정 주소만 허용:**
 ```bash
 machbase-neo serve --host 192.168.1.10
 ```
 
 #### Stop
-If running in foreground mode, press `Ctrl+C`.
+포그라운드 모드로 실행 중이라면 `Ctrl+C`를 누릅니다.
 
-Or use shutdown command:
+또는 shutdown 명령을 사용합니다:
 ```bash
 machbase-neo shell shutdown
 ```
 
 ### Windows
 
-On Windows, double-click "neow.exe" and click the "machbase-neo serve" button in the top left of the window.
+Windows에서는 "neow.exe"를 더블 클릭한 뒤 창 좌측 상단의 "machbase-neo serve" 버튼을 누릅니다.
 
-#### Windows Service Registration
+#### Windows 서비스 등록
 
-> **Important**: Must be executed in Administrator mode.
+> **중요**: 관리자 모드에서 실행해야 합니다.
 
 **Install:**
 ```
@@ -255,63 +255,63 @@ On Windows, double-click "neow.exe" and click the "machbase-neo serve" button in
 .\machbase-neo service remove
 ```
 
-## Deploy Modes
+## 배포 모드
 
-### Head Only Mode
+### Head Only 모드
 
-Use URL pointing to another Machbase DBMS's mach port as `--data` flag value:
+`--data` 플래그 값으로 다른 Machbase DBMS의 mach 포트를 가리키는 URL을 사용합니다:
 
 ```bash
 machbase-neo serve --data machbase://sys:manager@192.168.1.100:5656
 ```
 
-Or using environment variables:
+또는 환경 변수를 사용합니다:
 ```bash
 SECRET="sys:manager" \
 machbase-neo serve --data machbase://${SECRET}@192.168.1.100:5656
 ```
 
-### Headless Mode
+### Headless 모드
 
-Start only DBMS process (using mach port 5656 only):
+DBMS 프로세스만 시작합니다(mach 포트 5656만 사용):
 
 ```bash
 machbase-neo serve-headless
 ```
 
-## Web UI Access
+## 웹 UI 접속
 
 ### Login
 
-Navigate to [http://127.0.0.1:5654/](http://127.0.0.1:5654/) in your web browser.
+웹 브라우저에서 http://127.0.0.1:5654/ 로 접속합니다.
 
-**Default credentials:** ID `sys`, Password `manager`
+**기본 계정:** ID `sys`, 비밀번호 `manager`
 
-### Change Password
+### 비밀번호 변경
 
-It's recommended to change the default password for security reasons.
+보안을 위해 기본 비밀번호를 변경하는 것을 권장합니다.
 
 #### Via Web UI:
-1. Select "Change password" from the bottom left menu
-2. Enter new password and confirm
+1. 좌측 하단 메뉴에서 "Change password"를 선택합니다
+2. 새 비밀번호를 입력하고 확인합니다
 
 #### Via SQL:
 ```sql
 ALTER USER sys IDENTIFIED BY new_password;
 ```
 
-#### Via Command Line:
+#### 명령행으로:
 ```bash
 machbase-neo shell "ALTER USER SYS IDENTIFIED BY new_password"
 ```
 
-## Quick Reference
+## 빠른 참조
 
-| Method | Command/Action | Description |
+| 방식 | 명령/동작 | 설명 |
 |--------|----------------|-------------|
-| **Direct Install** | `curl install.sh` script | Recommended one-line installation |
-| **Docker Install** | `docker pull machbase/machbase-neo` | Container-based installation |
-| **Start Service** | `machbase-neo serve` | Start on localhost only |
-| **Remote Access** | `--host 0.0.0.0` | Allow remote connections |
-| **Web UI** | http://127.0.0.1:5654 | Default web interface |
-| **Default Login** | sys/manager | Change password after first login |
+| **직접 설치** | `curl install.sh` 스크립트 | 권장하는 한 줄 설치 |
+| **Docker 설치** | `docker pull machbase/machbase-neo` | 컨테이너 기반 설치 |
+| **서비스 시작** | `machbase-neo serve` | localhost에서만 시작 |
+| **원격 접속** | `--host 0.0.0.0` | 원격 연결 허용 |
+| **웹 UI** | http://127.0.0.1:5654 | 기본 웹 인터페이스 |
+| **기본 로그인** | sys/manager | 최초 로그인 후 비밀번호 변경 |

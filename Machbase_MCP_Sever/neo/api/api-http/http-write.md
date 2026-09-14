@@ -1,49 +1,49 @@
 # Machbase Neo HTTP Write
 
-The Write API endpoint is `/db/write/{TABLE}`, where `{TABLE}` is the name of the table you want to write to.
+쓰기 API 엔드포인트는 `/db/write/{TABLE}` 이며, `{TABLE}`은 데이터를 쓸 테이블 이름입니다.
 
-Even `query` api can execute 'INSERT' statement, it is not an efficient way to write data,
-since clients should build a static sql text in `q` parameter for the every request.
-The proper way writing data is the `write` api which is the `INSERT` statement equivalent. 
-And another benefit of `write` is that a client application can insert multiple records in a single `write` request.
+`query` API로도 'INSERT' 문을 실행할 수 있지만 데이터를 쓰는 효율적인 방법은 아니며,
+클라이언트가 요청마다 `q` 파라미터에 정적인 SQL 텍스트를 만들어야 하기 때문입니다.
+데이터를 쓰는 올바른 방법은 `INSERT` 문에 해당하는 `write` API입니다. 
+`write`의 또 다른 장점은 클라이언트 애플리케이션이 한 번의 `write` 요청으로 여러 레코드를 넣을 수 있다는 점입니다.
 
 ## Parameters
 
-**Write Parameters**
+**쓰기 파라미터**
 
-| param       | default | description                     |
+| 파라미터       | 기본값 | 설명                     |
 |:----------- |---------|:------------------------------- |
-| timeformat  | `ns`     | Time format: `s`, `ms`, `us`, `ns` |
-| tz          | `UTC`    | Time Zone: `UTC`, `Local` and location spec |
-| method      | `insert` | Writing methods: `insert`, `append`  |
+| timeformat  | `ns`     | 시간 형식: `s`, `ms`, `us`, `ns` |
+| tz          | `UTC`    | 시간대: `UTC`, `Local`, 지역 지정 |
+| method      | `insert` | 쓰기 방식: `insert`, `append`  |
 
 **INSERT vs. APPEND**
 
-By default, the `/db/write` API uses the `INSERT INTO...` statement to write data. For a small number of records, this method performs similarly to the `append` method.
+기본적으로 `/db/write` API는 `INSERT INTO...` 문으로 데이터를 씁니다. 레코드 수가 적을 때는 `append` 방식과 성능이 비슷합니다.
 
-When writing a large amount of data (e.g., more than several hundred thousand records), use the `method=append` parameter. This specifies that Machbase Neo should use the "append" method instead of the default "INSERT INTO..." statement, which is implicitly specified as `method=insert`.
+대량의 데이터(예: 수십만 건 이상)를 쓸 때는 `method=append` 파라미터를 사용하세요. 기본값인 "INSERT INTO..." 문(`method=insert`) 대신 "append" 방식을 쓰도록 지정하는 것입니다.
 
-**Content-Type Header**
+**Content-Type 헤더**
 
-The machbase-neo server recognizes the format of incoming data stream by `Content-Type` header,
-for example, `Content-Type: application/json` for JSON data, `Content-Type: text/csv` for csv data, and `Content-type: application/x-ndjson` for newline delimiter json data.
+machbase-neo 서버는 `Content-Type` 헤더로 들어오는 데이터 스트림의 형식을 인식하며,
+예를 들어 JSON 데이터는 `Content-Type: application/json`, CSV 데이터는 `Content-Type: text/csv`, 개행 구분 JSON은 `Content-type: application/x-ndjson` 입니다.
 
-**Content-Encoding Header**
+**Content-Encoding 헤더**
 
-If client sends gzip'd compress stream, it should set the header `Content-Encoding: gzip` 
-that tells the machbase-neo the incoming data stream is encoded in gzip.
+클라이언트가 gzip으로 압축한 스트림을 보낸다면 `Content-Encoding: gzip` 헤더를 설정해야 합니다 
+들어오는 데이터 스트림이 gzip으로 인코딩되었음을 machbase-neo에 알립니다.
 
 ## Inputs
 
 ### JSON
 
-This request message is equivalent that consists INSERT SQL statement as `INSERT into {table} (columns...) values (values...)`
+이 요청 메시지는 `INSERT into {table} (columns...) values (values...)` INSERT SQL 문을 구성하는 것과 같습니다
 
-| name         | type       |  description                        |
+| 이름         | 타입       |  설명                        |
 |:------------ |:-----------|:------------------------------------|
 | data         | object           |                               |
-| data.columns | array of strings | represents columns            |
-| data.rows    | array of tuples  | values of records             |
+| data.columns | 문자열 배열 | 컬럼을 나타냅니다            |
+| data.rows    | 튜플 배열  | 레코드의 값들             |
 
 **JSON**
 
@@ -59,7 +59,7 @@ This request message is equivalent that consists INSERT SQL statement as `INSERT
 }
 ```
 
-Set `Content-Type` header as `application/json`.
+`Content-Type` 헤더를 `application/json`으로 설정합니다.
 
 **HTTP:**
 ~~~
@@ -86,9 +86,9 @@ curl -X POST http://127.0.0.1:5654/db/write/EXAMPLE \
     --data-binary "@post-data.json"
 ```
 
-**Compressed JSON**
+**압축된 JSON**
 
-Set the header `Content-Encoding: gzip` tells machbase-neo that the incoming stream is gzip-compressed.
+`Content-Encoding: gzip` 헤더를 설정하면 들어오는 스트림이 gzip으로 압축되었음을 machbase-neo에 알립니다.
 
 **HTTP:**
 ~~~
@@ -109,11 +109,11 @@ curl -X POST http://127.0.0.1:5654/db/write/EXAMPLE \
     --data-binary "@post-data.json.gz"
 ```
 
-**JSON with timeformat**
+**timeformat을 사용한 JSON**
 
-When time fields are string format instead of UNIX epoch.
+시간 필드가 UNIX epoch가 아니라 문자열 형식일 때입니다.
 
-Add `timeformat` and `tz` parameters.
+`timeformat`과 `tz` 파라미터를 추가합니다.
 
 **HTTP:**
 ~~~
@@ -158,9 +158,9 @@ curl -X POST 'http://127.0.0.1:5654/db/write/EXAMPLE?timeformat=DEFAULT&tz=Asia/
 
 ### NDJSON
 
-NDJSON (Newline Delimited JSON) is a format for streaming JSON data where each line is a valid JSON object. This is useful for processing large datasets or streaming data.
+NDJSON(Newline Delimited JSON)은 각 줄이 하나의 유효한 JSON 객체인 스트리밍 JSON 형식입니다. 대용량 데이터셋이나 스트리밍 데이터를 처리할 때 유용합니다.
 
-This request message is equivalent that consists INSERT SQL statement as `INSERT into {table} (columns...) values (values...)`
+이 요청 메시지는 `INSERT into {table} (columns...) values (values...)` INSERT SQL 문을 구성하는 것과 같습니다
 
 **NDJSON**
 
@@ -169,7 +169,7 @@ This request message is equivalent that consists INSERT SQL statement as `INSERT
 {"NAME":"ndjson-data", "TIME":1670380343000000000, "VALUE":2.002}
 ```
 
-Set `Content-Type` header as `application/x-ndjson`.
+`Content-Type` 헤더를 `application/x-ndjson`으로 설정합니다.
 
 **HTTP:**
 ~~~
@@ -189,16 +189,16 @@ curl -X POST http://127.0.0.1:5654/db/write/EXAMPLE \
     --data-binary "@post-data.json"
 ```
 
-**NDJSON with timeformat**
+**timeformat을 사용한 NDJSON**
 
-When time fields are string format instead of UNIX epoch.
+시간 필드가 UNIX epoch가 아니라 문자열 형식일 때입니다.
 
 ```json
 {"NAME":"ndjson-data", "TIME":"2022-12-07 02:33:22", "VALUE":1.001}
 {"NAME":"ndjson-data", "TIME":"2022-12-07 02:33:23", "VALUE":2.002}
 ```
 
-Add `timeformat` and `tz` parameters.
+`timeformat`과 `tz` 파라미터를 추가합니다.
 
 **HTTP:**
 ~~~
@@ -222,25 +222,25 @@ curl -X POST 'http://127.0.0.1:5654/db/write/EXAMPLE?timeformat=Default&tz=Local
 
 ### CSV
 
-These options are only applicable when the content body is in CSV format.
+이 옵션들은 본문이 CSV 형식일 때만 적용됩니다.
 
-| param         | default | description                     |
+| 파라미터         | 기본값 | 설명                     |
 |:------------- |---------|:------------------------------- |
-| header        |         | `skip`: simply skip the first line<br/> `columns`: the CSV has a header line where fields match the column names. |
-| heading       | false   | Deprecated, `heading=true` is equivalent with `header=skip`. |
-| delimiter     | ,       | field delimiter |
+| header        |         | `skip`: 첫 줄을 건너뜁니다<br/> `columns`: CSV에 컬럼명과 일치하는 헤더 줄이 있습니다. |
+| heading       | false   | 폐기됨. `heading=true`는 `header=skip`과 같습니다. |
+| delimiter     | ,       | 필드 구분자 |
 
-If the CSV data includes a header line, set the `header=skip` query parameter to make machbase-neo to ignore the first line.
+CSV 데이터에 헤더 줄이 있으면 `header=skip` 쿼리 파라미터를 지정해 machbase-neo가 첫 줄을 무시하도록 하세요.
 
-If the CSV header line specifies columns to write, use `header=columns`. This option ensures that the header matches the column names of the table. The header line will be used as the *columns* part of the SQL statement `INSERT INTO TABLE(columns...) VALUES(...)`.
+CSV 헤더 줄이 쓸 컬럼을 지정한다면 `header=columns`를 사용하세요. 이 옵션은 헤더가 테이블 컬럼 이름과 일치하도록 합니다. 헤더 줄은 SQL 문 `INSERT INTO TABLE(columns...) VALUES(...)` 의 *columns* 부분으로 사용됩니다.
 
-If the header line is not included and omit `header` option (or equivalent with `heading=false`) which is default, each line's fields must match all the columns of the table in order to match the SQL statement `INSERT INTO TABLE VALUES(...)`.
+헤더 줄이 없고 기본값대로 `header` 옵션을 생략하면(또는 `heading=false`와 같음), SQL 문 `INSERT INTO TABLE VALUES(...)` 에 맞도록 각 줄의 필드가 테이블의 모든 컬럼과 순서까지 일치해야 합니다.
 
-> According to the semantics of append method, `header=columns` does not work with `method=append`.
+> append 방식의 의미상 `header=columns`는 `method=append`와 함께 동작하지 않습니다.
 
 **header=skip**
 
-If you set `header=skip`, the server will ignore the first line, and the data should be in the same order as the columns of the table.
+`header=skip`을 지정하면 서버가 첫 줄을 무시하며, 데이터는 테이블 컬럼과 같은 순서여야 합니다.
 
 ```csv
 NAME,TIME,VALUE
@@ -248,7 +248,7 @@ csv-data,1670380342000000000,1.0001
 csv-data,1670380343000000000,2.0002
 ```
 
-The `Content-Type` header should be `text/csv`.
+`Content-Type` 헤더는 `text/csv` 여야 합니다.
 
 **HTTP:**
 ~~~
@@ -271,7 +271,7 @@ curl -X POST http://127.0.0.1:5654/db/write/EXAMPLE?header=skip \
 
 **header=columns**
 
-If the CSV fields are in a different order or are a subset of the actual table columns, set `header=columns`. The server will then treat the first line as the column names. The example below generates an internal SQL statement similar to `INSERT INTO EXAMPLE (TIME, NAME, VALUE) VALUES(?, ?, ?)`
+CSV 필드의 순서가 다르거나 실제 테이블 컬럼의 일부만 있다면 `header=columns`를 지정하세요. 서버가 첫 줄을 컬럼 이름으로 취급합니다. 아래 예제는 `INSERT INTO EXAMPLE (TIME, NAME, VALUE) VALUES(?, ?, ?)` 와 유사한 내부 SQL 문을 생성합니다.
 
 ```csv
 TIME,NAME,VALUE
@@ -279,7 +279,7 @@ TIME,NAME,VALUE
 1670380343000000000,csv-data,2.0002
 ```
 
-The `Content-Type` header should be `text/csv`.
+`Content-Type` 헤더는 `text/csv` 여야 합니다.
 
 **HTTP:**
 ~~~
@@ -300,9 +300,9 @@ curl -X POST http://127.0.0.1:5654/db/write/EXAMPLE?header=columns \
     --data-binary "@post-data.csv"
 ```
 
-**Compressed CSV**
+**압축된 CSV**
 
-Set the header `Content-Encoding: gzip` to inform machbase neo that the incoming stream is gzip-compressed.
+들어오는 스트림이 gzip으로 압축되었음을 알리려면 `Content-Encoding: gzip` 헤더를 설정하세요.
 
 **HTTP:**
 ~~~
@@ -323,9 +323,9 @@ curl -X POST http://127.0.0.1:5654/db/write/EXAMPLE?header=skip \
     --data-binary "@post-data.csv.gz"
 ```
 
-**CSV with timeformat**
+**timeformat을 사용한 CSV**
 
-Add `timeformat` and `tz` query parameters.
+`timeformat`과 `tz` 쿼리 파라미터를 추가합니다.
 
 ~~~
 ```http
@@ -341,11 +341,11 @@ csv-data,2022-12-07 11:39:33,2.0002
 ```
 ~~~
 
-## Examples
+## 예제s
 
-Please refer to the detail of the API [Request endpoint and params](/neo/api-http/write#request-endpoint-and-params)
+요청 엔드포인트와 파라미터의 자세한 내용은 API 문서를 참고하세요
 
-**Test Table**
+**테스트 테이블**
 
 **HTTP:**
 ~~~
@@ -364,9 +364,9 @@ curl -o - http://127.0.0.1:5654/db/query \
 
 **Time**
 
-The time stored in the sample files saved in these examples is represented in Unix epoch, measured in seconds. Therefore, when loading the data, it should be performed with the `timeformat=s` option specified. If the data has been stored in a different resolution, this option needs to be modified to ensure proper input. Note that in Machbase Neo, the default time resolution is assumed to be in `nanoseconds (ns)` and is executed accordingly.
+이 예제들의 샘플 파일에 저장된 시간은 초 단위 Unix epoch로 표현됩니다. 따라서 데이터를 적재할 때 `timeformat=s` 옵션을 지정해야 합니다. 데이터가 다른 해상도로 저장되어 있다면 올바른 입력을 위해 이 옵션을 바꿔야 합니다. Machbase Neo의 기본 시간 해상도는 `나노초(ns)`로 가정되어 동작한다는 점에 유의하세요.
 
-### JSON with epoch
+### epoch를 사용한 JSON
 
 ~~~
 ```http
@@ -389,7 +389,7 @@ Content-Type: application/json
 ```
 ~~~
 
-**Select rows**
+**행 조회**
 
 ~~~
 ```http
@@ -398,9 +398,9 @@ GET http://127.0.0.1:5654/db/query
 ```
 ~~~
 
-### CSV with epoch
+### epoch를 사용한 CSV
 
-If csv data has header line like below, set the `header=skip` query param.
+아래처럼 CSV 데이터에 헤더 줄이 있으면 `header=skip` 쿼리 파라미터를 지정하세요.
 
 ~~~
 ```http
@@ -419,7 +419,7 @@ wave.sin,1676432363,0.743144
 ```
 ~~~
 
-### CSV without header
+### 헤더 없는 CSV
 
 ~~~
 ```http
@@ -436,7 +436,7 @@ wave.sin,1676432363,0.743144
 
 ### CSV
 
-**Insert**
+**입력**
 
 ~~~
 ```http
@@ -463,7 +463,7 @@ GET http://127.0.0.1:5654/db/query
 
 **Append**
 
-When loading a large CSV file, using the "append" method can allow data to be input several times faster compared to the "insert" method.
+큰 CSV 파일을 적재할 때 "append" 방식을 쓰면 "insert" 방식보다 몇 배 빠르게 입력할 수 있습니다.
 
 ~~~
 ```http
@@ -478,7 +478,7 @@ wave.sin,1676432363,0.743144
 ```
 ~~~
 
-### CSV with time zone
+### 시간대를 지정한 CSV
 
 ~~~
 ```http
@@ -495,7 +495,7 @@ wave.sin,2023-02-15 12:39:25.444,0.555555
 ```
 ~~~
 
-**Select rows in UTC**
+**UTC 기준으로 조회**
 
 ~~~
 ```http
@@ -522,7 +522,7 @@ wave.sin,2023-02-15T03:39:25Z,0.555555
 ```
 ~~~
 
-**Select rows in UTC**
+**UTC 기준으로 조회**
 
 ~~~
 ```http
@@ -551,7 +551,7 @@ wave.sin,2023-02-14T22:39:25.444444444-05:00,0.555555
 ~~~
 
 
-**Select rows in America/New_York**
+**America/New_York 기준으로 조회**
 
 ~~~
 ```http
@@ -579,7 +579,7 @@ wave.sin,2023-02-15 03:39:25.444444444,0.555555
 ```
 ~~~
 
-**Select rows in UTC**
+**UTC 기준으로 조회**
 
 ~~~
 ```http
@@ -591,9 +591,9 @@ GET http://127.0.0.1:5654/db/query
 ```
 ~~~
 
-### Custom Timeformat
+### 사용자 정의 시간 형식
 
-- `hour:min:sec-SPLIT-year-month-day` format in New York timezone
+- 뉴욕 시간대의 `hour:min:sec-SPLIT-year-month-day` 형식
 
 ~~~
 ```http
@@ -610,7 +610,7 @@ wave.sin,10:39:25.444444444-SPLIT-2023-02-14 ,0.555555
 ```
 ~~~
 
-**Select rows**
+**행 조회**
 
 ~~~
 ```http

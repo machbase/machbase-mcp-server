@@ -10,7 +10,7 @@ CHART(
     chartOption({
         title: { text: "차트 제목", subtext: "부제(한 줄 설명)", left: 10, top: 5 },
         grid: { left: 72, right: 30, top: 66, bottom: 78 },
-        legend: { bottom: 30 },
+        legend: { type: "scroll", bottom: 30 },
         xAxis: { type: "time" },
         yAxis: { type: "value" },
         dataZoom: [{ type: "slider", bottom: 6, height: 16 }, { type: "inside" }],
@@ -84,7 +84,8 @@ SCRIPT({
 ### 1. 테마 / 제목·부제 / 범례·줌 배치
 - 대시보드는 **white(흰색) 테마**입니다. chartOption에 `theme` 이나 `backgroundColor` 를 **넣지 마세요** (패널이 white로 감쌈). `theme(...)` 를 직접 지정하면 그 차트만 색이 어긋납니다. (저장 시 서버가 theme() 호출을 자동 제거합니다.)
 - 심층(TQL) 대시보드는 **패널 헤더가 없으므로** 각 차트가 **직접 제목+부제**를 표시: `title: { text: "제목", subtext: "부제", left: 10, top: 5 }` (Neo 표준 좌상단 위치). `grid.top`≈66 으로 제목 영역 확보(작으면 부제와 플롯이 붙어 보임).
-- **하단 겹침 금지**: `grid: { bottom: 78 }` + `legend: { bottom: 30 }` + `dataZoom: [{ type:"slider", bottom: 6, height: 16 }, { type:"inside" }]`. `grid.bottom`을 작게 잡으면 범례가 x축 라벨과 겹칩니다(아래에서 위로 슬라이더→범례→x축라벨 순으로 쌓일 공간 필요).
+- **하단 겹침 금지**: `grid: { bottom: 78 }` + `legend: { type: "scroll", bottom: 30 }` + `dataZoom: [{ type:"slider", bottom: 6, height: 16 }, { type:"inside" }]`. `grid.bottom`을 작게 잡으면 범례가 x축 라벨과 겹칩니다(아래에서 위로 슬라이더→범례→x축라벨 순으로 쌓일 공간 필요).
+- **범례는 반드시 `type: "scroll"`**: `grid.bottom`이 확보한 범례 자리는 **한 줄뿐**입니다. 기본 범례는 항목이 많거나 패널이 좁으면 **여러 줄로 접히면서 위로 자라 x축 라벨을 덮습니다**(태그 5~6개 이상 비교에서 실제 발생). `type:"scroll"`이면 줄바꿈 대신 페이지 화살표가 생겨 항상 한 줄을 유지합니다.
 - **y축 이름(`yAxis.name`)을 넣지 마세요** — 축 이름은 축 상단(좌상단)에 떠서 **제목/부제와 겹칩니다.** 축 의미는 부제에 적으세요(예: 부제 "… (단위: $)"). 꼭 필요하면 `nameLocation:"middle", nameGap:48, nameRotate:90`으로 세로 배치.
 - **y축 값이 크면 라벨이 잘립니다** — 거래량 합계처럼 6자리 이상 값은 `grid.left`를 **85~95**로 키우세요(기본 72는 5자리까지). 이중 Y축(`yAxisIndex`)이면 `grid.right`도 같이 키우고, 오른쪽 축에도 `name`을 쓰지 마세요.
 
@@ -92,11 +93,12 @@ SCRIPT({
 - 시계열 차트는 `xAxis: { type: "time" }` + `series.data` 에 **[timestamp, value] 페어 배열**을 넣습니다.
 - SQL 결과(시간, 값)를 SCRIPT에서 `$.yield([$.values[0], $.values[1]])` 로 페어 yield → CHART에서 `data: column(0)`.
 - TIME과 VALUE를 별도 컬럼/축으로 주거나 인덱스를 x축에 쓰면 **시간축이 깨집니다** (예: `09:00:00 030` 처럼 표시됨).
-- ⚠️ **`$.values[0]`(TIME)은 숫자/문자열이 아니라 Time 객체입니다.** [t,v] 페어엔 그대로 넣으면 됩니다(Neo가 직렬화). Time 객체에 직접 `/` · `Math.floor` 같은 산술을 하면 **`NaN`** 이 되어 데이터가 한 곳에 뭉쳐 **빈 차트**가 됩니다(실제 캔들스틱 버그였음). `.UnixNano()`/`.Unix()`/`.getTime()` 메서드도 **없습니다**(Object has no member).
-- **일자 버킷 등 시간 계산이 필요하면** `String($.values[0])` 이 `"2026-06-08 16:00:55.268 +0900 KST"` 형태의 문자열을 주므로 정규식으로 파싱해 ms를 얻으세요 (버킷 키 계산용 — [t,v] 페어엔 여전히 원본 Time 객체를 그대로):
+- ⚠️ **`$.values[0]`(TIME)은 숫자/문자열이 아니라 Time 객체입니다.** [t,v] 페어엔 그대로 넣으면 됩니다(Neo가 직렬화). Time 객체에 직접 `/` · `Math.floor` 같은 산술을 하면 **`NaN`** 이 되어 데이터가 한 곳에 뭉쳐 **빈 차트**가 됩니다(실제 캔들스틱 버그였음).
+- **시간 계산이 필요하면 `unixMilli()`를 쓰세요.** Time 객체의 메서드는 **첫 글자가 소문자**로 노출됩니다 — `unixMilli()`, `unix()`, `unixNano()`, `unixMicro()`, `format()`, `year()`, `month()`, `day()`, `hour()` 등. **대문자 `.UnixNano()`·`.Unix()`나 JS의 `.getTime()`은 없습니다**(Object has no member).
   ```js
-  function toMs(o){ var m = String(o).match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/); return m ? Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]) : NaN; }
+  function toMs(o){ return o.unixMilli(); }   // 버킷 키 계산용 — [t,v] 페어엔 원본 Time 객체를 그대로
   ```
+- ☠️ **`String(Time)` 정규식 파싱은 쓰지 마세요.** `String($.values[0])` 은 `"2026-05-25 19:01:55.268 +0900 KST"` 처럼 **지역 오프셋이 붙어** 오므로, 이를 `Date.UTC(...)`로 파싱하면 **9시간 미래**가 됩니다. 그 결과 조회 창이 통째로 미래로 밀려 **에러 없이 0건**이 나옵니다(라이브 확인됨).
 
 ### 3. NULL 회피
 - 빈 시간 버킷의 집계, 0으로 나누기 등으로 **NULL 표현식**이 생기면 `MACH-ERR 2042 (Expression cannot have a NULL value)` 가 납니다.

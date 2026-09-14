@@ -1,20 +1,20 @@
 # Machbase CGo client
 
-## Overview
+## 개요
 
-The `machcli` package is a Go wrapper around Machbase's native C client library, designed to provide Go developers with high-performance access to Machbase databases. This wrapper leverages the power and efficiency of the underlying C library while offering a familiar Go API that follows standard database/sql patterns.
+`machcli` 패키지는 Machbase의 네이티브 C 클라이언트 라이브러리를 감싼 Go 래퍼로, Go 개발자에게 Machbase 데이터베이스에 대한 고성능 접근을 제공합니다. 내부 C 라이브러리의 성능을 활용하면서 표준 database/sql 패턴을 따르는 익숙한 Go API를 제공합니다.
 
-### Prerequisites
+### 사전 준비
 
-- **CGo Environment**: Since this is a wrapper around a C library, you'll need a CGo-enabled Go environment
-- **Machbase Neo Server**: A running Machbase Neo server instance
-- **Go 1.24+**: Modern Go version for optimal compatibility
+- **CGo 환경**: C 라이브러리 래퍼이므로 CGo가 활성화된 Go 환경이 필요합니다
+- **Machbase Neo 서버**: 실행 중인 Machbase Neo 서버 인스턴스
+- **Go 1.24+**: 최적 호환을 위한 최신 Go 버전
 
-## Getting Started
+## 시작하기
 
 ### Import
 
-First, import the necessary packages. The `machcli` package provides the Go wrapper around Machbase's C client library:
+먼저 필요한 패키지를 임포트합니다. `machcli` 패키지는 Machbase C 클라이언트 라이브러리를 감싼 Go 래퍼입니다:
 
 ```go
 import (
@@ -27,13 +27,12 @@ import (
 )
 ```
 
-{{< callout type="info" >}}
-**CGo Requirement**: Since `machcli` wraps a C library, your build environment must support CGo. Ensure `CGO_ENABLED=1` in your build environment.
-{{< /callout >}}
+> **주의**
+> **CGo 요구사항**: `machcli`는 C 라이브러리를 감싸므로 빌드 환경이 CGo를 지원해야 합니다. 빌드 환경에서 `CGO_ENABLED=1`을 확인하세요.
 
-### Configuration
+### 설정
 
-Configure the database connection parameters using the `Config` struct. This allows you to customize connection behavior and performance characteristics:
+`Config` 구조체로 데이터베이스 연결 파라미터를 설정합니다. 연결 동작과 성능 특성을 조정할 수 있습니다:
 
 ```go
 conf := &machcli.Config{
@@ -50,22 +49,21 @@ if err != nil {
 }
 ```
 
-#### Configuration Parameters
+#### 설정 Parameters
 
-| Parameter | Description | Values |
+| 파라미터 | 설명 | Values |
 |-----------|-------------|---------|
-| `MaxOpenConn` | Maximum open connections | `< 0`: unlimited<br>`0`: CPU count × factor<br>`> 0`: specified limit |
-| `MaxOpenConnFactor` | Multiplier when MaxOpenConn is 0 | Default: 1.5 |
-| `MaxOpenQuery` | Maximum concurrent queries | `< 0`: unlimited<br>`0`: CPU count × factor<br>`> 0`: specified limit |
-| `MaxOpenQueryFactor` | Multiplier when MaxOpenQuery is 0 | Default: 1.5 |
+| `MaxOpenConn` | 최대 열린 연결 수 | `< 0`: 무제한<br>`0`: CPU 수 × 계수<br>`> 0`: 지정한 제한 |
+| `MaxOpenConnFactor` | MaxOpenConn이 0일 때의 배수 | 기본값: 1.5 |
+| `MaxOpenQuery` | 최대 동시 쿼리 수 | `< 0`: 무제한<br>`0`: CPU 수 × 계수<br>`> 0`: 지정한 제한 |
+| `MaxOpenQueryFactor` | MaxOpenQuery가 0일 때의 배수 | 기본값: 1.5 |
 
-{{< callout type="tip" >}}
-**Performance Tip**: For high-throughput applications, consider setting explicit limits based on your system resources and expected load patterns.
-{{< /callout >}}
+> **주의**
+> **성능 팁**: 높은 처리량이 필요한 애플리케이션은 시스템 자원과 예상 부하 패턴에 맞춰 제한값을 명시적으로 설정하세요.
 
-### Establishing Connection
+### 연결 수립
 
-Create a connection to the Machbase server using the configured database instance:
+설정한 데이터베이스 인스턴스로 Machbase 서버 연결을 만듭니다:
 
 ```go
 ctx := context.Background()
@@ -76,18 +74,17 @@ if err != nil {
 defer conn.Close() // Always close connections when done
 ```
 
-The connection supports password based authentication method:
+이 연결은 비밀번호 기반 인증 방식을 지원합니다:
 - `api.WithPassword(user, password)`
 
-{{< callout type="warning" >}}
-**Connection Management**: Always use `defer conn.Close()` to ensure connections are properly released.
-{{< /callout >}}
+> **주의**
+> **연결 관리**: 연결이 제대로 해제되도록 항상 `defer conn.Close()`를 사용하세요.
 
-## Database Operations
+## 데이터베이스 작업
 
-### Single Row Query (QueryRow)
+### 단일 행 조회 (QueryRow)
 
-Use `QueryRow` when you expect exactly one result row. This method is optimized for single-row queries and provides automatic resource cleanup:
+결과가 정확히 한 행일 때 `QueryRow`를 사용하세요. 단일 행 조회에 최적화되어 있고 자원을 자동으로 정리합니다:
 
 ```go
 var name = "tag1"
@@ -115,13 +112,13 @@ fmt.Println("name:", name, "time:", tm, "value:", val)
 ```
 
 **Key Points:**
-- Use parameterized queries with `?` placeholders to prevent SQL injection
-- Always check `row.Err()` before scanning
-- `Scan()` automatically handles type conversion between database and Go types
+- SQL 인젝션을 막기 위해 `?` 자리표시자를 쓰는 파라미터 쿼리를 사용하세요
+- 스캔 전에 항상 `row.Err()`를 확인하세요
+- `Scan()`이 데이터베이스와 Go 타입 간 변환을 자동으로 처리합니다
 
-### Multiple Row Query (Query)
+### 다중 행 조회 (Query)
 
-Use `Query` for retrieving multiple rows. This method returns a `Rows` object that you iterate through:
+여러 행을 가져올 때는 `Query`를 사용하세요. 순회할 수 있는 `Rows` 객체를 반환합니다:
 
 ```go
 var name = "tag1"
@@ -147,13 +144,13 @@ for rows.Next() {
 }
 ```
 
-**Important Notes:**
-- Always use `defer rows.Close()` to prevent resource leaks
-- The iterator pattern with `rows.Next()` is familiar to Go developers
+**중요 참고사항:**
+- 자원 누수를 막기 위해 항상 `defer rows.Close()`를 사용하세요
+- `rows.Next()` 반복자 패턴은 Go 개발자에게 익숙합니다
 
-### Data Modification (Exec)
+### 데이터 변경 (Exec)
 
-Use `Exec` for INSERT, DELETE, and DDL statements. This method returns a result object with execution information:
+INSERT, DELETE, DDL 문에는 `Exec`를 사용하세요. 실행 정보를 담은 결과 객체를 반환합니다:
 
 ```go
 var name = "tag1"
@@ -176,13 +173,13 @@ fmt.Println("Message:", result.Message())
 ```
 
 **Use Cases:**
-- **INSERT**: Adding new records to tables
-- **DELETE**: Removing records
-- **DDL**: Creating/altering tables and indexes
+- **INSERT**: 테이블에 새 레코드 추가
+- **DELETE**: 레코드 삭제
+- **DDL**: 테이블·인덱스 생성 및 변경
 
-### High-Performance Bulk Insert (Appender)
+### 고성능 대량 입력 (Appender)
 
-For high-throughput data insertion, use the `Appender` interface. This provides optimal performance for time-series data ingestion:
+대량 데이터 입력에는 `Appender` 인터페이스를 사용하세요. 시계열 데이터 적재에 최적의 성능을 제공합니다:
 
 ```go
 // IMPORTANT: Dedicate a separate connection for the Appender
@@ -211,7 +208,7 @@ for i := range 10_000 {
 
 **Appender flush**
 
-To flush remaining data from the client buffer to the server over the network:
+클라이언트 버퍼에 남은 데이터를 네트워크로 서버에 플러시하려면:
 
 ```go
 if flusher, ok := apd.(api.Flusher); ok {
@@ -219,23 +216,21 @@ if flusher, ok := apd.(api.Flusher); ok {
 }
 ```
 
-**Appender Best Practices:**
+**Appender 권장 사항:**
 
-{{< callout type="warning" >}}
-**Connection Isolation**: Never use a connection with an active Appender for other database operations. Create a dedicated connection for appending.
-{{< /callout >}}
+> **주의**
+> **연결 분리**: 활성 Appender가 있는 연결을 다른 데이터베이스 작업에 절대 쓰지 마세요. append 전용 연결을 따로 만드세요.
 
-{{< callout type="tip" >}}
-**Performance**: Appenders are designed for time-series workloads and can achieve millions of inserts per second with proper batching.
-{{< /callout >}}
+> **주의**
+> **성능**: Appender는 시계열 워크로드를 위해 설계되었으며 적절한 배치와 함께 초당 수백만 건의 입력을 처리할 수 있습니다.
 
-- **Batch Size**: Appenders automatically handle batching internally
-- **Error Handling**: Check each `Append()` call for errors in critical applications
-- **Resource Cleanup**: Always `Close()` the appender to ensure data is flushed
+- **배치 크기**: Appender가 내부적으로 배치를 자동 처리합니다
+- **오류 처리**: 중요한 애플리케이션에서는 `Append()` 호출마다 오류를 확인하세요
+- **자원 정리**: 데이터가 플러시되도록 appender를 항상 `Close()`하세요
 
-## Complete Example
+## 전체 예제
 
-Here's a complete example demonstrating all the concepts:
+모든 개념을 보여주는 전체 예제입니다:
 
 ```go
 package main
@@ -317,4 +312,4 @@ func main() {
 }
 ```
 
-This example demonstrates the complete workflow from connection establishment to data manipulation, showcasing the power and simplicity of the `machcli` package for Go developers working with Machbase.
+이 예제는 연결 수립부터 데이터 조작까지 전체 흐름을 보여주며, Machbase를 다루는 Go 개발자에게 `machcli` 패키지의 강력함과 단순함을 잘 드러냅니다.

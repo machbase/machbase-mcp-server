@@ -2,19 +2,19 @@
 
 ## HTTP Server
 
-This example demonstrates how to create a simple HTTP server using the `@jsh/http` module.
-The server listens on a specified address and port (`127.0.0.1:56802`)
-and provides a RESTful API endpoint (`/hello/:name`).
-When a client sends a GET request to this endpoint with a name parameter,
-the server responds with a JSON object containing a greeting message and the provided name.
+이 예제는 `@jsh/http` 모듈로 간단한 HTTP 서버를 만드는 방법을 보여줍니다.
+서버는 지정한 주소와 포트(`127.0.0.1:56802`)에서 수신하며
+RESTful API 엔드포인트(`/hello/:name`)를 제공합니다.
+클라이언트가 name 파라미터와 함께 이 엔드포인트로 GET 요청을 보내면,
+서버는 인사 메시지와 전달받은 이름이 담긴 JSON 객체로 응답합니다.
 
-This example is ideal for learning how to build lightweight HTTP servers with dynamic routing and JSON responses in JavaScript.
+JavaScript에서 동적 라우팅과 JSON 응답을 갖춘 가벼운 HTTP 서버를 만드는 법을 익히기에 좋은 예제입니다.
 
-**Key Features:**
+**주요 특징:**
 
-1. **Daemonization**: The script checks if it is running as a daemon using `process.ppid()`. If not, it daemonizes itself using `process.daemonize()` to run in the background.
-2. **Routing**: The server uses a route (`/hello/:name`) to extract the `name` parameter from the URL.
-3. **JSON Response**: The server responds with a JSON object containing the `name` and a greeting message.
+1. **데몬화**: 스크립트가 `process.ppid()`로 데몬으로 실행 중인지 확인하고, 아니면 `process.daemonize()`로 스스로 데몬화해 백그라운드에서 실행합니다.
+2. **라우팅**: 서버가 라우트(`/hello/:name`)로 URL에서 `name` 파라미터를 추출합니다.
+3. **JSON 응답**: 서버가 `name`과 인사 메시지가 담긴 JSON 객체로 응답합니다.
 
 ```js
 const process = require("@jsh/process");
@@ -54,32 +54,32 @@ function runServer() {
 
 **Usage:**
 
-1. Run the script to start the server.
-2. Use a tool like `curl` to send a GET request to the server:
+1. 스크립트를 실행해 서버를 시작합니다.
+2. `curl` 같은 도구로 서버에 GET 요청을 보냅니다:
 
 ```sh
 curl -o - http://127.0.0.1:56802/hello/Karl
 ```
 
-The server will respond with:
+서버는 다음과 같이 응답합니다:
 
 ```json
 {"message":"greetings","name":"Karl"}
 ```
 
-### Unix Domain Socket
+### Unix 도메인 소켓
 
-The Unix Domain Socket example demonstrates how to create an HTTP server that communicates using a Unix domain socket instead of a TCP/IP network socket.
-This approach is useful for inter-process communication (IPC) on the same machine.
+Unix 도메인 소켓 예제는 TCP/IP 네트워크 소켓 대신 Unix 도메인 소켓으로 통신하는 HTTP 서버를 만드는 방법을 보여줍니다.
+같은 장비 안에서의 프로세스 간 통신(IPC)에 유용한 방식입니다.
 
 **Workflow:**
 
-1. *Unix Domain Socket* Communication:
-    - Uses a file-based socket (/tmp/service.sock) for local communication.
-2. Efficient IPC:
-    - Ideal for scenarios where processes on the same machine need to communicate without network overhead.
-3. Compatibility with Tools:
-    - Supports tools like curl for testing and interacting with the server.
+1. *Unix 도메인 소켓* 통신:
+    - 로컬 통신에 파일 기반 소켓(/tmp/service.sock)을 사용합니다.
+2. 효율적인 IPC:
+    - 같은 장비의 프로세스들이 네트워크 부담 없이 통신해야 하는 상황에 적합합니다.
+3. 도구 호환성:
+    - 서버를 테스트하고 다루는 데 curl 같은 도구를 사용할 수 있습니다.
 
 ```js
 const http = require("@jsh/http");
@@ -95,13 +95,13 @@ svr.get("/hello/:name", (ctx) => {
 svr.serve();
 ```
 
-Use curl to send a request to the server via the Unix domain socket:
+curl로 Unix 도메인 소켓을 통해 서버에 요청을 보냅니다:
 
 ```sh
 curl -o - --unix-socket /tmp/service.sock http://localhost/hello/Karl
 ```
 
-### Static Content
+### 정적 콘텐츠
 
 ```js
 svr.staticFile("/readme", "/path/to/file.txt");
@@ -170,10 +170,10 @@ curl -v -o - -X DELETE http://127.0.0.1:56802/movies/12345
 <
 ```
 
-### HTML Templates
+### HTML 템플릿
 
-This line enables the server to load all HTML template files matching the `/*.html` pattern.
-These templates allow the server to dynamically generate HTML responses by combining predefined layouts with data provided during runtime.
+이 줄은 서버가 `/*.html` 패턴에 맞는 모든 HTML 템플릿 파일을 불러오도록 합니다.
+이 템플릿들로 서버는 미리 정의된 레이아웃과 런타임 데이터를 결합해 HTML 응답을 동적으로 생성합니다.
 
 ```js
 svr.loadHTMLGlob("/*.html")
@@ -191,7 +191,7 @@ svr.get("/movielist", ctx => {
 })
 ```
 
-- HTML Template Code `movie_list.html`
+- HTML 템플릿 코드 `movie_list.html`
 
 ```html
 <html>
@@ -206,8 +206,8 @@ svr.get("/movielist", ctx => {
 </html>
 ```
 
-Sends a GET request to the `/movielist` endpoint.
-The server responds with an HTML page generated using the `movie_list.html` template and the `obj` data.
+`/movielist` 엔드포인트로 GET 요청을 보냅니다.
+서버는 `movie_list.html` 템플릿과 `obj` 데이터로 생성한 HTML 페이지로 응답합니다.
 
 ```sh
 curl -o - http://127.0.0.1:56802/movielist
@@ -227,17 +227,17 @@ curl -o - http://127.0.0.1:56802/movielist
 
 ## HTTP Client
 
-This example demonstrates how to create an HTTP client using the `@jsh/http` module.
-The client sends a GET request to a specified URL  and processes the server's response.
-It showcases how to handle HTTP requests and parse JSON responses in JavaScript.
+이 예제는 `@jsh/http` 모듈로 HTTP 클라이언트를 만드는 방법을 보여줍니다.
+클라이언트가 지정한 URL로 GET 요청을 보내고 서버 응답을 처리합니다.
+JavaScript에서 HTTP 요청을 처리하고 JSON 응답을 파싱하는 방법을 보여줍니다.
 
-This example is ideal for learning how to build HTTP clients in JavaScript, handle responses, and parse JSON data.
+JavaScript에서 HTTP 클라이언트를 만들고, 응답을 처리하고, JSON 데이터를 파싱하는 법을 익히기에 좋은 예제입니다.
 
-**Key Features:**
+**주요 특징:**
 
-1. **Request Handling**: The client sends an HTTP GET request to the server.
-2. **Response Parsing**: The response is parsed to extract details such as status, headers, and body content.
-3. **Error Handling**: The example includes a `try-catch` block to handle potential errors during the request.
+1. **요청 처리**: 클라이언트가 서버로 HTTP GET 요청을 보냅니다.
+2. **응답 파싱**: 응답을 파싱해 상태, 헤더, 본문 내용 등을 추출합니다.
+3. **오류 처리**: 요청 중 발생할 수 있는 오류를 처리하기 위해 `try-catch` 블록을 포함합니다.
 
 ```js
 const {println} = require("@jsh/process");
@@ -271,12 +271,12 @@ try {
 
 **Usage:**
 
-1. Ensure the HTTP server is running (refer to the HTTP Server example).
-2. Run the script to send a GET request to the server.
+1. HTTP 서버가 실행 중인지 확인합니다 (HTTP 서버 예제 참고).
+2. 스크립트를 실행해 서버로 GET 요청을 보냅니다.
 
-### Unix Domain Socket
+### Unix 도메인 소켓
 
-Use `{unix: "/path/to/unix_domain_socket/file"}` option to connect server using the unix domain socket.
+Unix 도메인 소켓으로 서버에 연결하려면 `{unix: "/path/to/unix_domain_socket/file"}` 옵션을 사용하세요.
 
 ```js
 const {println} = require("@jsh/process");
@@ -292,9 +292,9 @@ try {
 }
 ```
 
-## MQTT Publisher
+## MQTT 발행자
 
-- Create an application as `mqtt.js`.
+- 애플리케이션을 `mqtt.js`로 만듭니다.
 
 ```js
 const mqtt = require("@jsh/mqtt");
@@ -322,19 +322,19 @@ try {
 } catch (e) {
     log.error("Error:", e.message);
 } finally {
-    client.disconnect({waitForEmptyQueue:true})
+    client.disconnect()
 }
 ```
 
-## MQTT Subscriber
+## MQTT 구독자
 
-The MQTT Subscriber example demonstrates how to create a background application that connects to an MQTT broker,
-subscribes to a specific topic, and processes incoming messages.
-Using the `@jsh/process` and `@jsh/mqtt` modules, the script runs as a daemon, ensuring it operates in the background.
-It handles events such as connection establishment, message reception, and disconnection, showcasing how to build a robust and efficient MQTT client in JavaScript.
-This example is ideal for scenarios requiring real-time message processing and lightweight background operations.
+MQTT 구독자 예제는 MQTT 브로커에 접속해
+특정 토픽을 구독하고 들어오는 메시지를 처리하는 백그라운드 애플리케이션을 만드는 방법을 보여줍니다.
+`@jsh/process`와 `@jsh/mqtt` 모듈을 사용해 스크립트가 데몬으로 실행되어 백그라운드에서 동작합니다.
+연결 수립, 메시지 수신, 연결 종료 같은 이벤트를 처리하며 JavaScript로 견고하고 효율적인 MQTT 클라이언트를 만드는 방법을 보여줍니다.
+실시간 메시지 처리와 가벼운 백그라운드 작업이 필요한 상황에 적합한 예제입니다.
 
-- Create an application as `mqtt-sub.js`.
+- 애플리케이션을 `mqtt-sub.js`로 만듭니다.
 
 ```js
 // This script creates a background MQTT subscriber that connects
@@ -408,23 +408,23 @@ function runBackground() {
         // unsubscribe
         client.unsubscribe({topics:['test/topic']})
         // disconnect
-        client.disconnect({waitForEmptyQueue:true})
+        client.disconnect()
     } catch (e) {
         log.error("Error", e.message);
     }
 }
 ```
 
-## Machbase Client
+## Machbase 클라이언트
 
-This example demonstrates how to connect to another Machbase instance via port 5656 and execute a query.
+이 예제는 포트 5656으로 다른 Machbase 인스턴스에 접속해 쿼리를 실행하는 방법을 보여줍니다.
 
-Set `lowerCaseColumns: true` at line 8 to ensure that the query results use lower-cased property names in the record object, as demonstrated at line 21.
+8번째 줄에서 `lowerCaseColumns: true`를 설정하면 21번째 줄처럼 조회 결과의 레코드 객체가 소문자 속성 이름을 사용합니다.
 
-`sourceSource` supports two formats for historical reasons: the first uses a semi-colon delimiter, while the second uses a space delimiter. Both are equivalent.
+`dataSource`는 과거 호환을 위해 두 가지 형식을 지원합니다. 첫 번째는 세미콜론 구분자, 두 번째는 공백 구분자를 사용하며 둘은 동일합니다.
 
-1. Classic Format: `SERVER=${host};PORT_NO=${port};UID=${user};PWD=${pass}`
-2. Name=Value Format: `host=<ip> port=<port> user=<username> password=<pass>`
+1. 전통 형식: `SERVER=${host};PORT_NO=${port};UID=${user};PWD=${pass}`
+2. Name=Value 형식: `host=<ip> port=<port> user=<username> password=<pass>`
 
 ```js
 db = require("@jsh/db");
@@ -489,11 +489,11 @@ console.log("append:", appender.result());
 // append: {success:100, fail:0}
 ```
 
-## SQLite Client
+## SQLite 클라이언트
 
-This example demonstrates how to use the `@jsh/db` module to interact with an in-memory SQLite database.
-It covers creating a table, inserting data, and querying the database.
-This example is ideal for learning how to perform basic database operations in JavaScript using SQLite.
+이 예제는 `@jsh/db` 모듈로 메모리 내 SQLite 데이터베이스를 다루는 방법을 보여줍니다.
+테이블 생성, 데이터 입력, 조회를 다룹니다.
+JavaScript에서 SQLite로 기본적인 데이터베이스 작업을 하는 법을 익히기에 좋은 예제입니다.
 
 ```js
 const db = require("@jsh/db");
@@ -538,12 +538,12 @@ try{
 }
 ```
 
-When the script is run, it outputs the inserted record:
+스크립트를 실행하면 입력된 레코드가 출력됩니다:
 ```plaintext
 1 Fedel-Gaylord 12
 ```
 
-## PostgreSQL Client
+## PostgreSQL 클라이언트
 
 ```js
 const db = require("@jsh/db");
@@ -587,19 +587,19 @@ try{
 }
 ```
 
-## System Monitoring
+## 시스템 모니터링
 
-### Data Collector
+### 데이터 수집기
 
-The System Monitoring example demonstrates how to create a lightweight system monitoring tool using the `@jsh/process` and `@jsh/psutil` modules.
-This script runs as a background daemon and periodically collects key system metrics, such as CPU usage, memory utilization, and load averages over the past 1, 5, and 15 minutes.
+시스템 모니터링 예제는 `@jsh/process`와 `@jsh/psutil` 모듈로 가벼운 시스템 모니터링 도구를 만드는 방법을 보여줍니다.
+이 스크립트는 백그라운드 데몬으로 실행되며 CPU 사용률, 메모리 사용률, 최근 1·5·15분 부하 평균 같은 주요 시스템 지표를 주기적으로 수집합니다.
 
-The monitoring task is scheduled to execute every 15 seconds using a cron-like syntax.
-The collected data is formatted and printed with timestamps, providing a clear snapshot of the system's performance at regular intervals.
-This example showcases how to leverage JavaScript for efficient process management and real-time system monitoring.
+모니터링 작업은 cron과 유사한 문법으로 15초마다 실행되도록 예약됩니다.
+수집된 데이터는 타임스탬프와 함께 서식화되어 출력되며, 일정 간격으로 시스템 성능의 스냅샷을 제공합니다.
+이 예제는 JavaScript로 효율적인 프로세스 관리와 실시간 시스템 모니터링을 구현하는 방법을 보여줍니다.
 
-Save the example code as `sysmon.js` and execute it through the `JSH` terminal.
-It will store system load averages, CPU usage, and memory utilization percentages into the database table named "EXAMPLE".
+예제 코드를 `sysmon.js`로 저장하고 `JSH` 터미널에서 실행합니다.
+시스템 부하 평균, CPU 사용률, 메모리 사용률을 "EXAMPLE" 테이블에 저장합니다.
 
 ```sh
 jsh / > sysmon
@@ -675,7 +675,7 @@ function runSysmon() {
 
 ### Chart TQL
 
-Since the system usage data is stored in the database, querying and visualizing it becomes straightforward.
+시스템 사용량 데이터가 데이터베이스에 저장되므로 조회와 시각화가 간단해집니다.
 
 ```js
 SQL(`select time, value from EXAMPLE
@@ -701,7 +701,7 @@ CHART(
 )
 ```
 
-### Chart TQL with SCRIPT()
+### SCRIPT()를 사용한 차트 TQL
 
 ```js
 SCRIPT({
@@ -744,9 +744,9 @@ SCRIPT({
 CHART( size("500px", "300px") )
 ```
 
-### Chart TQL in HTML
+### HTML 속 차트 TQL
 
-Save the following HTML code as `sysmon.html` and open it in a web browser to visualize the system monitoring data.
+다음 HTML 코드를 `sysmon.html`로 저장하고 웹 브라우저에서 열면 시스템 모니터링 데이터를 시각화할 수 있습니다.
 
 - sysmon.html
 
@@ -832,14 +832,14 @@ Save the following HTML code as `sysmon.html` and open it in a web browser to vi
 </html>
 ```
 
-### Chart in HTML Template
+### HTML 템플릿 속 차트
 
-This example demonstrates how to create an HTTP server route (`/sysmon`) that serves an HTML page containing a chart.
-The server fetches system monitoring data (e.g., load averages) from a database
-and dynamically generates the chart using the ECharts library.
-The HTML template (`http-sysmon.html`) is populated with the retrieved data,
-allowing for real-time visualization of system metrics such as `load1`, `load5`, and `load15`.
-This approach showcases how to integrate server-side data processing with client-side chart rendering for effective data visualization.
+이 예제는 차트가 포함된 HTML 페이지를 제공하는 HTTP 서버 라우트(`/sysmon`)를 만드는 방법을 보여줍니다.
+서버는 데이터베이스에서 부하 평균 같은 시스템 모니터링 데이터를 가져와
+ECharts 라이브러리로 차트를 동적으로 생성합니다.
+HTML 템플릿(`http-sysmon.html`)에 가져온 데이터가 채워져,
+`load1`, `load5`, `load15` 같은 시스템 지표를 실시간으로 시각화할 수 있습니다.
+이 방식은 서버 측 데이터 처리와 클라이언트 측 차트 렌더링을 결합해 효과적으로 데이터를 시각화하는 방법을 보여줍니다.
 
 - `sysmon-server.js`
 ```js
@@ -928,30 +928,30 @@ function runServer() {
 </html>
 ```
 
-## OPCUA Client
+## OPC UA 클라이언트
 
-The OPCUA Client example demonstrates how to create a data collector that connects to an OPC UA server, retrieves system metrics, and stores them in a database for further analysis and visualization. 
+OPC UA 클라이언트 예제는 OPC UA 서버에 접속해 시스템 지표를 가져오고, 이후 분석·시각화를 위해 데이터베이스에 저장하는 데이터 수집기를 만드는 방법을 보여줍니다. 
 
 **Workflow:**
 
-1. OPC UA Integration:
-    - Connects to an OPC UA server using the `@jsh/opcua` module to read data.
-    - The script connects to an OPC UA server at `opc.tcp://localhost:4840`.
-    - It reads specific nodes (e.g., `cpu_percent`, `mem_percent`, `load1`, etc.) to retrieve system metrics.
-2. Scheduled Data Collection:
-    - Uses a cron-like schedule to periodically fetch data from the OPC UA server.
-    - The script schedules a task to run every 10 seconds using `process.schedule`.
-    - At each interval, it reads the values of the specified nodes and stores them in the database.
-3. Database Storage:
-    - Stores the collected data in a database table (`EXAMPLE`) for persistence and analysis.
-    - The collected data is inserted into the `EXAMPLE` table with columns for `name`, `time`, and `value`.
-4. Data Visualization:
-    - The collected data can be visualized using the chart examples provided in the *System Monitoring* example.
-    - The stored data can be visualized using the chart examples from the *System Monitoring* example. For instance, you can use the provided TQL or HTML chart examples to display metrics like CPU usage, memory utilization, and load averages.
+1. OPC UA 연동:
+    - `@jsh/opcua` 모듈로 OPC UA 서버에 접속해 데이터를 읽습니다.
+    - 스크립트가 `opc.tcp://localhost:4840`의 OPC UA 서버에 접속합니다.
+    - 특정 노드(`cpu_percent`, `mem_percent`, `load1` 등)를 읽어 시스템 지표를 가져옵니다.
+2. 예약된 데이터 수집:
+    - cron과 유사한 일정으로 OPC UA 서버에서 주기적으로 데이터를 가져옵니다.
+    - `process.schedule`로 10초마다 실행되는 작업을 예약합니다.
+    - 매 주기마다 지정한 노드의 값을 읽어 데이터베이스에 저장합니다.
+3. 데이터베이스 저장:
+    - 수집한 데이터를 영속 저장과 분석을 위해 데이터베이스 테이블(`EXAMPLE`)에 저장합니다.
+    - 수집 데이터는 `name`, `time`, `value` 컬럼과 함께 `EXAMPLE` 테이블에 입력됩니다.
+4. 데이터 시각화:
+    - 수집한 데이터는 *시스템 모니터링* 예제의 차트 예제로 시각화할 수 있습니다.
+    - 저장된 데이터는 *시스템 모니터링* 예제의 차트 예제로 시각화할 수 있습니다. 예를 들어 제공된 TQL 또는 HTML 차트 예제로 CPU 사용률, 메모리 사용률, 부하 평균 같은 지표를 표시할 수 있습니다.
 
-### Data Collector
+### 데이터 수집기
 
-Save the script as opcua-client.js and run it in the background using the JSH terminal:
+스크립트를 opcua-client.js로 저장하고 JSH 터미널에서 백그라운드로 실행합니다:
 
 ```
 jsh / > opcua-client
@@ -1017,37 +1017,37 @@ function runClient() {
 }
 ```
 
-### Simulator Server
+### 시뮬레이터 서버
 
-To test `opcua-client.js`, you need a running OPC UA server that provides the necessary system metric nodes.
+`opcua-client.js`를 테스트하려면 필요한 시스템 지표 노드를 제공하는 OPC UA 서버가 실행 중이어야 합니다.
 
-For your convenience, a simulator server is available.
-This simulator mimics a real OPC UA server and provides sample data for nodes
+편의를 위해 시뮬레이터 서버가 제공됩니다.
+이 시뮬레이터는 실제 OPC UA 서버를 모사해 노드에 대한 샘플 데이터를 제공합니다
 such as `sys_cpu`, `sys_mem`, `load1`, `load5`, and `load15`.
 
-Using the simulator allows you to develop and test your data collector and visualization workflows
-without requiring access to a physical OPC UA-enabled device.
+시뮬레이터를 사용하면 실제 OPC UA 장비 없이도
+데이터 수집기와 시각화 작업 흐름을 개발하고 테스트할 수 있습니다.
 
-You can find the simulator server code and setup instructions at the following repository:
+시뮬레이터 서버 코드와 설정 방법은 다음 저장소에서 확인할 수 있습니다:
 
-[https://github.com/machbase/neo-server/tree/main/mods/jsh/opcua/test_server](https://github.com/machbase/neo-server/tree/main/mods/jsh/opcua/test_server)
+https://github.com/machbase/neo-server/tree/main/mods/jsh/opcua/test_server
 
-Simply follow the instructions in the repository to start the simulator server before running your `opcua-client.js` script.
-This will ensure that your OPC UA client can successfully connect and collect data for testing and demonstration purposes.
+`opcua-client.js` 스크립트를 실행하기 전에 저장소의 안내를 따라 시뮬레이터 서버를 시작하세요.
+그러면 테스트와 시연을 위해 OPC UA 클라이언트가 정상적으로 접속해 데이터를 수집할 수 있습니다.
 
 ## Statistics
 
-The following TQL example demonstrates how to use the JSH `@jsh/analysis` module to perform basic statistical analysis on an array of numbers.
-This example calculates and outputs common statistics such as the mean, median, variance, and standard deviation,
-which are essential for understanding the distribution and spread of your data.
+다음 TQL 예제는 JSH `@jsh/analysis` 모듈로 숫자 배열에 기본 통계 분석을 수행하는 방법을 보여줍니다.
+이 예제는 평균, 중앙값, 분산, 표준편차 같은 일반적인 통계를 계산해 출력하며,
+이는 데이터의 분포와 퍼짐을 이해하는 데 필수적입니다.
 
-- An array of sample values is defined.
-- The script uses functions from the `@jsh/analysis` module to compute:
-  - **Mean**: The average value of the dataset.
-  - **Variance**: A measure of how much the values differ from the mean.
-  - **Standard Deviation**: The square root of the variance, indicating the spread of the data.
-  - **Median**: The middle value when the data is sorted.
-- Results are output using `$.yield()` for each statistic, making them available for further processing or export (e.g., as CSV).
+- 샘플 값 배열을 정의합니다.
+- 스크립트가 `@jsh/analysis` 모듈의 함수로 다음을 계산합니다:
+  - **평균(Mean)**: 데이터셋의 평균값.
+  - **분산(Variance)**: 값들이 평균에서 얼마나 떨어져 있는지를 나타내는 척도.
+  - **표준편차(Standard Deviation)**: 분산의 제곱근으로 데이터의 퍼짐을 나타냅니다.
+  - **중앙값(Median)**: 데이터를 정렬했을 때의 가운데 값.
+- 각 통계 결과를 `$.yield()`로 출력해 이후 처리나 내보내기(예: CSV)에 사용할 수 있게 합니다.
 
 ```js
 SCRIPT({

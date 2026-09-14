@@ -2,7 +2,7 @@
 
 ## Avg
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { arrange } = require("@jsh/generator");
@@ -19,7 +19,7 @@ for( x of arrange(10, 30, 10) ) {
 
 ## MovAvg
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { linspace } = require("@jsh/generator");
@@ -42,7 +42,7 @@ for( x of linspace(0, 100, 100) ) {
 
 ## Lowpass
 
-**Usage example**
+**사용 예제**
 
 ```js
 const { arrange, Simplex } = require("@jsh/generator");
@@ -69,7 +69,7 @@ for( x of arrange(1, 10, 1) ) {
 
 ## Kalman
 
-**Usage example**
+**사용 예제**
 
 ```js
 const m = require("@jsh/filter");
@@ -89,7 +89,7 @@ for( x of [1.3, 10.2, 5.0, 3.4] ) {
 
 ## KalmanSmoother
 
-**Usage example**
+**사용 예제**
 
 ```js
 const m = require("@jsh/filter");
@@ -106,7 +106,7 @@ for( x of [1.3, 10.2, 5.0, 3.4] ) {
 // 2.70
 ```
 
-## Kalman Filter vs. Smoother
+## 칼만 필터 vs. 스무더
 
 ```js
 SCRIPT({

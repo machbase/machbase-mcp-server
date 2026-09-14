@@ -1,116 +1,116 @@
 # Machbase Neo Bar Chart
 
-## Quick Reference
+## 빠른 참조
 
-### TQL Pipeline Structure
+### TQL 파이프라인 구조
 
-TQL operates in a **data flow (pipeline)** manner:
+TQL은 **데이터 흐름(파이프라인)** 방식으로 동작합니다:
 
 ```
-SRC (Data Source) → MAP (Transform) → SINK (Output)
+SRC (데이터 소스) → MAP (변환) → SINK (출력)
 ```
 
 ---
 
-### SRC - Data Sources
+### SRC - 데이터 소스
 
-Functions that **generate or fetch data** (pipeline start)
+**데이터를 생성하거나 가져오는** 함수 (파이프라인 시작)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `FAKE()` | Generate test data | `FAKE(linspace(0, 100, 10))` |
-| `SQL()` | Database query | `SQL('SELECT time, value FROM example')` |
-| `CSV()` | Read CSV file | `CSV(file('/path/to/data.csv'))` |
-| `SCRIPT()` | JavaScript code | `SCRIPT({ $.yield(1, 2, 3) })` |
+| `FAKE()` | 테스트 데이터 생성 | `FAKE(linspace(0, 100, 10))` |
+| `SQL()` | 데이터베이스 쿼리 | `SQL('SELECT time, value FROM example')` |
+| `CSV()` | CSV 파일 읽기 | `CSV(file('/path/to/data.csv'))` |
+| `SCRIPT()` | JavaScript 코드 | `SCRIPT({ $.yield(1, 2, 3) })` |
 
 ---
 
-### MAP - Data Transformation
+### MAP - 데이터 변환
 
-Functions that **process and transform data** (pipeline middle)
+**데이터를 가공하고 변환하는** 함수 (파이프라인 중간)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `MAPVALUE()` | Add/modify column | `MAPVALUE(1, value(0) * 2)` |
-| `MAPKEY()` | Modify key | `MAPKEY(strUpper(key()))` |
-| `PUSHVALUE()` | Insert column at front | `PUSHVALUE(0, "new_value")` |
-| `POPVALUE()` | Remove column | `POPVALUE(2)` |
-| `GROUP()` | Group/aggregate | `GROUP(by(value(0)), avg(value(1)))` |
+| `MAPVALUE()` | 컬럼 추가/수정 | `MAPVALUE(1, value(0) * 2)` |
+| `MAPKEY()` | 키 수정 | `MAPKEY(strUpper(key()))` |
+| `PUSHVALUE()` | 앞쪽에 컬럼 삽입 | `PUSHVALUE(0, "new_value")` |
+| `POPVALUE()` | 컬럼 제거 | `POPVALUE(2)` |
+| `GROUP()` | 그룹화/집계 | `GROUP(by(value(0)), avg(value(1)))` |
 
 ---
 
-### SINK - Data Output
+### SINK - 데이터 출력
 
-Functions that **output or save data** (pipeline end)
+**데이터를 출력하거나 저장하는** 함수 (파이프라인 끝)
 
-| Function | Purpose | Example |
+| 함수 | 용도 | 예시 |
 |----------|---------|---------|
-| `CHART()` | Create chart | `CHART(chartOption({...}))` |
-| `CSV()` | CSV output | `CSV()` |
-| `JSON()` | JSON output | `JSON()` |
-| `INSERT()` | DB insert | `INSERT(...)` |
+| `CHART()` | 차트 생성 | `CHART(chartOption({...}))` |
+| `CSV()` | CSV 출력 | `CSV()` |
+| `JSON()` | JSON 출력 | `JSON()` |
+| `INSERT()` | DB 입력 | `INSERT(...)` |
 | `APPEND()` | DB append | `APPEND(table('example'))` |
 
 ---
 
-### CHART() Function Basic Usage
+### CHART() 함수 기본 사용법
 
-**Syntax**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
+**문법**: `CHART(chartOption() [,size()] [, theme()] [, chartJSCode()])`
 
-*Available since version 8.0.8*
+*버전 8.0.8부터 사용 가능*
 
-#### Main Options
+#### 주요 옵션
 
 **chartOption()**
 - `chartOption( { json in apache echarts options } )`
-- Pass Apache ECharts options in JSON format.
+- Apache ECharts 옵션을 JSON 형식으로 전달합니다.
 
 **size()**
 - `size(width, height)`
-- `width` *string* Chart width in HTML syntax e.g., `'800px'`
-- `height` *string* Chart height in HTML syntax e.g., `'800px'`
+- `width` *string* HTML 문법의 차트 너비, 예: `'800px'`
+- `height` *string* HTML 문법의 차트 높이, 예: `'800px'`
 
 **theme()**
 - `theme(name)`
-- `name` *string* Theme name
-- Available themes: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
+- `name` *string* 테마 이름
+- 사용 가능한 테마: `white`, `dark`, `chalk`, `essos`, `infographic`, `macarons`, `purple-passion`, `roma`, `romantic`, `shine`, `vintage`, `walden`, `westeros`, `wonderland`
 
 **chartJSCode()**
 - `chartJSCode( { user javascript code } )`
-- Execute custom JavaScript code.
+- 사용자 정의 JavaScript 코드를 실행합니다.
 
 ---
 
-### Key Functions
+### 핵심 함수
 
 #### value(index)
-Access values of the **current record** (used in pipeline middle)
+**현재 레코드**의 값에 접근합니다 (파이프라인 중간에서 사용)
 
-- `value(0)` = First value of current record
-- `value(1)` = Second value of current record
-- `value()` = Entire value array
+- `value(0)` = 현재 레코드의 첫 번째 값
+- `value(1)` = 현재 레코드의 두 번째 값
+- `value()` = 값 배열 전체
 
 ---
 
 #### column(index)
-Collect specific column from **all records** as array (CHART() only)
+**모든 레코드**에서 특정 컬럼을 배열로 모읍니다 (CHART() 전용)
 
-- `column(0)` = First values from all records → array
-- `column(1)` = Second values from all records → array
-- **⚠️ Only usable inside CHART()**
+- `column(0)` = 모든 레코드의 첫 번째 값 → 배열
+- `column(1)` = 모든 레코드의 두 번째 값 → 배열
+- **⚠️ CHART() 안에서만 사용 가능**
 
-**Comparison**:
+**비교**:
 
-| Function | Location | Returns | Example |
+| 함수 | 사용 위치 | 반환 | 예시 |
 |----------|----------|---------|---------|
-| `value(0)` | Pipeline middle | Single value | `10` |
-| `column(0)` | Inside CHART() | Array | `[1,2,3]` |
+| `value(0)` | 파이프라인 중간 | 단일 값 | `10` |
+| `column(0)` | CHART() 내부 | 배열 | `[1,2,3]` |
 
 ---
 
-## 1. Basic Bar Chart
+## 1. 기본 막대 차트
 
-Basic bar chart example.
+기본 막대 차트 예제입니다.
 
 ```js
 FAKE( linspace(0, 360, 50))
@@ -126,13 +126,13 @@ CHART(
 )
 ```
 
-**Description**: Visualize sine function as a bar chart.
+**설명**: 사인 함수를 막대 차트로 시각화합니다.
 
 ---
 
-## 2. Category Bar (GROUP-by-lazy)
+## 2. 카테고리 막대 (GROUP-by-lazy)
 
-Grouped bar chart by category.
+카테고리별로 묶은 막대 차트입니다.
 
 ```js
 FAKE( json({
@@ -185,13 +185,13 @@ CHART(
 )
 ```
 
-**Description**: Grouped bar chart comparing population data by country for 2011 and 2022.
+**설명**: 2011년과 2022년의 국가별 인구 데이터를 비교하는 그룹 막대 차트입니다.
 
 ---
 
-## 3. Tangential Polar Bar
+## 3. 접선형 극좌표 막대
 
-Bar chart using polar coordinate system.
+극좌표계를 사용하는 막대 차트입니다.
 
 ```js
 FAKE( json({
@@ -227,13 +227,13 @@ CHART(
 )
 ```
 
-**Description**: Chart with bars arranged in a circular pattern using polar coordinates.
+**설명**: 극좌표를 사용해 막대를 원형으로 배치한 차트입니다.
 
 ---
 
-## 4. Bar Chart with Negative Values
+## 4. 음수 값이 있는 막대 차트
 
-Bar chart including negative values.
+음수 값을 포함하는 막대 차트입니다.
 
 ```js
 FAKE(csv(`day,profit,income,expenses
@@ -325,13 +325,13 @@ CHART(
 )
 ```
 
-**Description**: Chart showing profit, income, and expenses with negative values (expenses) displayed in stacked format.
+**설명**: 이익·수입·지출을 보여주는 차트로, 음수 값(지출)을 누적 형식으로 표시합니다.
 
 ---
 
-## 5. Stacked Bar Normalization (Percentage)
+## 5. 누적 막대 정규화 (백분율)
 
-Stacked bar chart normalized to percentages.
+백분율로 정규화한 누적 막대 차트입니다.
 
 ```js
 FAKE(json({
@@ -379,13 +379,13 @@ CHART(
 )
 ```
 
-**Description**: Normalized stacked chart displaying each category's proportion as a percentage.
+**설명**: 각 카테고리의 비중을 백분율로 표시하는 정규화 누적 차트입니다.
 
 ---
 
-## 6. Large Scale Bar Chart (500,000 Data)
+## 6. 대규모 막대 차트 (50만 건)
 
-Bar chart handling large-scale data.
+대규모 데이터를 다루는 막대 차트입니다.
 
 ```js
 FAKE(linspace(0,1,1))
@@ -477,13 +477,13 @@ CHART(
 )
 ```
 
-**Description**: Large-scale chart efficiently rendering 500,000 data points. Zoom in/out functionality available with `dataZoom`.
+**설명**: 50만 개 데이터 포인트를 효율적으로 렌더링하는 대규모 차트입니다. `dataZoom`으로 확대·축소할 수 있습니다.
 
 ---
 
 ## 7. Bar Race
 
-Animated bar chart that changes over time.
+시간에 따라 변화하는 애니메이션 막대 차트입니다.
 
 ```js
 CSV( file("https://docs.machbase.com/assets/example/life-expectancy-table.csv") )
@@ -651,4 +651,4 @@ CHART(
 )
 ```
 
-**Description**: Bar race chart showing life expectancy data by country in chronological animation. Uses external CSV file and country flag emojis.
+**설명**: 국가별 기대수명 데이터를 시간순 애니메이션으로 보여주는 바 레이스 차트입니다. 외부 CSV 파일과 국기 이모지를 사용합니다.

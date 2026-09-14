@@ -1,29 +1,29 @@
 # Machbase Neo Security Guide
 
-## Generates Key & Token
+## 키와 토큰 생성
 
 ### Web UI
 
-1. Select the menu icon from the left most side.
+1. 가장 왼쪽의 메뉴 아이콘을 선택합니다.
 
-2. And Click `+` icon from the top left pane.
+2. 그리고 좌측 상단 창에서 `+` 아이콘을 클릭합니다.
 
-3. Set "Client Id" for unique name and set the valid period (default is 3 years from today).
-Then click "Generate" to generates key files for the client.
+3. 고유한 이름으로 "Client Id"를 지정하고 유효 기간을 설정합니다(기본값은 오늘부터 3년).
+그다음 "Generate"를 눌러 클라이언트용 키 파일을 생성합니다.
 
-4. Click "Download *.zip" button or copy & paste each file's content. This is not re-generatable and only chance to make a copy.
+4. "Download *.zip" 버튼을 누르거나 각 파일 내용을 복사해 둡니다. 재생성이 불가능하므로 이때만 사본을 만들 수 있습니다.
 
-### Shell Command
+### 셸 명령
 
-The subcommand `machbase-neo shell key` manages client keys and tokens.
+하위 명령 `machbase-neo shell key`는 클라이언트 키와 토큰을 관리합니다.
 
-**List registered client authentication keys and tokens**
+**등록된 클라이언트 인증 키와 토큰 목록**
 
 ```
 machbase-neo shell key list
 ```
 
-List all pre-registered client-id and validation periods.
+미리 등록된 모든 client-id와 유효 기간을 나열합니다.
 
 ```
 $ machbase-neo shell key list
@@ -35,7 +35,7 @@ $ machbase-neo shell key list
 ......
 ```
 
-**Delete an existing client authentication key and token**
+**기존 클라이언트 인증 키와 토큰 삭제**
 
 ```
 machbase-neo shell key del <client-id>
@@ -46,16 +46,16 @@ $ machbase-neo shell key del myid2
 deleted
 ```
 
-**Register new client authentication keys and tokens**
+**새 클라이언트 인증 키와 토큰 등록**
 
-`machbase-neo shell key gen` subcommand generates new key pair and token for the given client-id.
-It writes keys and token into the file that you specify by `--output` option.
+`machbase-neo shell key gen` 하위 명령은 주어진 client-id에 대해 새 키 쌍과 토큰을 생성합니다.
+`--output` 옵션으로 지정한 파일에 키와 토큰을 기록합니다.
 
 ```
 machbase-neo shell key gen <client-id> --output <output_file>
 ```
 
-Generate and register new key for the client-id `myapp01`. It stores the generated key and token to the `*_cert.pem`, `*_key.pem` and `*_token` files.
+client-id `myapp01`에 대해 새 키를 생성하고 등록합니다. 생성된 키와 토큰은 `*_cert.pem`, `*_key.pem`, `*_token` 파일에 저장됩니다.
 
 ```
 $ machbase-neo shell key gen myapp01 --output ./myapp01 
@@ -64,7 +64,7 @@ Save private key ./myapp01_key.pem
 Save token ./myapp01_token
 ```
 
-Check the generated files.
+생성된 파일을 확인합니다.
 
 ```
 $ ls -al ./myapp01*
@@ -73,37 +73,37 @@ $ ls -al ./myapp01*
 -rw-------  1 eirny  staff   81 Feb 20 19:33 ./myapp01_token
 ```
 
-- `*_cert.pem` file is the X.509 certificate for the client which is signed by the server.
-- `*_key.pem` file is the private key for the client.
-- `*_token` file contains token string for the client.
+- `*_cert.pem` 파일은 서버가 서명한 클라이언트용 X.509 인증서입니다.
+- `*_key.pem` 파일은 클라이언트의 개인 키입니다.
+- `*_token` 파일에는 클라이언트용 토큰 문자열이 들어 있습니다.
 
-For the token based authentication, see the content of the `*_token` file.
+토큰 기반 인증에는 `*_token` 파일의 내용을 사용합니다.
 
 ```
 $ cat ./myapp01_token 
 myapp01:b:d59310703c1ebf627f8b781fb50437326ec65b067257ebc72f07b12846761d17   
 ```
 
-**Server Certificate**
+**서버 인증서**
 
-To retrieve server's certificate, execute command `machbase-neo key server-key --output <path>`, it export server's certificate into the file that specified the path.
+서버 인증서를 얻으려면 `machbase-neo key server-key --output <path>` 명령을 실행하세요. 지정한 경로의 파일로 서버 인증서를 내보냅니다.
 
 ```
 machbase-neo shell key server-cert --output ./machbase-neo.crt
 ```
 
-## HTTP Token authentication
+## HTTP 토큰 인증
 
-HTTP API of machbase-neo supports the token based authentication.
+machbase-neo의 HTTP API는 토큰 기반 인증을 지원합니다.
 
-Enable it by specifying `--http-enable-token-auth true` command line option or set `EnableTokenAuth = true` in the config file.
-When you launching server with the option, all HTTP API invocations requires `Authorization` header with pre-registered token.
+`--http-enable-token-auth true` 명령행 옵션을 지정하거나 설정 파일에서 `EnableTokenAuth = true`로 설정해 활성화합니다.
+이 옵션으로 서버를 실행하면 모든 HTTP API 호출에 미리 등록된 토큰이 담긴 `Authorization` 헤더가 필요합니다.
 
 ```
 machbase-neo serve --http-enable-token-auth true
 ```
 
-The starting log shows HTTP token authentication is enabled.
+시작 로그에 HTTP 토큰 인증이 활성화되었다고 표시됩니다.
 
 ```
 ......
@@ -112,9 +112,9 @@ The starting log shows HTTP token authentication is enabled.
 ......
 ```
 
-### HTTP Client using token
+### 토큰을 사용하는 HTTP 클라이언트
 
-Let's use the token for API authentication. Set `Authorization` bearer header with the content of token file.
+이 토큰으로 API 인증을 해 봅시다. 토큰 파일의 내용으로 `Authorization` bearer 헤더를 설정합니다.
 
 ```
 curl --output - http://127.0.0.1:5654/db/query \
@@ -138,7 +138,7 @@ curl --output - http://127.0.0.1:5654/db/query \
 }
 ```
 
-Let's try without the `Authorization` header, or wrong token.
+이번에는 `Authorization` 헤더 없이, 또는 잘못된 토큰으로 시도해 봅시다.
 
 ```
 curl --output - http://127.0.0.1:5654/db/query \
@@ -146,24 +146,24 @@ curl --output - http://127.0.0.1:5654/db/query \
     -H "Authorization: Bearer http-api-app01:b:intended-wrong-value"
 ```
 
-If client provides an invalid token, the server responses `HTTP/1.1 401 Unauthorized` with an error json message below.
+클라이언트가 유효하지 않은 토큰을 보내면 서버는 아래와 같은 오류 json 메시지와 함께 `HTTP/1.1 401 Unauthorized`로 응답합니다.
 
 ```json
 {"success":false,"reason":"invalid token"}
 ```
 
-## MQTT Token authentication
+## MQTT 토큰 인증
 
-MQTT API of machbase-neo supports the token based authentication.
+machbase-neo의 MQTT API는 토큰 기반 인증을 지원합니다.
 
-Enable it by specifying `--mqtt-enable-token-auth true` command line option or set `EnableTokenAuth = true` in the config file.
-When you launching server with this option, MQTT CONNECT message requires `client-id`, `username` with pre-registered id and token.
+`--mqtt-enable-token-auth true` 명령행 옵션을 지정하거나 설정 파일에서 `EnableTokenAuth = true`로 설정해 활성화합니다.
+이 옵션으로 서버를 실행하면 MQTT CONNECT 메시지에 미리 등록된 id와 토큰을 담은 `client-id`, `username`이 필요합니다.
 
 ```
 machbase-neo serve --mqtt-enable-token-auth true
 ```
 
-The starting log shows MQTT token authentication is enabled.
+시작 로그에 MQTT 토큰 인증이 활성화되었다고 표시됩니다.
 
 ```
 ......
@@ -172,9 +172,9 @@ The starting log shows MQTT token authentication is enabled.
 ......
 ```
 
-### MQTT client using token
+### 토큰을 사용하는 MQTT 클라이언트
 
-Use the registered token as the `username` in the CONNECT message, and leave the `password` field empty.
+CONNECT 메시지의 `username`에 등록된 토큰을 넣고 `password` 필드는 비워 둡니다.
 
 ```
 mosquitto_pub -h 127.0.0.1 -p 5653 \
@@ -183,7 +183,7 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
     -m '[ "wave.pi", `date +%s000000000`, 3.1415]'
 ```
 
-If a client does not provide the correct token in the `username` field, the server will reject the CONNECT message.
+클라이언트가 `username` 필드에 올바른 토큰을 넣지 않으면 서버는 CONNECT 메시지를 거부합니다.
 
 ```
 mosquitto_pub -h 127.0.0.1 -p 5653 -t db/write/EXAMPLE \
@@ -193,20 +193,20 @@ Connection error: Connection Refused: not authorized.
 Error: The connection was refused.
 ```
 
-## MQTT X.509 authentication
+## MQTT X.509 인증
 
-When machbase-neo starts with `--mqtt-enable-tls true` command line option or set `Tls.Enabled = true` in the configurationfile,
-machbase-neo accepts TLS (a.k.a SSL) connections from clients. 
-If TLS is enabled, it ignores token based authentication and accepts only connection that finished ssl-handshaking successfully 
-with pre-registered X.509 certificates.
+machbase-neo를 `--mqtt-enable-tls true` 명령행 옵션으로 시작하거나 설정 파일에서 `Tls.Enabled = true`로 설정하면,
+machbase-neo는 클라이언트로부터 TLS(SSL) 연결을 받습니다. 
+TLS가 활성화되면 토큰 기반 인증은 무시되고, 미리 등록된 X.509 인증서로 ssl 핸드셰이크를 성공적으로 마친 
+연결만 허용됩니다.
 
-> When TLS option is applied, machbase-neo mqtt server ignores `username` and `password` fields of CONNECT message.
-> Do not specify those values. But still need to set `client-id` for the clarity.
+> TLS 옵션이 적용되면 machbase-neo mqtt 서버는 CONNECT 메시지의 `username`과 `password` 필드를 무시합니다.
+> 이 값들은 지정하지 마세요. 다만 명확성을 위해 `client-id`는 여전히 설정해야 합니다.
 
-### MQTT client using X.509
+### X.509를 사용하는 MQTT 클라이언트
 
-A client should use the pre-registered client-id and key and certificate those were generated as the above section.
-Apply client-id for the `client-id` of CONNECT message and do not set the `username` and `password`.
+클라이언트는 위 절에서 생성한, 미리 등록된 client-id와 키, 인증서를 사용해야 합니다.
+CONNECT 메시지의 `client-id`에 client-id를 지정하고 `username`과 `password`는 설정하지 않습니다.
 
 ```sh
 mosquitto_pub -h 127.0.0.1 -p 5653 \
@@ -218,17 +218,17 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
     -m '[ "wave.pi", `date +%s000000000`, 3.1415]'
 ```
 
-- `--id` apply `client-id` that was used for generating key
-- `--cert` client's certificate file which was generated as `*_cert.pem`
-- `--key` client's key file that was generated as `*_key.pem`
-- `--cafile` set server's certificate since the client's certificate is signed by server. see below to know how to get this file.
-- `--insecure` additionally required because server's certificate is self-signed one.
+- `--id` 키 생성에 사용한 `client-id`를 지정
+- `--cert` `*_cert.pem`으로 생성된 클라이언트 인증서 파일
+- `--key` `*_key.pem`으로 생성된 클라이언트 키 파일
+- `--cafile` 클라이언트 인증서가 서버에 의해 서명되었으므로 서버 인증서를 지정합니다. 이 파일을 얻는 방법은 아래를 참고하세요.
+- `--insecure` 서버 인증서가 자체 서명되어 있으므로 추가로 필요합니다.
 
 ---
 
-## Security Configuration Summary
+## 보안 설정 요약
 
-| Authentication Method | Activation Option | Usage Example |
+| 인증 방식 | 활성화 옵션 | 사용 예 |
 |----------------------|-------------------|---------------|
 | HTTP Token | `--http-enable-token-auth true` | curl -H "Authorization: Bearer token" |
 | MQTT Token | `--mqtt-enable-token-auth true` | mosquitto_pub --username token |

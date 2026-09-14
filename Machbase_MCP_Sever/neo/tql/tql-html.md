@@ -1,18 +1,18 @@
 # Machbase Neo TQL HTML
 
-The `HTML()` SINK generates an HTML document or an element as output, using the provided template language for formatting. This allows you to fully customize the structure and appearance of the HTML output based on your query results.
+`HTML()` SINK은 제공된 템플릿 언어로 서식을 적용해 HTML 문서나 요소를 출력으로 생성합니다. 이를 통해 쿼리 결과를 바탕으로 HTML 출력의 구조와 모양을 자유롭게 구성할 수 있습니다.
 
-**Syntax**: `HTML(templates...)`
+**문법**: `HTML(templates...)`
 
-*Version 8.0.53 or later*
+*버전 8.0.53 이상*
 
-**Parameters**:
-- `templates`: One or more template strings or `file(path)` references. Each argument can be a direct template string or a file path using `file(path)` to load the template from a file. The template content uses the Go HTML template language. For more information, see the [template documentation](https://pkg.go.dev/html/template).
-- `cache()`: Cache result data. See Cache Result Data for details.
+**파라미터**:
+- `templates`: 하나 이상의 템플릿 문자열 또는 `file(path)` 참조입니다. 각 인자는 템플릿 문자열을 직접 주거나, `file(path)`로 파일에서 템플릿을 불러올 수 있습니다. 템플릿 내용은 Go HTML 템플릿 언어를 사용합니다. 자세한 내용은 템플릿 문서를 참고하세요.
+- `cache()`: 결과 데이터를 캐시합니다. 자세한 내용은 결과 데이터 캐시 항목을 참고하세요.
 
-Within the template, you have access to a value object that exposes the current record's field values and row number. The following fields and properties are available within the HTML template context:
+템플릿 안에서는 현재 레코드의 필드 값과 행 번호를 노출하는 value 객체에 접근할 수 있습니다. HTML 템플릿 컨텍스트에서 사용할 수 있는 필드와 속성은 다음과 같습니다.
 
-## Methods
+## 메서드
 
 - `{{ .Columns }}`
 - `{{ .Column <idx>}}`
@@ -26,17 +26,17 @@ Within the template, you have access to a value object that exposes the current 
 - `{{ .V.<field> }}`
 - `{{ .Num }}`
 
-## Functions
+## 함수
 
 ### timeformat
 
-**Syntax**
+**문법**
 
 ```
 {{ timeformat <format> <timezone> }}
 ```
 
-**Usage Example**
+**사용 예제**
 
 ```html
 SCRIPT({
@@ -49,7 +49,7 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <li>2025-05-29T08:32:33Z
@@ -58,7 +58,7 @@ HTML({
 
 ### format
 
-**Usage Example**
+**사용 예제**
 
 ```html
 SCRIPT({
@@ -70,7 +70,7 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <li> 3.14
@@ -89,9 +89,9 @@ HTML({
 })
 ```
 
-**Note**: Invoke the TQL script with parameters `?param=Line`.
+**참고**: TQL 스크립트를 `?param=Line` 파라미터와 함께 호출합니다.
 
-**Output:**
+**출력:**
 
 ```html
 <li> Line 3.1415
@@ -110,7 +110,7 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <li> Line1 3.1415
@@ -129,7 +129,7 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <li> 3.14
@@ -148,18 +148,18 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <li> 3.14
 <li> Say: HELLO WORLD?
 ```
 
-## Usage Examples
+## 사용 예제
 
-### Using .V (Field Map)
+### .V 사용 (필드 맵)
 
-`.V` is a map object containing field names as keys and their corresponding values.
+`.V`는 필드 이름을 키로, 해당 값을 값으로 갖는 맵 객체입니다.
 
 ```html
 SQL(`SELECT NAME, TIME, VALUE FROM EXAMPLE LIMIT 5`)
@@ -191,9 +191,9 @@ HTML({
 })
 ```
 
-### Using .Value (Index Access)
+### .Value 사용 (인덱스 접근)
 
-`.Value` is a function that accesses the fields of the current record by their index.
+`.Value`는 현재 레코드의 필드를 인덱스로 접근하는 함수입니다.
 
 ```html
 FAKE( csv(`
@@ -222,9 +222,9 @@ HTML({
 })
 ```
 
-### Using .Values (Array Access)
+### .Values 사용 (배열 접근)
 
-`.Values` is an array containing all field values of the current record.
+`.Values`는 현재 레코드의 모든 필드 값을 담은 배열입니다.
 
 ```html
 FAKE( csv(`
@@ -253,13 +253,13 @@ HTML({
 })
 ```
 
-## Context-Aware Escaping
+## 컨텍스트 인식 이스케이핑
 
-The template understands HTML, CSS, JavaScript and URIs. It adds sanitizing functions to each simple action pipeline, so given the excerpt.
+템플릿은 HTML, CSS, JavaScript, URI를 이해합니다. 각 단순 액션 파이프라인에 살균(sanitizing) 함수를 자동으로 추가합니다.
 
-Each `{{.Value 0}}`, `{{.Value 1}}`, and `{{.Value 2}}` is overwritten to add escaping functions as necessary.
+`{{.Value 0}}`, `{{.Value 1}}`, `{{.Value 2}}` 각각에 필요한 이스케이프 함수가 덧붙여집니다.
 
-**Example:**
+**예제:**
 
 ```html
 SCRIPT({
@@ -281,7 +281,7 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <li>
@@ -296,11 +296,11 @@ HTML({
 </li>
 ```
 
-### HTML Context Escaping
+### HTML 컨텍스트 이스케이핑
 
-Assuming `{{.Value 0}}` is `O'Reilly: How are <i>you</i>?`, the examples below show how `{{.Value 0}}` appears when used in contexts.
+`{{.Value 0}}`이 `O'Reilly: How are <i>you</i>?`라고 할 때, 컨텍스트별로 어떻게 표시되는지 아래 예제에서 확인할 수 있습니다.
 
-**In HTML Body:**
+**HTML 본문에서:**
 
 ```html
 SCRIPT({ $.yield(`O'Reilly: How are <i>you</i>?`) })
@@ -312,7 +312,7 @@ HTML({
 //  O&#39;Reilly: How are &lt;i&gt;you&lt;/i&gt;?
 ```
 
-**In URL Parameter:**
+**URL 파라미터에서:**
 
 ```html
 SCRIPT({ $.yield(`O'Reilly: How are <i>you</i>?`) })
@@ -322,7 +322,7 @@ HTML(`<a href="/path?p={{.ValueHTML 0}}">`)
 //  <a href="/path?p=O%27Reilly%3a%20How%20are%20%3ci%3eyou%3c%2fi%3e%3f">
 ```
 
-**In JavaScript Context:**
+**JavaScript 컨텍스트에서:**
 
 ```html
 SCRIPT({ $.yield(`O'Reilly: How are <i>you</i>?`) })
@@ -332,7 +332,7 @@ HTML(`<a onx='f("{{.Value 0}}")'>`)
 //  <a onx="f('O\u0027Reilly: How are \u003ci\u003eyou\u003c\/i\u003e?')">
 ```
 
-**JavaScript Function Example:**
+**JavaScript 함수 예제:**
 
 ```html
 SCRIPT({ $.yield(`Hello World?`, `function doMsg(msg){ console.log(msg); }`) })
@@ -350,9 +350,9 @@ HTML({
 // <a onClick='doMsg("Hello World?")'>here</a>
 ```
 
-### Non-String Values in JavaScript
+### JavaScript에서 문자열이 아닌 값
 
-Non-string values can be used in JavaScript contexts. If the record is an object:
+JavaScript 컨텍스트에서는 문자열이 아닌 값도 사용할 수 있습니다. 레코드가 객체인 경우:
 
 ```html
 SCRIPT({
@@ -363,21 +363,21 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 <script>var pair = {"A":"foo","B":"bar"};</script>
 ```
 
-## Unescaped Strings
+## 이스케이프하지 않는 문자열
 
-By default, the template assumes that all pipelines produce a plain text string. It adds escaping pipeline stages necessary to correctly and safely embed that plain text string in the appropriate context.
+기본적으로 템플릿은 모든 파이프라인이 평문 문자열을 생성한다고 가정합니다. 그 평문을 해당 컨텍스트에 정확하고 안전하게 삽입하기 위해 필요한 이스케이프 단계를 추가합니다.
 
-When a data value is not plain text, you can make sure it is not over-escaped by marking it with its type.
+데이터 값이 평문이 아닐 때는 타입을 표시해 과도한 이스케이프를 막을 수 있습니다.
 
-Types HTML, JS, URL, and others can carry safe content that is exempted from escaping.
+HTML, JS, URL 등의 타입은 이스케이프에서 제외되는 안전한 내용을 담을 수 있습니다.
 
-**Example:**
+**예제:**
 
 ```html
 SCRIPT({
@@ -388,13 +388,13 @@ HTML({
 })
 ```
 
-**Output:**
+**출력:**
 
 ```html
 Hello, <b>World</b>!
 ```
 
-Instead of:
+다음과 같이 되지 않습니다:
 
 ```
 Hello, &lt;b&gt;World&lt;b&gt;!

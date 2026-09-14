@@ -1,44 +1,44 @@
 # Machbase Neo Custom Shell Guide
 
-User can customize command line shell and open it in the web ui.
+사용자는 명령행 셸을 직접 구성해 웹 UI에서 열 수 있습니다.
 
-Open a *SHELL* on the web ui or run `machbase-neo shell` on the terminal, and use `shell` command to add/remove custom shell.
+웹 UI에서 *SHELL*을 열거나 터미널에서 `machbase-neo shell`을 실행한 뒤, `shell` 명령으로 사용자 정의 셸을 추가·제거합니다.
 
-In this example, we are going to show how to add a user-defined shell that invokes `/bin/bash` (or `/bin/zsh`) for *nix users and `cmd.exe` for Windows users. You may add any programming language's REPL, other database's command line interface and ssh command that connects to your servers for example.
+이 예제에서는 *nix 사용자를 위해 `/bin/bash`(또는 `/bin/zsh`)를, Windows 사용자를 위해 `cmd.exe`를 실행하는 사용자 정의 셸을 추가하는 방법을 보여줍니다. 프로그래밍 언어의 REPL, 다른 데이터베이스의 명령행 인터페이스, 서버에 접속하는 ssh 명령 등도 추가할 수 있습니다.
 
-## Add a Custom Shell
+## 사용자 정의 셸 추가
 
-### Register a Custom Shell
+### 사용자 정의 셸 등록
 
-1. Select the menu icon from the left most side.
+1. 가장 왼쪽의 메뉴 아이콘을 선택합니다.
 
-2. And Click `+` icon from the top left pane.
+2. 그리고 좌측 상단 창에서 `+` 아이콘을 클릭합니다.
 
-3. Set a preferred "Display name" and provide the absolute path and flags for the "Command" field. For example, to set 'zsh' as the command line on macOS, use the absolute path of your program and click "Save".
+3. 원하는 "Display name"을 정하고 "Command" 칸에 절대 경로와 플래그를 입력합니다. 예를 들어 macOS에서 'zsh'를 명령행으로 설정하려면 프로그램의 절대 경로를 넣고 "Save"를 클릭합니다.
 
-**Configuration Options:**
-- **Name**: display name. (Any valid text is possible except some reserved words that machbase-neo reserves for the future use)
-- **Command**: any executable command in full path with arguments
-- **Theme**: terminal color theme
+**설정 옵션:**
+- **Name**: 표시 이름. (machbase-neo가 향후 사용을 위해 예약한 일부 단어를 제외하면 어떤 텍스트든 가능합니다)
+- **Command**: 인자를 포함한 실행 파일의 전체 경로
+- **Theme**: 터미널 색상 테마
 
-**Custom Command Examples:**
+**사용자 정의 명령 예시:**
 - Windows Cmd.exe: `C:\Windows\System32\cmd.exe`
 - Linux bash: `/bin/bash`
-- PostgreSQL Client on macOS: `/opt/homebrew/bin/psql postgres`
+- macOS의 PostgreSQL 클라이언트: `/opt/homebrew/bin/psql postgres`
 
-### Use the Custom Shell
+### 사용자 정의 셸 사용
 
-- Open the custom shell on the main editor area.
+- 메인 에디터 영역에서 사용자 정의 셸을 엽니다.
 
-- Open the custom shell on the console area.
+- 콘솔 영역에서 사용자 정의 셸을 엽니다.
 
-## Command Line Management
+## 명령행 관리
 
-The custom shells are manageable with machbase-neo shell command line interface.
+사용자 정의 셸은 machbase-neo shell 명령행 인터페이스로 관리할 수 있습니다.
 
-### Add New Custom Shell
+### 새 사용자 정의 셸 추가
 
-Use `shell add <name> <command and args>`. You can give a any name and any executable command with arguments, but the default shell name `SHELL` is reserved.
+`shell add <name> <command and args>`를 사용합니다. 이름과 인자를 포함한 실행 명령을 자유롭게 지정할 수 있지만 기본 셸 이름 `SHELL`은 예약되어 있습니다.
 
 ```sh
 machbase-neo» shell add bashterm /bin/bash;
@@ -55,7 +55,7 @@ machbase-neo» shell add console C:\Windows\System32\cmd.exe;
 added
 ```
 
-### Show Registered Shell List
+### 등록된 셸 목록 보기
 
 ```sh
 machbase-neo» shell list;
@@ -67,19 +67,19 @@ machbase-neo» shell list;
 └────────┴────────────────────────────┴────────────┴──────────────┘
 ```
 
-### Delete a Custom Shell
+### 사용자 정의 셸 삭제
 
 ```sh
 machbase-neo» shell del 11F4AFFD-2A9B-4FC5-BB20-637;
 deleted
 ```
 
-## Quick Reference
+## 빠른 참조
 
-| Method | Command | Description |
+| 방법 | 명령 | 설명 |
 |--------|---------|-------------|
-| **Web UI Registration** | UI Menu → `+` icon | Register custom shell via web interface |
-| **Command Line Add** | `shell add <name> <command>` | Add custom shell via command line |
-| **List Shells** | `shell list` | Show all registered custom shells |
-| **Delete Shell** | `shell del <id>` | Remove custom shell by ID |
-| **Reserved Names** | `SHELL` | Default shell name cannot be used |
+| **웹 UI 등록** | UI 메뉴 → `+` 아이콘 | 웹 인터페이스로 사용자 정의 셸 등록 |
+| **명령행 추가** | `shell add <name> <command>` | 명령행으로 사용자 정의 셸 추가 |
+| **셸 목록** | `shell list` | 등록된 모든 사용자 정의 셸 표시 |
+| **셸 삭제** | `shell del <id>` | ID로 사용자 정의 셸 제거 |
+| **예약된 이름** | `SHELL` | 기본 셸 이름은 사용할 수 없음 |

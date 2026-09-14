@@ -1,83 +1,83 @@
 # Machbase Neo SQL Backup and Mount
 
-## Introduction
+## 소개
 
-The exponential growth of time-series data, often termed "Industrial Big Data" or associated with Smart-X initiatives, presents significant challenges for traditional data management strategies. Persistently storing vast quantities of sensor readings necessitates robust mechanisms for data archival, disaster recovery, and historical analysis. Conventional database backup and restore processes, while essential, often suffer from limitations concerning scope flexibility, prolonged restoration times, and the inability to access backup contents without a full restore operation, which can be disruptive and resource-intensive.
+흔히 "산업 빅데이터"라 부르거나 Smart-X 사업과 함께 언급되는 시계열 데이터의 폭발적 증가는 기존 데이터 관리 전략에 큰 부담을 줍니다. 방대한 센서 측정값을 지속적으로 저장하려면 데이터 보관, 재해 복구, 이력 분석을 위한 견고한 수단이 필요합니다. 일반적인 데이터베이스 백업·복원 절차는 필수적이긴 하지만 범위 지정의 유연성이 떨어지고 복원 시간이 길며, 전체 복원 없이는 백업 내용을 볼 수 없다는 한계가 있어 운영에 지장을 주고 자원을 많이 소모합니다.
 
-Machbase addresses these challenges by providing a comprehensive and flexible suite of Backup and Mount functionalities specifically tailored for time-series data workloads. This includes various backup strategies (full, incremental, time-based, table-specific) and, critically, a **Mount** feature that allows read-only, online access to backup data without requiring a time-consuming restore process.
+Machbase는 시계열 데이터 작업에 맞춘 포괄적이고 유연한 백업·마운트 기능으로 이 문제를 해결합니다. 여러 백업 전략(전체, 증분, 시간 기준, 테이블 단위)을 제공하며, 특히 시간이 오래 걸리는 복원 없이 백업 데이터를 온라인으로 읽을 수 있는 **마운트** 기능을 제공합니다.
 
-## Core Concepts
+## 핵심 개념
 
-*   **Backup:** The process of creating a physical copy of database data (either the entire database or specific tables/time ranges) to an external storage location. Machbase backups are stored as a directory structure containing the necessary data and metadata files.
-*   **Restore:** The process of copying data from a backup back into a live Machbase database instance. This typically overwrites existing data and is used primarily for disaster recovery or setting up replica environments.
-*   **Mount:** A unique Machbase feature allowing a backup directory structure to be attached to a running Machbase instance as an ephemeral, read-only database. This provides immediate query access to the historical "fossilized" data contained within the backup, bypassing the need for a lengthy restore operation.
-*   **Unmount:** The process of detaching a previously mounted backup database, releasing the association without deleting the backup files.
-*   **Live Data:** The current, active data within the operational Machbase instance, subject to real-time reads and writes.
-*   **Fossilized Data:** Data contained within a backup, representing an immutable snapshot at a specific point in time (or time range). When mounted, this data is accessible for read operations only.
+*   **백업(Backup):** 데이터베이스 데이터(전체 또는 특정 테이블/시간 범위)를 외부 저장소에 물리적으로 복사하는 작업입니다. Machbase 백업은 필요한 데이터와 메타데이터 파일을 담은 디렉토리 구조로 저장됩니다.
+*   **복원(Restore):** 백업의 데이터를 다시 운영 중인 Machbase 인스턴스로 복사하는 작업입니다. 보통 기존 데이터를 덮어쓰며 주로 재해 복구나 복제 환경 구축에 사용합니다.
+*   **마운트(Mount):** 백업 디렉토리 구조를 실행 중인 Machbase 인스턴스에 임시 읽기 전용 데이터베이스로 붙이는 Machbase 고유 기능입니다. 긴 복원 작업 없이도 백업에 담긴 "화석화된" 과거 데이터를 곧바로 조회할 수 있습니다.
+*   **언마운트(Unmount):** 마운트한 백업 데이터베이스를 분리하는 작업입니다. 연결만 해제하며 백업 파일은 삭제하지 않습니다.
+*   **라이브 데이터(Live Data):** 운영 중인 Machbase 인스턴스의 현재 활성 데이터로, 실시간 읽기·쓰기의 대상입니다.
+*   **화석화된 데이터(Fossilized Data):** 백업에 담긴 데이터로, 특정 시점(또는 시간 범위)의 변경 불가능한 스냅샷입니다. 마운트하면 읽기만 가능합니다.
 
-## Backup Operations
+## 백업 작업
 
-Machbase provides granular control over the backup process, allowing users to select the appropriate scope and type based on requirements.
+Machbase는 백업 과정을 세밀하게 제어할 수 있어 요구 사항에 맞는 범위와 방식을 고를 수 있습니다.
 
-### Full Backup (Database or Table)
+### 전체 백업(데이터베이스 또는 테이블)
 
-Creates a complete copy of either the entire database instance or specified tables at the time of execution.
+실행 시점의 데이터베이스 인스턴스 전체 또는 지정한 테이블의 완전한 사본을 만듭니다.
 
 **Syntax:**
 
-Database backup:
+데이터베이스 백업:
 
 ```sql
 BACKUP DATABASE INTO DISK = 'path/to/backup_directory_name';
 ```
 
-Table backup:
+테이블 백업:
 
 ```sql
 BACKUP TABLE table_name INTO DISK = 'path/to/backup_directory_name';
 ```
 
-*   `DATABASE`: Specifies a backup of the entire database instance.
-*   `TABLE table_name`: Specifies a backup of only the named table.
-*   `INTO DISK = 'path/...'`: Defines the target directory where the backup files will be created. This path can be absolute or relative to the `$MACHBASE_HOME/dbs` directory. The specified directory will be created if it doesn't exist.
+*   `DATABASE`: 데이터베이스 인스턴스 전체를 백업합니다.
+*   `TABLE table_name`: 지정한 테이블만 백업합니다.
+*   `INTO DISK = 'path/...'`: 백업 파일을 만들 대상 디렉토리를 지정합니다. 절대 경로이거나 `$MACHBASE_HOME/dbs` 기준 상대 경로일 수 있습니다. 지정한 디렉토리가 없으면 새로 만듭니다.
 
-**Considerations:**
-*   A full backup captures the state of the data at the moment the backup operation commences.
-*   The output is a directory containing multiple files and subdirectories representing the database structure.
+**고려 사항:**
+*   전체 백업은 백업 작업이 시작된 시점의 데이터 상태를 담습니다.
+*   결과물은 데이터베이스 구조를 나타내는 여러 파일과 하위 디렉토리가 담긴 디렉토리입니다.
 
-### Incremental Backup (Database or Table)
+### 증분 백업(데이터베이스 또는 테이블)
 
-Captures only the data that has changed since a previous backup (typically a full backup or a prior incremental backup). This significantly reduces backup time and storage space for subsequent backups.
+이전 백업(보통 전체 백업 또는 앞선 증분 백업) 이후 변경된 데이터만 담습니다. 이후 백업의 소요 시간과 저장 공간을 크게 줄여 줍니다.
 
 **Syntax:**
 
-Database incremental backup:
+데이터베이스 증분 백업:
 
 ```sql
 BACKUP DATABASE AFTER 'path/to/previous_backup' INTO DISK = 'path/to/incremental_backup_dir';
 ```
 
-Table incremental backup:
+테이블 증분 백업:
 
 ```sql
 BACKUP TABLE table_name AFTER 'path/to/previous_backup' INTO DISK = 'path/to/incremental_backup_dir';
 ```
 
-*   `AFTER 'path/...'`: Specifies the path to the directory of the *immediately preceding* backup (full or incremental) in the chain. This path **must** exist and be accessible.
-*   `INTO DISK = 'path/...'`: Defines the target directory for the *new* incremental backup files.
+*   `AFTER 'path/...'`: 백업 사슬에서 *바로 앞* 백업(전체 또는 증분)의 디렉토리 경로를 지정합니다. 이 경로는 반드시 존재하고 접근 가능해야 **합니다**.
+*   `INTO DISK = 'path/...'`: *새* 증분 백업 파일이 저장될 대상 디렉토리를 지정합니다.
 
-**Considerations:**
-*   Primarily applicable to Log and Tag tables where data is typically appended.
-*   Lookup tables are **always** fully backed up, even during an incremental operation, due to their potential for non-append-only modifications.
-*   Requires the previous backup directory to be present and intact.
+**고려 사항:**
+*   주로 데이터가 추가되기만 하는 Log·Tag 테이블에 적용됩니다.
+*   Lookup 테이블은 추가 외의 수정이 일어날 수 있으므로 증분 작업 중에도 **항상** 전체 백업됩니다.
+*   이전 백업 디렉토리가 온전히 존재해야 합니다.
 
-### Time-Based Backup (Database or Table)
+### 시간 기준 백업(데이터베이스 또는 테이블)
 
-Allows backing up data within a specific time window, particularly useful for archiving historical time-series data based on date ranges.
+특정 시간 구간의 데이터만 백업할 수 있습니다. 날짜 범위 기준으로 과거 시계열 데이터를 보관할 때 특히 유용합니다.
 
 **Syntax:**
 
-Database time-range backup:
+데이터베이스 시간 범위 백업:
 
 ```sql
 BACKUP DATABASE
@@ -86,7 +86,7 @@ BACKUP DATABASE
     INTO DISK = 'path/to/backup_directory_name';
 ```
 
-Table time-range backup:
+테이블 시간 범위 백업:
 
 ```sql
 BACKUP TABLE table_name
@@ -95,19 +95,19 @@ BACKUP TABLE table_name
     INTO DISK = 'path/to/backup_directory_name';
 ```
 
-*   `FROM time_expression_start`: Defines the inclusive start timestamp for the backup window (e.g., `TO_DATE('YYYY-MM-DD HH24:MI:SS')`).
-*   `TO time_expression_end`: Defines the inclusive end timestamp for the backup window.
+*   `FROM time_expression_start`: 백업 구간의 시작 시각을 지정합니다(경계 포함, 예: `TO_DATE('YYYY-MM-DD HH24:MI:SS')`).
+*   `TO time_expression_end`: 백업 구간의 끝 시각을 지정합니다(경계 포함).
 
-**Considerations:**
-*   Ideal for segmenting large time-series tables into manageable backup units (e.g., monthly, quarterly).
+**고려 사항:**
+*   큰 시계열 테이블을 다루기 쉬운 백업 단위(예: 월별, 분기별)로 나눌 때 적합합니다.
 
-## Mount Operations
+## 마운트 작업
 
-The Mount feature provides read-only access to backup data without a restore.
+마운트 기능은 복원 없이 백업 데이터를 읽기 전용으로 접근하게 해 줍니다.
 
-### Mounting a Backup
+### 백업 마운트하기
 
-Attaches a backup directory to the running Machbase instance as a queryable, read-only database.
+백업 디렉토리를 실행 중인 Machbase 인스턴스에 조회 가능한 읽기 전용 데이터베이스로 붙입니다.
 
 **Syntax:**
 
@@ -115,16 +115,16 @@ Attaches a backup directory to the running Machbase instance as a queryable, rea
 MOUNT DATABASE 'path/to/backup_directory' TO mount_name;
 ```
 
-*   `'path/to/backup_directory'`: The full path to the directory containing the Machbase backup files (created via `BACKUP ... INTO DISK`).
-*   `mount_name`: A user-defined alias for this mounted database. This name is used to qualify object names when querying the mounted data.
+*   `'path/to/backup_directory'`: Machbase 백업 파일이 담긴 디렉토리의 전체 경로입니다(`BACKUP ... INTO DISK`로 생성).
+*   `mount_name`: 마운트한 데이터베이스에 사용자가 붙이는 별칭입니다. 마운트한 데이터를 조회할 때 객체 이름 앞에 이 이름을 씁니다.
 
-**Considerations:**
-*   The Machbase server process must have read access to the backup directory path.
-*   Multiple backups can be mounted concurrently, each with a unique `mount_name`.
+**고려 사항:**
+*   Machbase 서버 프로세스가 백업 디렉토리 경로에 읽기 권한을 가지고 있어야 합니다.
+*   여러 백업을 동시에 마운트할 수 있으며, 각각 고유한 `mount_name`을 사용합니다.
 
-### Querying Mounted Data
+### 마운트한 데이터 조회
 
-Accessing tables within a mounted backup requires qualifying the table name with the mount name and the original schema/user name (typically `sys` for standard tables).
+마운트한 백업의 테이블에 접근하려면 테이블 이름 앞에 마운트 이름과 원래 스키마/사용자 이름(일반 테이블은 보통 `sys`)을 붙여야 합니다.
 
 **Syntax:**
 
@@ -134,9 +134,9 @@ FROM mount_name.user_name.table_name
 WHERE [conditions];
 ```
 
-*   `mount_name`: The alias assigned during the `MOUNT DATABASE` command.
-*   `user_name`: The schema owner of the original table (commonly `sys`).
-*   `table_name`: The name of the table within the backup.
+*   `mount_name`: `MOUNT DATABASE` 명령에서 지정한 별칭입니다.
+*   `user_name`: 원래 테이블의 스키마 소유자입니다(보통 `sys`).
+*   `table_name`: 백업 안의 테이블 이름입니다.
 
 **Example:**
 
@@ -147,9 +147,9 @@ FROM backup_jan.sys.sensor_data
 WHERE time BETWEEN TO_DATE('2024-01-05') AND TO_DATE('2024-01-06');
 ```
 
-### Unmounting a Backup
+### 백업 언마운트하기
 
-Detaches a mounted backup database, making its contents inaccessible via the mount point. The backup files themselves remain untouched on disk.
+마운트한 백업 데이터베이스를 분리해 마운트 지점으로 더 이상 접근할 수 없게 합니다. 백업 파일 자체는 디스크에 그대로 남습니다.
 
 **Syntax:**
 
@@ -157,49 +157,49 @@ Detaches a mounted backup database, making its contents inaccessible via the mou
 UNMOUNT DATABASE mount_name;
 ```
 
-*   `mount_name`: The alias of the mounted database to detach.
+*   `mount_name`: 분리할 마운트 데이터베이스의 별칭입니다.
 
-## Restore Operations
+## 복원 작업
 
-Restoring replaces the current database state with the state captured in a backup. This is primarily used for disaster recovery or setting up identical instances.
+복원은 현재 데이터베이스 상태를 백업에 담긴 상태로 대체합니다. 주로 재해 복구나 동일한 인스턴스를 구축할 때 사용합니다.
 
-**Syntax (using `machbase-neo` utility):**
+**문법(`machbase-neo` 유틸리티 사용):**
 
 ```bash
 machbase-neo restore --data <machbase_home_dir> <path/to/backup_directory>
 ```
 
-*   `--data <machbase_home_dir>`: Specifies the `$MACHBASE_HOME` directory of the target Machbase instance where the restore should occur. **Caution: This process typically overwrites existing data in the target instance.**
-*   `<path/to/backup_directory>`: The path to the backup directory to restore from.
-    *   For full restores, this is the directory of the full backup.
-    *   For restores involving incremental backups, this **must** be the path to the **last** incremental backup directory in the chain. The `restore` process will automatically locate and utilize the preceding backups in the chain (full and intermediate incrementals).
+*   `--data <machbase_home_dir>`: 복원을 수행할 대상 Machbase 인스턴스의 `$MACHBASE_HOME` 디렉토리를 지정합니다. **주의: 이 작업은 보통 대상 인스턴스의 기존 데이터를 덮어씁니다.**
+*   `<path/to/backup_directory>`: 복원에 사용할 백업 디렉토리의 경로입니다.
+    *   전체 복원이면 전체 백업의 디렉토리입니다.
+    *   증분 백업이 포함된 복원이면 사슬의 **마지막** 증분 백업 디렉토리 경로여야 **합니다**. `restore` 과정이 사슬의 앞선 백업들(전체 백업과 중간 증분 백업)을 자동으로 찾아 사용합니다.
 
-**Considerations:**
-*   Restore is an offline operation or requires careful handling on a live instance, as it generally overwrites the existing database state.
-*   Ensure the target `$MACHBASE_HOME` is correct to avoid unintended data loss.
-*   If read/write access to the backup data is required, a full restore is necessary; the Mount feature only provides read-only access.
+**고려 사항:**
+*   복원은 오프라인 작업이며, 기존 데이터베이스 상태를 덮어쓰므로 운영 중인 인스턴스에서는 신중히 다뤄야 합니다.
+*   의도치 않은 데이터 손실을 막기 위해 대상 `$MACHBASE_HOME`이 올바른지 확인하세요.
+*   백업 데이터에 읽기·쓰기가 필요하면 전체 복원을 해야 합니다. 마운트 기능은 읽기 전용 접근만 제공합니다.
 
-## Advantages and Considerations of Mounting
+## 마운트의 장점과 고려 사항
 
 ### Advantages
 
-*   **Rapid Data Access:** Provides near-instantaneous access to historical data within backups, eliminating the potentially lengthy durations associated with traditional restore processes (especially for multi-terabyte datasets).
-*   **Index Preservation:** Backups retain the original time-series indexing structures. Mounted databases leverage these indexes, ensuring high-performance queries on historical data, comparable to querying live data.
-*   **Rollup Structure Preservation:** Any Rollup tables associated with the backed-up tables are also preserved within the backup and are queryable via the mount point, allowing consistent statistical analysis across live and historical ("fossilized") data.
-*   **Online Operation:** Mounting and unmounting occur while the primary database instance is online and operational.
-*   **Resource Efficiency:** Avoids the significant disk I/O and CPU resources required for a full restore operation simply to query historical data.
+*   **빠른 데이터 접근:** 백업 안의 과거 데이터에 거의 즉시 접근할 수 있어, 특히 수 테라바이트 규모에서 오래 걸리던 기존 복원 과정을 생략할 수 있습니다.
+*   **인덱스 보존:** 백업은 원래의 시계열 인덱스 구조를 그대로 유지합니다. 마운트한 데이터베이스는 이 인덱스를 활용하므로 과거 데이터도 라이브 데이터에 준하는 성능으로 조회할 수 있습니다.
+*   **롤업 구조 보존:** 백업 대상 테이블에 연결된 롤업 테이블도 백업에 함께 보존되어 마운트 지점을 통해 조회할 수 있습니다. 덕분에 라이브 데이터와 과거("화석화된") 데이터에 대해 일관된 통계 분석이 가능합니다.
+*   **온라인 작업:** 마운트와 언마운트는 주 데이터베이스 인스턴스가 온라인으로 동작하는 중에 수행됩니다.
+*   **자원 효율:** 과거 데이터를 조회하려고 전체 복원을 수행할 때 드는 막대한 디스크 I/O와 CPU 자원을 아낄 수 있습니다.
 
-### Considerations
+### 고려 사항
 
-*   **Read-Only Access:** Mounted databases are strictly read-only. `INSERT`, `UPDATE`, `DELETE`, and DDL operations are prohibited. A `RESTORE` operation is required if modifications to the backup state are needed.
-*   **`v$mount_table_STAT` Unavailability:** System views providing real-time statistics (like `v$mount_table_STAT`, if it were to exist analogously to `v$sys_table_STAT`) are generally not applicable or available for statically mounted backup data. Query the data directly for counts or aggregates.
-*   **Filesystem Access:** The Machbase server requires filesystem-level read access to the backup directory location.
+*   **읽기 전용 접근:** 마운트한 데이터베이스는 엄격히 읽기 전용입니다. `INSERT`, `UPDATE`, `DELETE`와 DDL 작업은 금지됩니다. 백업 상태를 수정해야 한다면 `RESTORE`가 필요합니다.
+*   **`v$mount_table_STAT` 미제공:** 실시간 통계를 제공하는 시스템 뷰(`v$sys_table_STAT`에 대응하는 `v$mount_table_STAT` 같은 것)는 정적으로 마운트된 백업 데이터에는 일반적으로 적용되지 않거나 제공되지 않습니다. 건수나 집계가 필요하면 데이터를 직접 조회하세요.
+*   **파일 시스템 접근:** Machbase 서버는 백업 디렉토리 위치에 파일 시스템 수준의 읽기 권한이 필요합니다.
 
-## Examples
+## 예제
 
-This section provides practical scenarios demonstrating the Backup and Mount workflow.
+이 절에서는 백업과 마운트 흐름을 보여 주는 실전 시나리오를 다룹니다.
 
-**Setup:** Assume two TAG tables, `EQPT_A` and `EQPT_B`, exist and are populated with time-series data.
+**준비:** `EQPT_A`와 `EQPT_B` 두 TAG 테이블이 있고 시계열 데이터가 들어 있다고 가정합니다.
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS EQPT_A (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) tag_partition_count=1;
@@ -209,7 +209,7 @@ CREATE TAG TABLE IF NOT EXISTS EQPT_A (name VARCHAR(20) PRIMARY KEY, time DATETI
 CREATE TAG TABLE IF NOT EXISTS EQPT_B (name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED) tag_partition_count=1;
 ```
 
-Assume data is loaded into EQPT_A and EQPT_B covering dates from 2024-01-01 to 2024-06-30. Verify live data range:
+EQPT_A와 EQPT_B에 2024-01-01부터 2024-06-30까지의 데이터가 적재되어 있다고 가정합니다. 라이브 데이터 범위를 확인합니다:
 
 ```sql
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM EQPT_A;
@@ -219,47 +219,47 @@ SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM EQPT_A;
 SELECT COUNT(*) FROM EQPT_A;
 ```
 
-### Example 1: Full Database Backup and Mount
+### 예제 1: 데이터베이스 전체 백업과 마운트
 
-**Step 1.** Perform a full database backup:
+**1단계.** 데이터베이스 전체 백업을 수행합니다:
 
 ```sql
 BACKUP DATABASE INTO DISK = '/backup/full_db_20240630';
 ```
 
-**Step 2.** Mount the backup with an alias 'mount_fulldb':
+**2단계.** 별칭 'mount_fulldb'로 백업을 마운트합니다:
 
 ```sql
 MOUNT DATABASE '/backup/full_db_20240630' TO mount_fulldb;
 ```
 
-**Step 3.** Query data from the mounted backup. Check time range:
+**3단계.** 마운트한 백업에서 데이터를 조회합니다. 시간 범위 확인:
 
 ```sql
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_fulldb.sys.EQPT_A;
 ```
 
-Check row count:
+행 수를 확인합니다:
 
 ```sql
 SELECT COUNT(*) FROM mount_fulldb.sys.EQPT_A;
 ```
 
-Query specific data from mounted EQPT_B:
+마운트한 EQPT_B에서 특정 데이터를 조회합니다:
 
 ```sql
 SELECT name, TO_CHAR(time), value FROM mount_fulldb.sys.EQPT_B LIMIT 5;
 ```
 
-**Step 4.** Unmount the backup when access is no longer needed:
+**4단계.** 더 이상 접근이 필요 없으면 백업을 언마운트합니다:
 
 ```sql
 UNMOUNT DATABASE mount_fulldb;
 ```
 
-### Example 2: Time-Range Database Backup and Mount
+### 예제 2: 시간 범위 데이터베이스 백업과 마운트
 
-**Step 1.** Backup data only from Jan 1st, 2024 to Mar 31st, 2024:
+**1단계.** 2024년 1월 1일부터 3월 31일까지의 데이터만 백업합니다:
 
 ```sql
 BACKUP DATABASE
@@ -268,7 +268,7 @@ BACKUP DATABASE
     INTO DISK = '/backup/db_2024Q1';
 ```
 
-**Step 2.** (Optional) Simulate data aging by deleting older data from the live tables:
+**2단계.** (선택) 라이브 테이블에서 오래된 데이터를 삭제해 데이터 노후화를 흉내 냅니다:
 
 ```sql
 DELETE FROM EQPT_A BEFORE TO_DATE('2024-03-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS');
@@ -278,19 +278,19 @@ DELETE FROM EQPT_A BEFORE TO_DATE('2024-03-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS'
 DELETE FROM EQPT_B BEFORE TO_DATE('2024-03-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS');
 ```
 
-Verify live data count has decreased:
+라이브 데이터 건수가 줄었는지 확인합니다:
 
 ```sql
 SELECT COUNT(*) FROM EQPT_A;
 ```
 
-**Step 3.** Mount the time-range backup:
+**3단계.** 시간 범위 백업을 마운트합니다:
 
 ```sql
 MOUNT DATABASE '/backup/db_2024Q1' TO mount_q1;
 ```
 
-**Step 4.** Query the mounted backup (should contain the original data for Q1):
+**4단계.** 마운트한 백업을 조회합니다(1분기 원본 데이터가 들어 있어야 합니다):
 
 ```sql
 SELECT COUNT(*) FROM mount_q1.sys.EQPT_A;
@@ -300,7 +300,7 @@ SELECT COUNT(*) FROM mount_q1.sys.EQPT_A;
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_q1.sys.EQPT_A;
 ```
 
-Compare counts between live (post-delete) and mounted (pre-delete):
+라이브(삭제 후)와 마운트(삭제 전)의 건수를 비교합니다:
 
 ```sql
 SELECT COUNT(*) AS live_count FROM EQPT_A;
@@ -310,15 +310,15 @@ SELECT COUNT(*) AS live_count FROM EQPT_A;
 SELECT COUNT(*) AS mounted_q1_count FROM mount_q1.sys.EQPT_A;
 ```
 
-**Step 5.** Unmount the backup:
+**5단계.** 백업을 언마운트합니다:
 
 ```sql
 UNMOUNT DATABASE mount_q1;
 ```
 
-### Example 3: Table-Specific, Time-Range Backup and Mount
+### 예제 3: 테이블 단위 시간 범위 백업과 마운트
 
-**Step 1.** Backup only table EQPT_A for the period April 1st to May 15th, 2024:
+**1단계.** 2024년 4월 1일부터 5월 15일까지 EQPT_A 테이블만 백업합니다:
 
 ```sql
 BACKUP TABLE EQPT_A
@@ -327,13 +327,13 @@ BACKUP TABLE EQPT_A
     INTO DISK = '/backup/eqpta_20240401_20240515';
 ```
 
-**Step 2.** Mount the table-specific backup:
+**2단계.** 테이블 단위 백업을 마운트합니다:
 
 ```sql
 MOUNT DATABASE '/backup/eqpta_20240401_20240515' TO mount_eqpta_partial;
 ```
 
-**Step 3.** Query the mounted backup. Verify time range:
+**3단계.** 마운트한 백업을 조회합니다. 시간 범위를 확인합니다:
 
 ```sql
 SELECT TO_CHAR(MIN(time)), TO_CHAR(MAX(time)) FROM mount_eqpta_partial.sys.EQPT_A;
@@ -345,25 +345,25 @@ Check count:
 SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_A;
 ```
 
-Query raw data sample:
+원본 데이터 샘플을 조회합니다:
 
 ```sql
 SELECT name, TO_CHAR(time), value FROM mount_eqpta_partial.sys.EQPT_A LIMIT 5;
 ```
 
-> Note: Attempting to query EQPT_B from this mount will fail (it wasn't included in the backup).
+> 참고: 이 마운트에서 EQPT_B를 조회하려 하면 실패합니다(백업에 포함되지 않았습니다).
 
-**Step 4.** Unmount the backup:
+**4단계.** 백업을 언마운트합니다:
 
 ```sql
 UNMOUNT DATABASE mount_eqpta_partial;
 ```
 
-### Example 4: Mounting Multiple Backups Concurrently
+### 예제 4: 여러 백업을 동시에 마운트하기
 
-Assuming backups from previous examples exist: '/backup/db_2024Q1' (Full DB, Q1), '/backup/full_db_20240630' (Full DB, up to Jun 30), '/backup/eqpta_20240401_20240515' (EQPT_A only, Apr 1 - May 15).
+앞선 예제의 백업들이 있다고 가정합니다: '/backup/db_2024Q1'(전체 DB, 1분기), '/backup/full_db_20240630'(전체 DB, 6월 30일까지), '/backup/eqpta_20240401_20240515'(EQPT_A만, 4월 1일~5월 15일).
 
-**Step 1.** Mount all three backups with unique aliases:
+**1단계.** 세 백업을 각각 고유한 별칭으로 마운트합니다:
 
 ```sql
 MOUNT DATABASE '/backup/db_2024Q1' TO mount_q1;
@@ -377,25 +377,25 @@ MOUNT DATABASE '/backup/full_db_20240630' TO mount_jun30;
 MOUNT DATABASE '/backup/eqpta_20240401_20240515' TO mount_eqpta_partial;
 ```
 
-**Step 2.** Query data across different mounts. Count from EQPT_A in Q1 backup:
+**2단계.** 여러 마운트에 걸쳐 데이터를 조회합니다. 1분기 백업의 EQPT_A 건수:
 
 ```sql
 SELECT COUNT(*) FROM mount_q1.sys.EQPT_A;
 ```
 
-Count from EQPT_B in the full backup:
+전체 백업의 EQPT_B 건수:
 
 ```sql
 SELECT COUNT(*) FROM mount_jun30.sys.EQPT_B;
 ```
 
-Count from EQPT_A in the partial table backup:
+부분 테이블 백업의 EQPT_A 건수:
 
 ```sql
 SELECT COUNT(*) FROM mount_eqpta_partial.sys.EQPT_A;
 ```
 
-**Step 3.** Unmount all backups when finished:
+**3단계.** 작업이 끝나면 모든 백업을 언마운트합니다:
 
 ```sql
 UNMOUNT DATABASE mount_q1;

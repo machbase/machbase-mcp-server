@@ -1,19 +1,19 @@
 # Machbase Neo TQL HTTP
 
-The `HTTP()` SRC allows you to send HTTP requests and view the responses directly within TQL scripts. This is useful for integrating external APIs or testing HTTP endpoints as part of your data workflows.
+`HTTP()` SRC를 사용하면 TQL 스크립트 안에서 직접 HTTP 요청을 보내고 응답을 확인할 수 있습니다. 외부 API를 연동하거나 데이터 워크플로의 일부로 HTTP 엔드포인트를 테스트할 때 유용합니다.
 
-**Syntax**: `HTTP(text)`
+**문법**: `HTTP(text)`
 
-*Version 8.0.53 or later*
+*버전 8.0.53 이상*
 
-**Parameters:**
-- `text` - String, HTTP request description
+**파라미터:**
+- `text` - 문자열, HTTP 요청 내용
 
-## TQL Usage
+## TQL 사용법
 
-The syntax follows [RFC 2616](https://www.rfc-editor.org/rfc/rfc2616) and supports specifying the request method, headers, and body.
+문법은 RFC 2616을 따르며 요청 메서드, 헤더, 본문을 지정할 수 있습니다.
 
-### Example 1: TEXT Output
+### 예제 1: TEXT 출력
 
 ```js
 HTTP({
@@ -26,7 +26,7 @@ HTTP({
 TEXT()
 ```
 
-### Example 2: HTML Simple Output
+### 예제 2: HTML 단순 출력
 
 ```html
 HTTP({
@@ -42,9 +42,9 @@ HTTP({
 HTML(`<pre>{{ .Value 0 }}</pre>`)
 ```
 
-Once you prepare a request, execute the TQL. The result view will show the HTTP response, including headers and body.
+요청을 작성한 뒤 TQL을 실행하면, 결과 화면에 헤더와 본문을 포함한 HTTP 응답이 표시됩니다.
 
-**Response:**
+**응답:**
 
 ```
 HTTP/1.1 200 OK
@@ -58,11 +58,11 @@ work-11-0,2025-03-19 01:56:19.824,1.00
 work-11-0,2025-03-19 01:56:19.824,2.00
 ```
 
-### Worksheet Usage
+### 워크시트 사용법
 
-Use `http` code-fence within a markdown cell.
+마크다운 셀 안에서 `http` 코드펜스를 사용합니다.
 
-**Example:**
+**예제:**
 
 ~~~text
 ### HTTP Client Example
@@ -79,9 +79,9 @@ POST http://127.0.0.1:5654/db/query
 ```
 ~~~
 
-### Markdown Usage
+### 마크다운 사용법
 
-Code-fence `http` works in markdown file `.md`.
+`http` 코드펜스는 마크다운 파일(`.md`)에서도 동작합니다.
 
 ~~~
 ## HTTP Example
@@ -96,9 +96,9 @@ GET http://127.0.0.1:5654/db/query
 ```
 ~~~
 
-## Query Strings
+## 쿼리 문자열
 
-You can include query strings directly in the request line:
+요청 라인에 쿼리 문자열을 직접 포함할 수 있습니다:
 
 ~~~
 ```http
@@ -106,7 +106,7 @@ GET https://example.com/comments?page=2&pageSize=10
 ```
 ~~~
 
-If there are many query parameters, you can spread them across multiple lines for better readability. Lines immediately after the request line that start with `?` or `&` are parsed as query parameters:
+쿼리 파라미터가 많으면 여러 줄로 나눠 가독성을 높일 수 있습니다. 요청 라인 바로 다음에 오는 줄이 `?` 또는 `&`로 시작하면 쿼리 파라미터로 해석됩니다:
 
 ~~~
 ```http
@@ -116,11 +116,11 @@ GET https://example.com/comments
 ```
 ~~~
 
-## Request Headers
+## 요청 헤더
 
-Lines immediately after the request line (and any query string lines) up to the first empty line are parsed as request headers. Headers should use the standard `field-name: field-value` format, one per line.
+요청 라인(그리고 쿼리 문자열 줄) 다음부터 첫 빈 줄까지의 내용은 요청 헤더로 해석됩니다. 헤더는 표준 `field-name: field-value` 형식으로 한 줄에 하나씩 작성합니다.
 
-**Example:**
+**예제:**
 
 ```
 User-Agent: http-client
@@ -128,11 +128,11 @@ Accept-Language: en-GB,en-US;q=0.8,en;q=0.6,zh-CN;q=0.4
 Content-Type: application/json
 ```
 
-## Request Body
+## 요청 본문
 
-To provide a request body, add a blank line after the headers. All content after this blank line is treated as the request body.
+요청 본문을 지정하려면 헤더 다음에 빈 줄을 하나 넣습니다. 이 빈 줄 이후의 모든 내용이 요청 본문으로 처리됩니다.
 
-**Example:**
+**예제:**
 
 ~~~
 ```http
@@ -147,13 +147,13 @@ Authorization: token xxx
 ```
 ~~~
 
-### External File
+### 외부 파일
 
-You can also specify a file as the request body by starting the line with `<` followed by the file path as shown in the file explorer. Alternatively, use the `@` prefix before the path to indicate that it is an absolute path on the operating system.
+줄 시작에 `<`를 쓰고 파일 탐색기에 표시되는 경로를 이어 적으면 파일을 요청 본문으로 지정할 수 있습니다. 또는 경로 앞에 `@` 접두를 붙이면 운영체제의 절대 경로로 해석됩니다.
 
-**File Path Examples:**
-- `< /doc.xml` — refers to a file located in the TQL root directory.  
-- `< @/home/data/doc.xml` — refers to a file located at an absolute path on the operating system.
+**파일 경로 예:**
+- `< /doc.xml` — TQL 루트 디렉터리에 있는 파일을 가리킵니다.
+- `< @/home/data/doc.xml` — 운영체제의 절대 경로에 있는 파일을 가리킵니다.
 
 ~~~
 ```http
@@ -167,7 +167,7 @@ Authorization: token xxx
 
 ## Multipart Form Data
 
-When the request body is `multipart/form-data`, you can mix text and file uploads:
+요청 본문이 `multipart/form-data`인 경우, 텍스트와 파일 업로드를 함께 사용할 수 있습니다:
 
 ~~~
 ```http
@@ -189,7 +189,7 @@ Content-Type: image/png
 
 ## x-www-form-urlencoded
 
-For `application/x-www-form-urlencoded` content, you can split the body into multiple lines. Each key-value pair should be on its own line, starting with `&` after the first line:
+`application/x-www-form-urlencoded` 본문은 여러 줄로 나눌 수 있습니다. 각 키-값 쌍을 한 줄에 하나씩 쓰되, 첫 줄 이후로는 `&`로 시작합니다:
 
 ~~~
 ```http
@@ -203,4 +203,4 @@ name=foo
 
 ---
 
-This flexible HTTP request syntax allows you to easily test and automate API calls directly from your TQL scripts, supporting a wide range of HTTP features and formats.
+이 유연한 HTTP 요청 문법을 통해 TQL 스크립트에서 직접 API 호출을 테스트하고 자동화할 수 있으며, 다양한 HTTP 기능과 형식을 지원합니다.

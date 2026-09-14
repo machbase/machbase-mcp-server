@@ -1,19 +1,19 @@
 # Machbase SQL Driver
 
-## Overview
-The `github.com/machbase/neo-client` package provides a standard Go `database/sql` driver for Machbase Neo.
-It is built on top of the native TCP client and uses the native port (default `5656`).
+## 개요
+`github.com/machbase/neo-client` 패키지는 Machbase Neo용 표준 Go `database/sql` 드라이버를 제공합니다.
+네이티브 TCP 클라이언트 위에 구축되었으며 네이티브 포트(기본 `5656`)를 사용합니다.
 
-Use this driver when your application or framework already depends on Go's `database/sql` interfaces.
-For new code that does not require `database/sql`, `machgo` is usually the better choice.
+애플리케이션이나 프레임워크가 이미 Go의 `database/sql` 인터페이스에 의존한다면 이 드라이버를 사용하세요.
+`database/sql`이 필요 없는 새 코드라면 보통 `machgo`가 더 나은 선택입니다.
 
-### Prerequisites
+### 사전 준비
 
-- **Machbase Neo Server**: A running server instance reachable on the native port
-- **Go 1.22+**: Required by `github.com/machbase/neo-client`
-- **Credentials**: A valid Machbase user account
+- **Machbase Neo 서버**: 네이티브 포트로 접근 가능한 실행 중인 서버 인스턴스
+- **Go 1.22+**: `github.com/machbase/neo-client`가 요구합니다
+- **자격 증명**: 유효한 Machbase 사용자 계정
 
-## Getting Started
+## 시작하기
 
 ### Install
 
@@ -23,8 +23,8 @@ go get github.com/machbase/neo-client@latest
 
 ### Import
 
-Import the driver package with a blank identifier.
-The driver registers itself automatically with the name `machbase`.
+빈 식별자로 드라이버 패키지를 임포트합니다.
+드라이버는 `machbase`라는 이름으로 자동 등록됩니다.
 
 ```go
 import (
@@ -41,33 +41,33 @@ import (
 
 ### DSN format
 
-The simplest DSN uses the `server` key:
+가장 단순한 DSN은 `server` 키를 사용합니다:
 
 ```text
 server=tcp://sys:manager@127.0.0.1:5656
 ```
 
-You can also combine additional options as semicolon-separated key/value pairs:
+세미콜론으로 구분된 키/값 쌍으로 추가 옵션을 조합할 수도 있습니다:
 
 ```text
 server=tcp://sys:manager@127.0.0.1:5656;fetch_rows=777;statement_cache=off;io_metrics=true
 ```
 
-#### Supported DSN keys
+#### 지원하는 DSN 키
 
-| Key | Description |
+| 키 | 설명 |
 |-----|-------------|
-| `server` | Server URL such as `tcp://user:password@127.0.0.1:5656` |
-| `host`, `port` | Server host and port provided separately |
+| `server` | `tcp://user:password@127.0.0.1:5656` 같은 서버 URL |
+| `host`, `port` | 서버 호스트와 포트를 각각 지정 |
 | `user` | Login user |
-| `password` | Login password |
-| `fetch_rows` | Number of rows fetched per round trip |
-| `statement_cache` | Statement cache mode: `auto`, `on`, or `off` |
-| `io_metrics` | Enable I/O metrics: `true` or `false` |
-| `alternative_servers` | Alternate server address such as `127.0.0.2:5656` |
-| `alternative_host`, `alternative_port` | Alternate server host and port provided separately |
+| `password` | 로그인 비밀번호 |
+| `fetch_rows` | 한 번의 왕복으로 가져올 행 수 |
+| `statement_cache` | statement 캐시 모드: `auto`, `on`, `off` |
+| `io_metrics` | I/O 지표 활성화: `true` 또는 `false` |
+| `alternative_servers` | `127.0.0.2:5656` 같은 대체 서버 주소 |
+| `alternative_host`, `alternative_port` | 대체 서버 호스트와 포트를 각각 지정 |
 
-## Query Example
+## 조회 예제
 
 ```go
 package main
@@ -132,9 +132,9 @@ func main() {
 }
 ```
 
-## Insert Example
+## 입력 예제
 
-The following example inserts rows into a tag table named `EXAMPLE`.
+다음 예제는 `EXAMPLE` 태그 테이블에 행을 입력합니다.
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS example (
@@ -194,10 +194,10 @@ func main() {
 }
 ```
 
-## Notes and Limitations
+## 참고와 제약
 
-- Use positional placeholders like `?`; named parameters are not supported.
-- `database/sql` connection pooling works through `sql.DB` as usual.
-- Explicit transactions are not supported, so `Begin` and `BeginTx` return an error.
-- `LastInsertId()` is not supported.
-- Parameter type support follows the driver implementation. Common SQL types, `time.Time`, `[]byte`, and `net.IP` are supported, but `bool` parameters are not.
+- `?` 같은 위치 자리표시자를 사용하세요. 이름 있는 파라미터는 지원하지 않습니다.
+- `database/sql` 커넥션 풀링은 평소처럼 `sql.DB`를 통해 동작합니다.
+- 명시적 트랜잭션을 지원하지 않으므로 `Begin`과 `BeginTx`는 오류를 반환합니다.
+- `LastInsertId()`는 지원하지 않습니다.
+- 파라미터 타입 지원은 드라이버 구현을 따릅니다. 일반적인 SQL 타입, `time.Time`, `[]byte`, `net.IP`는 지원하지만 `bool` 파라미터는 지원하지 않습니다.

@@ -1,10 +1,10 @@
 # Machbase Neo HTTP JavaScript Client
 
-## Query
+## 조회
 
 **JSON**
 
-Set `format=json` or omit it for the default.
+`format=json`을 지정하거나 생략하면 기본값이 적용됩니다.
 
 ```js
 q = "select * from example"
@@ -19,7 +19,7 @@ fetch(`http://127.0.0.1:5654/db/query?q=${encodeURIComponent(q)}`)
 
 **CSV**
 
-Set `format=csv` explicitly.
+`format=csv`를 명시적으로 지정합니다.
 
 ```js
 q = "select * from example"
@@ -32,7 +32,7 @@ fetch(`http://127.0.0.1:5654/db/query?q=${encodeURIComponent(q)}&format=csv`)
   });
 ```
 
-## Write
+## 쓰기
 
 **JSON**
 

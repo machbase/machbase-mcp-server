@@ -1,6 +1,6 @@
 # Machbase Neo TQL Writing API
 
-> **Note**: For the examples, create a table with the following SQL statements.
+> **참고**: 예제를 실행하려면 아래 SQL로 테이블을 먼저 생성하세요.
 
 ```sql
 CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
@@ -12,9 +12,9 @@ CREATE TAG TABLE IF NOT EXISTS EXAMPLE (
 
 ## INSERT CSV
 
-### 1. Create TQL File
+### 1. TQL 파일 생성
 
-Save the code below as `input-csv.tql`. When you save a TQL script, the editor will display a link icon  in the top right corner. Click on it to copy the script file's address.
+아래 코드를 `input-csv.tql`로 저장합니다. TQL 스크립트를 저장하면 에디터 우측 상단에 링크 아이콘이 표시됩니다. 클릭하면 스크립트 파일의 주소가 복사됩니다.
 
 ```js
 CSV(payload(), 
@@ -28,7 +28,7 @@ SQL(`insert into example values(?,?,?)`, value(0), value(1), value(2))
 
 ### 2. HTTP POST
 
-#### Using HTTP Request
+#### HTTP Request 사용
 
 ~~~
 ```http
@@ -40,16 +40,16 @@ TAG0,1628953200000000000,13
 ```
 ~~~
 
-#### Using cURL
+#### cURL 사용
 
-Prepare data file as `input-csv.csv`
+데이터 파일을 `input-csv.csv`로 준비합니다.
 
 ```csv
 TAG0,1628866800000000000,12
 TAG0,1628953200000000000,13
 ```
 
-Invoke `input-csv.tql` with the data file with `curl` command
+`curl` 명령으로 데이터 파일과 함께 `input-csv.tql`을 호출합니다.
 
 ```sh
 curl -X POST http://127.0.0.1:5654/db/tql/input-csv.tql \
@@ -59,7 +59,7 @@ curl -X POST http://127.0.0.1:5654/db/tql/input-csv.tql \
 
 ### 3. MQTT PUBLISH
 
-Prepare data file as `input-csv.csv`
+데이터 파일을 `input-csv.csv`로 준비합니다.
 
 ```csv
 TAG1,1628866800000000000,12
@@ -74,9 +74,9 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
 
 ## APPEND CSV
 
-### 1. Create TQL File
+### 1. TQL 파일 생성
 
-Save the code below as `append-csv.tql`. When you save a TQL script, the editor will display a link icon  in the top right corner. Click on it to copy the script file's address.
+아래 코드를 `append-csv.tql`로 저장합니다. TQL 스크립트를 저장하면 에디터 우측 상단에 링크 아이콘이 표시됩니다. 클릭하면 스크립트 파일의 주소가 복사됩니다.
 
 ```js
 CSV(payload(), 
@@ -90,7 +90,7 @@ APPEND(table('example'))
 
 ### 2. HTTP POST
 
-#### Using HTTP Request
+#### HTTP Request 사용
 
 ~~~
 ```http
@@ -102,16 +102,16 @@ TAG0,1628953200000000000,13
 ```
 ~~~
 
-#### Using cURL
+#### cURL 사용
 
-Prepare data file as `append-csv.csv`
+데이터 파일을 `append-csv.csv`로 준비합니다.
 
 ```csv
 TAG2,1628866800000000000,12
 TAG2,1628953200000000000,13
 ```
 
-Invoke `append-csv.tql` with the data file with `curl` command
+`curl` 명령으로 데이터 파일과 함께 `append-csv.tql`을 호출합니다.
 
 ```sh
 curl -X POST http://127.0.0.1:5654/db/tql/append-csv.tql \
@@ -121,7 +121,7 @@ curl -X POST http://127.0.0.1:5654/db/tql/append-csv.tql \
 
 ### 3. MQTT PUBLISH
 
-Prepare data file as `append-csv.csv`
+데이터 파일을 `append-csv.csv`로 준비합니다.
 
 ```csv
 TAG3,1628866800000000000,12
@@ -134,13 +134,13 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
     -f append-csv.csv
 ```
 
-## Custom JSON
+## 사용자 정의 JSON
 
-### 1. Create TQL File
+### 1. TQL 파일 생성
 
-Use SCRIPT() function to parse a custom format JSON.
+`SCRIPT()` 함수로 사용자 정의 형식의 JSON을 파싱합니다.
 
-Save the code below as `input-json.tql`.
+아래 코드를 `input-json.tql`로 저장합니다.
 
 ```js
 SCRIPT({
@@ -152,7 +152,7 @@ SQL(`insert into example values(?,?,?)`, value(0), value(1), value(2))
 
 ### 2. HTTP POST
 
-#### Using HTTP Request
+#### HTTP Request 사용
 
 ~~~
 ```http
@@ -172,9 +172,9 @@ Content-Type: application/json
 ```
 ~~~
 
-#### Using cURL
+#### cURL 사용
 
-Prepare data file as `input-json.json`
+데이터 파일을 `input-json.json`으로 준비합니다.
 
 ```json
 {
@@ -189,7 +189,7 @@ Prepare data file as `input-json.json`
 }
 ```
 
-Invoke `input-json.tql` with the data file with `curl` command
+`curl` 명령으로 데이터 파일과 함께 `input-json.tql`을 호출합니다.
 
 ```sh
 curl -X POST http://127.0.0.1:5654/db/tql/input-json.tql \
@@ -199,7 +199,7 @@ curl -X POST http://127.0.0.1:5654/db/tql/input-json.tql \
 
 ### 3. MQTT PUBLISH
 
-Prepare data file as `input-json.json`
+데이터 파일을 `input-json.json`으로 준비합니다.
 
 ```json
 {
@@ -220,17 +220,17 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
     -f input-json.json
 ```
 
-## Custom Text
+## 사용자 정의 텍스트
 
-When the data transforming is required for writing to the database, prepare the proper TQL script and publish the data to the topic named `db/tql/` + `{tql_file.tql}`.
+데이터베이스에 쓰기 전에 데이터 변환이 필요한 경우, 적절한 TQL 스크립트를 준비하고 `db/tql/` + `{tql_file.tql}` 이름의 토픽으로 데이터를 발행합니다.
 
-### 1. Create TQL File
+### 1. TQL 파일 생성
 
-The example code below shows how to handle multi-lines text data for writing into a table.
+아래 예제 코드는 여러 줄 텍스트 데이터를 테이블에 쓰는 방법을 보여줍니다.
 
-#### Using MAP Functions
+#### MAP 함수 사용
 
-Transforming using MAP functions.
+MAP 함수를 이용한 변환입니다.
 
 ```js
 // payload() returns the payload that arrived via HTTP-POST or MQTT,
@@ -255,9 +255,9 @@ CSV( timeformat("DEFAULT") )
 // APPEND(table('example'))
 ```
 
-#### Using SCRIPT Function
+#### SCRIPT 함수 사용
 
-The alternative way using SCRIPT function.
+`SCRIPT` 함수를 이용한 대안입니다.
 
 ```js
 // payload() returns the payload that arrived via HTTP-POST or MQTT,
@@ -282,7 +282,7 @@ CSV()
 // APPEND(table('example'))
 ```
 
-**Result:**
+**결과:**
 
 ```csv
 text_1,2023-12-02 11:03:36.054,12
@@ -292,11 +292,11 @@ text_4,2023-12-02 11:03:36.054,89
 text_5,2023-12-02 11:03:36.054,90
 ```
 
-Run the code above and if there is no error and works as expected, then replace the last line `CSV()` with `APPEND(table('example'))`.
+위 코드를 실행해 오류 없이 의도대로 동작하면, 마지막 줄 `CSV()`를 `APPEND(table('example'))`로 바꿉니다.
 
-Save the code as "script-post-lines.tql", then send some test data to the topic `db/tql/script-post-lines.tql`.
+코드를 "script-post-lines.tql"로 저장한 뒤, `db/tql/script-post-lines.tql` 토픽으로 테스트 데이터를 보냅니다.
 
-**Sample Data File** - `cat lines.txt`
+**샘플 데이터 파일** - `cat lines.txt`
 
 ```
 110000
@@ -307,7 +307,7 @@ Save the code as "script-post-lines.tql", then send some test data to the topic 
 
 ### 2. HTTP POST
 
-For the note, the same TQL file also works with HTTP POST.
+참고로 같은 TQL 파일이 HTTP POST에서도 동작합니다.
 
 ```sh
 curl -H "Content-Type: text/plain" \
@@ -323,7 +323,7 @@ mosquitto_pub -h 127.0.0.1 -p 5653 \
     -f lines.txt
 ```
 
-Then find if the data was successfully transformed and stored.
+그리고 데이터가 제대로 변환되어 저장됐는지 확인합니다.
 
 ```sh
 $ machbase-neo shell "select * from example where name like 'text_%'"

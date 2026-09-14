@@ -1,74 +1,74 @@
 # Machbase Neo Time Format and Timezone Options Guide
 
-This guide covers all time-related configuration options for Machbase Neo API queries, including time formats and timezone settings.
+이 가이드는 Machbase Neo API 질의의 시간 관련 설정 옵션 전반(시간 형식과 시간대 설정)을 다룹니다.
 
-## Time Format Options
+## 시간 형식 옵션
 
-### Standard Time Formats
+### 표준 시간 형식
 
-| timeformat | Result Example | Use Case |
+| timeformat | 출력 예 | 용도 |
 |:-----------|:---------------|:---------|
-| `DEFAULT` | 2006-01-02 15:04:05.999 | Human-readable default |
-| `DEFAULT_MS` | 2006-01-02 15:04:05.999 | Millisecond precision |
-| `DEFAULT_US` | 2006-01-02 15:04:05.999999 | Microsecond precision |
-| `DEFAULT_NS` | 2006-01-02 15:04:05.999999999 | Nanosecond precision |
-| `DEFAULT.MS` | 2006-01-02 15:04:05.000 | Fixed millisecond format |
-| `DEFAULT.US` | 2006-01-02 15:04:05.000000 | Fixed microsecond format |
-| `DEFAULT.NS` | 2006-01-02 15:04:05.000000000 | Fixed nanosecond format |
+| `DEFAULT` | 2006-01-02 15:04:05.999 | 사람이 읽기 좋은 기본값 |
+| `DEFAULT_MS` | 2006-01-02 15:04:05.999 | 밀리초 정밀도 |
+| `DEFAULT_US` | 2006-01-02 15:04:05.999999 | 마이크로초 정밀도 |
+| `DEFAULT_NS` | 2006-01-02 15:04:05.999999999 | 나노초 정밀도 |
+| `DEFAULT.MS` | 2006-01-02 15:04:05.000 | 고정 밀리초 형식 |
+| `DEFAULT.US` | 2006-01-02 15:04:05.000000 | 고정 마이크로초 형식 |
+| `DEFAULT.NS` | 2006-01-02 15:04:05.000000000 | 고정 나노초 형식 |
 
-### RFC Standard Formats
+### RFC 표준 형식
 
-| timeformat | Result Example | Use Case |
+| timeformat | 출력 예 | 용도 |
 |:-----------|:---------------|:---------|
-| `RFC3339` | 2006-01-02T15:04:05Z07:00 | ISO 8601 standard |
-| `RFC3339Nano` | 2006-01-02T15:04:05.999999999Z07:00 | ISO 8601 with nanoseconds |
-| `RFC822` | 02 Jan 06 15:04 MST | Email headers |
-| `RFC822Z` | 02 Jan 06 15:04 -0700 | Email with timezone offset |
-| `RFC1123` | Mon, 02 Jan 2006 15:04:05 MST | HTTP headers |
-| `RFC1123Z` | Mon, 02 Jan 2006 15:04:05 -0700 | HTTP with timezone offset |
+| `RFC3339` | 2006-01-02T15:04:05Z07:00 | ISO 8601 표준 |
+| `RFC3339Nano` | 2006-01-02T15:04:05.999999999Z07:00 | 나노초를 포함한 ISO 8601 |
+| `RFC822` | 02 Jan 06 15:04 MST | 이메일 헤더 |
+| `RFC822Z` | 02 Jan 06 15:04 -0700 | 시간대 오프셋을 포함한 이메일 |
+| `RFC1123` | Mon, 02 Jan 2006 15:04:05 MST | HTTP 헤더 |
+| `RFC1123Z` | Mon, 02 Jan 2006 15:04:05 -0700 | 시간대 오프셋을 포함한 HTTP |
 
-### Unix-style Formats
+### Unix 스타일 형식
 
-| timeformat | Result Example | Use Case |
+| timeformat | 출력 예 | 용도 |
 |:-----------|:---------------|:---------|
-| `Ansic` | Mon Jan _2 15:04:05 2006 | ANSI C format |
-| `Unix` | Mon Jan _2 15:04:05 MST 2006 | Unix timestamp format |
-| `Ruby` | Mon Jan 02 15:04:05 -0700 2006 | Ruby language format |
-| `Kitchen` | 3:04:05PM | Time only, 12-hour |
-| `Stamp` | Jan _2 15:04:05 | Short timestamp |
-| `StampMilli` | Jan _2 15:04:05.000 | Short with milliseconds |
-| `StampMicro` | Jan _2 15:04:05.000000 | Short with microseconds |
-| `StampNano` | Jan _2 15:04:05.000000000 | Short with nanoseconds |
+| `Ansic` | Mon Jan _2 15:04:05 2006 | ANSI C 형식 |
+| `Unix` | Mon Jan _2 15:04:05 MST 2006 | Unix 타임스탬프 형식 |
+| `Ruby` | Mon Jan 02 15:04:05 -0700 2006 | Ruby 언어 형식 |
+| `Kitchen` | 3:04:05PM | 시각만, 12시간제 |
+| `Stamp` | Jan _2 15:04:05 | 짧은 타임스탬프 |
+| `StampMilli` | Jan _2 15:04:05.000 | 밀리초를 포함한 짧은 형식 |
+| `StampMicro` | Jan _2 15:04:05.000000 | 마이크로초를 포함한 짧은 형식 |
+| `StampNano` | Jan _2 15:04:05.000000000 | 나노초를 포함한 짧은 형식 |
 
-### Seconds-only Formats
+### 초 단위 전용 형식
 
-| timeformat | Result Example | Use Case |
+| timeformat | 출력 예 | 용도 |
 |:-----------|:---------------|:---------|
-| `S_NS` | 05.999999999 | Seconds with nanosecond precision |
-| `S_US` | 05.999999 | Seconds with microsecond precision |
-| `S_MS` | 05.999 | Seconds with millisecond precision |
-| `S.NS` | 05.000000000 | Fixed nanosecond format (seconds only) |
-| `S.US` | 05.000000 | Fixed microsecond format (seconds only) |
-| `S.MS` | 05.000 | Fixed millisecond format (seconds only) |
+| `S_NS` | 05.999999999 | 나노초 정밀도의 초 |
+| `S_US` | 05.999999 | 마이크로초 정밀도의 초 |
+| `S_MS` | 05.999 | 밀리초 정밀도의 초 |
+| `S.NS` | 05.000000000 | 고정 나노초 형식(초만) |
+| `S.US` | 05.000000 | 고정 마이크로초 형식(초만) |
+| `S.MS` | 05.000 | 고정 밀리초 형식(초만) |
 
-### Unix Epoch Formats
+### Unix Epoch 형식
 
-> **Since**: Machbase Neo v8.0.40
+> **지원 버전**: Machbase Neo v8.0.40
 
-| timeformat | Result Example | Description |
+| timeformat | 출력 예 | 설명 |
 |:-----------|:---------------|:------------|
-| `ns` | 1676432361999999999 | Unix epoch nanoseconds (number) |
-| `ns.str` | "1676432361999999999" | Unix epoch nanoseconds (string) |
-| `us` | 1676432361999999 | Unix epoch microseconds (number) |
-| `us.str` | "1676432361999999" | Unix epoch microseconds (string) |
-| `ms` | 1676432361999 | Unix epoch milliseconds (number) |
-| `ms.str` | "1676432361999" | Unix epoch milliseconds (string) |
-| `s` | 1676432361 | Unix epoch seconds (number) |
-| `s.str` | "1676432361" | Unix epoch seconds (string) |
+| `ns` | 1676432361999999999 | Unix epoch 나노초(숫자) |
+| `ns.str` | "1676432361999999999" | Unix epoch 나노초(문자열) |
+| `us` | 1676432361999999 | Unix epoch 마이크로초(숫자) |
+| `us.str` | "1676432361999999" | Unix epoch 마이크로초(문자열) |
+| `ms` | 1676432361999 | Unix epoch 밀리초(숫자) |
+| `ms.str` | "1676432361999" | Unix epoch 밀리초(문자열) |
+| `s` | 1676432361 | Unix epoch 초(숫자) |
+| `s.str` | "1676432361" | Unix epoch 초(문자열) |
 
-### Custom Time Formats
+### 사용자 정의 시간 형식
 
-You can create custom time formats using specific placeholder numbers:
+정해진 자리표시 숫자를 사용해 시간 형식을 직접 만들 수 있습니다:
 
 ```
 Format Components:
@@ -80,34 +80,34 @@ Format Components:
 - Second:  05 or 05.999999999 (with sub-seconds)
 ```
 
-**Example Custom Format**: `2006-01-02 15:04:05.999999999`
+**사용자 정의 형식 예**: `2006-01-02 15:04:05.999999999`
 
-## Timezone Options
+## 시간대 옵션
 
-### Supported Timezone Types
+### 지원하는 시간대 종류
 
-The `tz` option accepts timezone identifiers from the tz database (2024b version):
+`tz` 옵션은 tz 데이터베이스(2024b 버전)의 시간대 식별자를 받습니다:
 
-1. **IANA Timezone Identifiers**
+1. **IANA 시간대 식별자**
    - `Asia/Seoul`
    - `America/New_York`
    - `Europe/London`
    - `Australia/Sydney`
 
-2. **Common Abbreviations**
-   - `UTC` - Coordinated Universal Time
-   - `Local` - System local timezone
-   - `EST` - Eastern Standard Time
-   - `CET` - Central European Time
-   - `GMT` - Greenwich Mean Time
+2. **일반적인 약어**
+   - `UTC` - 협정 세계시
+   - `Local` - 시스템 로컬 시간대
+   - `EST` - 동부 표준시
+   - `CET` - 중앙 유럽 시간
+   - `GMT` - 그리니치 표준시
 
-3. **Reference**: [Complete List of Time Zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+3. **참고**: 전체 시간대 목록
 
-> **Note**: If a timezone is not recognized, Machbase Neo relies on the operating system's tz database. Contact your system administrator if needed.
+> **참고**: 인식되지 않는 시간대는 운영체제의 tz 데이터베이스를 따릅니다. 필요하면 시스템 관리자에게 문의하세요.
 
-## Usage Examples
+## 사용법 Examples
 
-### Basic Time Format Selection
+### 기본 시간 형식 선택
 
 ```bash
 # Default format
@@ -117,7 +117,7 @@ curl -o - http://127.0.0.1:5654/db/query \
     --data-urlencode "timeformat=DEFAULT"
 ```
 
-**Response**:
+**응답**:
 ```
 +----------+-------------------------+----------+
 | NAME     | TIME                    | VALUE    |
@@ -136,7 +136,7 @@ curl -o - http://127.0.0.1:5654/db/query \
     --data-urlencode "timeformat=RFC3339"
 ```
 
-**Response**:
+**응답**:
 ```
 +----------+----------------------+----------+
 | NAME     | TIME                 | VALUE    |
@@ -146,7 +146,7 @@ curl -o - http://127.0.0.1:5654/db/query \
 +----------+----------------------+----------+
 ```
 
-### Timezone Configuration
+### 시간대 설정
 
 ```bash
 # Asian timezone
@@ -157,7 +157,7 @@ curl -o - http://127.0.0.1:5654/db/query \
     --data-urlencode "tz=Asia/Seoul"
 ```
 
-**Response**:
+**응답**:
 ```
 +----------+-------------------------+----------+
 | NAME     | TIME                    | VALUE    |
@@ -167,7 +167,7 @@ curl -o - http://127.0.0.1:5654/db/query \
 +----------+-------------------------+----------+
 ```
 
-### High Precision with Timezone
+### 시간대와 고정밀 형식 조합
 
 ```bash
 # RFC3339 with nanosecond precision in New York timezone
@@ -178,7 +178,7 @@ curl -o - http://127.0.0.1:5654/db/query \
     --data-urlencode "tz=America/New_York"
 ```
 
-**Response**:
+**응답**:
 ```
 +----------+-------------------------------------+----------+
 | NAME     | TIME                                | VALUE    |
@@ -188,7 +188,7 @@ curl -o - http://127.0.0.1:5654/db/query \
 +----------+-------------------------------------+----------+
 ```
 
-### Custom Format Examples
+### 사용자 정의 형식 예제
 
 ```bash
 # Custom format with reordered components
@@ -198,7 +198,7 @@ curl -o - http://127.0.0.1:5654/db/query \
     --data-urlencode "timeformat=03:04:05.999999999-ReOrder-2006-01-02"
 ```
 
-**Response**:
+**응답**:
 ```
 +----------+----------------------------------------+----------+
 | NAME     | TIME                                   | VALUE    |
@@ -208,25 +208,25 @@ curl -o - http://127.0.0.1:5654/db/query \
 +----------+----------------------------------------+----------+
 ```
 
-## Configuration Summary
+## 설정 Summary
 
-| Scenario | timeformat | tz | Result |
+| 시나리오 | timeformat | tz | 결과 |
 |----------|------------|----|---------| 
-| Default display | `DEFAULT` | `Local` | 2023-02-15 03:39:21 |
-| ISO standard | `RFC3339` | `UTC` | 2023-02-15T03:39:21Z |
-| Asian localization | `DEFAULT` | `Asia/Seoul` | 2023-02-15 12:39:21 |
-| High precision | `RFC3339Nano` | `UTC` | 2023-02-15T03:39:21.111111111Z |
-| Unix timestamp | `ms` | `UTC` | 1676432361999 |
-| Custom format | `2006/01/02 15:04` | `Local` | 2023/02/15 03:39 |
+| 기본 표시 | `DEFAULT` | `Local` | 2023-02-15 03:39:21 |
+| ISO 표준 | `RFC3339` | `UTC` | 2023-02-15T03:39:21Z |
+| 아시아 지역화 | `DEFAULT` | `Asia/Seoul` | 2023-02-15 12:39:21 |
+| 고정밀 | `RFC3339Nano` | `UTC` | 2023-02-15T03:39:21.111111111Z |
+| Unix 타임스탬프 | `ms` | `UTC` | 1676432361999 |
+| 사용자 정의 형식 | `2006/01/02 15:04` | `Local` | 2023/02/15 03:39 |
 
-## Quick Reference
+## 빠른 참조
 
-| Option | Common Values | Description |
+| 옵션 | 주요 값 | 설명 |
 |--------|---------------|-------------|
-| `timeformat` | `DEFAULT`, `RFC3339`, `ns`, `ms` | Controls time display format |
-| `tz` | `UTC`, `Local`, `Asia/Seoul`, `America/New_York` | Sets timezone for time display |
+| `timeformat` | `DEFAULT`, `RFC3339`, `ns`, `ms` | 시간 표시 형식을 지정 |
+| `tz` | `UTC`, `Local`, `Asia/Seoul`, `America/New_York` | 시간 표시에 사용할 시간대를 지정 |
 
-> **Note**: All timeformat values are case-insensitive.
+> **참고**: 모든 timeformat 값은 대소문자를 구분하지 않습니다.
 
-This guide provides comprehensive coverage of all time-related options available in Machbase Neo REST API queries.
+이 가이드는 Machbase Neo REST API 질의에서 사용할 수 있는 모든 시간 관련 옵션을 종합적으로 다룹니다.
 

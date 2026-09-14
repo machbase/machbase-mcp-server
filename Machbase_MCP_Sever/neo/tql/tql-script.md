@@ -1,34 +1,34 @@
 # Machbase Neo TQL SCRIPT Function
 
-TQL supports the `SCRIPT()` function, which utilizes JavaScript (ECMA5) in both **SRC** and **MAP** contexts (Version 8.0.36 or later). This feature offers developers the flexibility to use a familiar programming language, enhancing their ability to create more dynamic and powerful scripts within TQL.
+TQL은 **SRC**와 **MAP** 양쪽에서 JavaScript(ECMA5)를 사용할 수 있는 `SCRIPT()` 함수를 지원합니다(버전 8.0.36 이상). 개발자가 익숙한 프로그래밍 언어를 그대로 쓸 수 있어 TQL 안에서 더 동적이고 강력한 스크립트를 작성할 수 있습니다.
 
-**Syntax**: `SCRIPT({main_code})`
+**문법**: `SCRIPT({main_code})`
 
-**Syntax**: `SCRIPT({init_code}, {main_code})`
+**문법**: `SCRIPT({init_code}, {main_code})`
 
-**Syntax**: `SCRIPT({init_code}, {main_code}, {deinit_code})`
+**문법**: `SCRIPT({init_code}, {main_code}, {deinit_code})`
 
 **Parameters:**
-- `init_code` - Initialize code (optional but mandatory if deinit_code exists)
-- `main_code` - Script code (mandatory)
-- `deinit_code` - Destruct code (optional)
+- `init_code` - 초기화 코드 (선택이지만 deinit_code가 있으면 필수)
+- `main_code` - 스크립트 코드 (필수)
+- `deinit_code` - 종료 코드 (선택)
 
-The `init_code` is optional and runs only once at the beginning. The `main_code` is mandatory and cannot be omitted.
+`init_code`는 선택이며 처음에 한 번만 실행됩니다. `main_code`는 필수이며 생략할 수 없습니다.
 
-## Caveat Emptor
+## 주의사항
 
-- `use strict` does nothing.
-- ECMA5 only. Some ES6 features e.g. Typed Arrays and back-tick string interpolation are not supported.
-- Regular expression is not fully compatible with the ECMA5 specification. The following regular expression syntax is incompatible:
-    - `(?=)` Lookahead (positive), it produces a parsing error
-    - `(?!)` Lookahead (backhead), it produces a parsing error
-    - `\1`, `\2`, `\3`, ... Backreference, it produces a parsing error
+- `use strict`는 아무 동작도 하지 않습니다.
+- ECMA5만 지원합니다. Typed Array나 백틱 문자열 보간 같은 일부 ES6 기능은 지원되지 않습니다.
+- 정규식이 ECMA5 사양과 완전히 호환되지는 않습니다. 다음 정규식 문법은 호환되지 않습니다:
+    - `(?=)` 긍정 전방탐색 — 파싱 오류가 발생합니다
+    - `(?!)` 부정 전방탐색 — 파싱 오류가 발생합니다
+    - `\1`, `\2`, `\3`, ... 역참조 — 파싱 오류가 발생합니다
 
 ## JSH Modules
 
-*Version 8.0.52 or later*
+*버전 8.0.52 이상*
 
-You can import JSH modules into the SCRIPT() using `require()`. All "@jsh" modules are available except `@jsh/process` which is only accessible from inside JSH application.
+`require()`로 JSH 모듈을 SCRIPT()에 가져올 수 있습니다. JSH 애플리케이션 내부에서만 접근 가능한 `@jsh/process`를 제외한 모든 "@jsh" 모듈을 사용할 수 있습니다.
 
 ```js
 SCRIPT({
@@ -38,26 +38,26 @@ SCRIPT({
 CSV()
 ```
 
-## Context Object
+## 컨텍스트 객체
 
-Machbase-neo exposes the `$` variable as the context object. JavaScript can access and yield records and database through this context.
+Machbase-neo는 `$` 변수를 컨텍스트 객체로 제공합니다. JavaScript는 이 컨텍스트를 통해 레코드와 데이터베이스에 접근하고 레코드를 내보낼 수 있습니다.
 
-**Properties and Methods:**
-- `$.payload` - Input data of the request. Available only when `SCRIPT()` is used as an SRC node; otherwise, it is `undefined`.
-- `$.params` - Input query parameters of the request.
-- `$.result` - Specifies the names and types of the result columns yielded by the `SCRIPT()` function.
-- `$.key`, `$.values` - Javascript access point to the key and values of the current record. It is only available if the `SCRIPT()` is a MAP function.
-- `$.yield()` - Yield a new record with values
-- `$.yieldKey()` - Yield a new record with key and values
-- `$.yieldArray()` - Same as `$.yield()`, but it take only one argument of array type instead of multiple arguments.
-- `$.db()` - Returns a new database connection.
-- `$.db().query()` - Execute SQL query.
-- `$.db().exec()` - Execute non-SELECT SQL.
-- `$.request().do()` - Request HTTP to the remote server.
+**속성과 메서드:**
+- `$.payload` - 요청의 입력 데이터. `SCRIPT()`가 SRC 노드로 쓰일 때만 사용 가능하며, 그 외에는 `undefined`입니다.
+- `$.params` - 요청의 입력 쿼리 파라미터.
+- `$.result` - `SCRIPT()` 함수가 내보내는 결과 컬럼의 이름과 타입을 지정합니다.
+- `$.key`, `$.values` - 현재 레코드의 키와 값에 접근하는 JavaScript 지점. `SCRIPT()`가 MAP 함수일 때만 사용 가능합니다.
+- `$.yield()` - 값들로 새 레코드를 내보냅니다
+- `$.yieldKey()` - 키와 값들로 새 레코드를 내보냅니다
+- `$.yieldArray()` - `$.yield()`와 같지만 여러 인자 대신 배열 하나만 받습니다.
+- `$.db()` - 새 데이터베이스 연결을 반환합니다.
+- `$.db().query()` - SQL 쿼리를 실행합니다.
+- `$.db().exec()` - SELECT가 아닌 SQL을 실행합니다.
+- `$.request().do()` - 원격 서버로 HTTP 요청을 보냅니다.
 
 ### $.payload
 
-JavaScript can access the input data of the request using `$.payload`. If there is no input data, `$.payload` will be `undefined`. `$.payload` is available only when `SCRIPT()` is used as an SRC node; otherwise, it is `undefined`.
+JavaScript는 `$.payload`로 요청의 입력 데이터에 접근할 수 있습니다. 입력 데이터가 없으면 `$.payload`는 `undefined`입니다. `$.payload`는 `SCRIPT()`가 SRC 노드로 쓰일 때만 사용 가능합니다.
 
 ```js
 SCRIPT({
@@ -71,26 +71,26 @@ SCRIPT({
 CSV()
 ```
 
-Call the tql file without any request body which makes the `$.payload` is `undefined`.
+요청 본문 없이 tql 파일을 호출하면 `$.payload`가 `undefined`가 됩니다.
 
 ```sh
 curl -o - -X POST http://127.0.0.1:5654/db/tql/test.tql
 ```
 
-Then the result is the default values: `name,0,10`.
+그러면 결과는 기본값 `name,0,10` 입니다.
 
-Call the tql file with a custom data.
+사용자 데이터와 함께 tql 파일을 호출합니다.
 
 ```sh
 curl -o - -X POST http://127.0.0.1:5654/db/tql/test.tql \
 -d '{"prefix":"testing", "offset":10, "limit":10}'
 ```
 
-Then the result is: `testing,10,10`
+그러면 결과는 `testing,10,10` 입니다.
 
 ### $.params
 
-JavaScript can access the request's query parameters using `$.params`. The value of a query parameter can be accessed in two ways: using dot notation (`$.params.name`) or bracket notation (`$.params["name"]`). Both forms are interchangeable and can be used based on the context or preference.
+JavaScript는 `$.params`로 요청의 쿼리 파라미터에 접근할 수 있습니다. 파라미터 값은 점 표기법(`$.params.name`)이나 대괄호 표기법(`$.params["name"]`) 두 가지로 접근할 수 있으며, 둘은 서로 바꿔 쓸 수 있습니다.
 
 ```js
 SCRIPT({
@@ -102,26 +102,26 @@ SCRIPT({
 CSV()
 ```
 
-Call the tql file without parameters.
+파라미터 없이 tql 파일을 호출합니다.
 
 ```sh
 curl -o - -X POST http://127.0.0.1:5654/db/tql/test.tql
 ```
 
-The result will be the default values: `name,0,10`.
+결과는 기본값 `name,0,10` 입니다.
 
-Call the tql file with parameters.
+파라미터와 함께 tql 파일을 호출합니다.
 
 ```sh
 curl -o - -X POST "http://127.0.0.1:5654/db/tql/test.tql?"\
 "prefix=testing&offset=12&limit=20"
 ```
 
-The result is: `testing,12,20`.
+결과는 `testing,12,20` 입니다.
 
 ### $.result
 
-Specifies the type of result data that the `SCRIPT` function yields. It works within the init code section, as shown in the example below.
+`SCRIPT` 함수가 내보내는 결과 데이터의 타입을 지정합니다. 아래 예제처럼 init 코드 구역에서 동작합니다.
 
 ```js
 SCRIPT({
@@ -141,7 +141,7 @@ JSON()
 
 ### $.key
 
-Access the key of the current record. This is defined only when `SCRIPT` is used as a MAP function. If `SCRIPT` is used as an SRC function, it will be `undefined`.
+현재 레코드의 키에 접근합니다. `SCRIPT`가 MAP 함수로 쓰일 때만 정의되며, SRC 함수로 쓰이면 `undefined`입니다.
 
 ```js
 SCRIPT({
@@ -165,7 +165,7 @@ hello-3,key is 2
 
 ### $.values
 
-Access the values of the current record. This is defined only when `SCRIPT` is used as a MAP function. If `SCRIPT` is used as an SRC function, it will be `undefined`.
+현재 레코드의 값들에 접근합니다. `SCRIPT`가 MAP 함수로 쓰일 때만 정의되며, SRC 함수로 쓰이면 `undefined`입니다.
 
 ```js
 SCRIPT({
@@ -187,7 +187,7 @@ CSV()
 
 ### $.yield()
 
-Yield the new record to the next step, with the key automatically assigned as a sequentially increasing number.
+다음 단계로 새 레코드를 내보냅니다. 키는 순차 증가 번호로 자동 지정됩니다.
 
 ```js
 $.yield(field1, field2, field3);
@@ -195,7 +195,7 @@ $.yield(field1, field2, field3);
 
 ### $.yieldKey()
 
-`yieldKey()` functions similarly to `$.yield()`, with the exception that the first argument specifies the key of the record.
+`yieldKey()`는 `$.yield()`와 비슷하지만 첫 번째 인자가 레코드의 키를 지정한다는 점이 다릅니다.
 
 ```js
 $.yieldKey(key, field1, field2, field3);
@@ -203,9 +203,9 @@ $.yieldKey(key, field1, field2, field3);
 
 ### $.yieldArray()
 
-*Version 8.0.39 or later*
+*버전 8.0.39 이상*
 
-Yield a record contained in an array. `$.yieldArray()` takes a single array argument representing a record, in contrast to `$.yield()`, which takes variable-length arguments. This is useful when working with arrays.
+배열에 담긴 레코드를 내보냅니다. 가변 인자를 받는 `$.yield()`와 달리 `$.yieldArray()`는 레코드를 나타내는 배열 하나를 인자로 받습니다. 배열을 다룰 때 유용합니다.
 
 ```js
 var arr = [];
@@ -217,13 +217,13 @@ $.yieldArray(arr);
 
 ### $.db()
 
-Returns a new database connection. The connection provides `query()`, `exec()` functions.
+새 데이터베이스 연결을 반환합니다. 이 연결은 `query()`, `exec()` 함수를 제공합니다.
 
-If the option object is specified as a parameter, for example, `$.db({bridge: "sqlite"})`, it returns a new connection to the bridged database instead of the machbase database.
+예를 들어 `$.db({bridge: "sqlite"})`처럼 옵션 객체를 인자로 주면 machbase 대신 브리지로 연결된 데이터베이스에 대한 새 연결을 반환합니다.
 
 **Option:**
 
-The option parameter is supported (Version 8.0.37 or later)
+옵션 파라미터는 버전 8.0.37 이상에서 지원됩니다
 
 ```js
 {
@@ -233,11 +233,11 @@ The option parameter is supported (Version 8.0.37 or later)
 
 ### $.db().query()
 
-JavaScript can query the database using `$.db().query()`. Apply a callback function with `forEach()` to the return value of `query()` to iterate over the query results.
+JavaScript는 `$.db().query()`로 데이터베이스에 질의할 수 있습니다. `query()`의 반환값에 `forEach()`로 콜백 함수를 적용하면 조회 결과를 순회할 수 있습니다.
 
-If the callback function of `.forEach()` explicitly returns `false`, the iteration stops immediately. If the callback function returns `true` or does not return anything (which means it returns `undefined`), the iteration continues until the end of the query result.
+`.forEach()`의 콜백 함수가 명시적으로 `false`를 반환하면 순회가 즉시 중단됩니다. `true`를 반환하거나 아무것도 반환하지 않으면(즉 `undefined`) 조회 결과 끝까지 순회를 계속합니다.
 
-#### Query MACHBASE
+#### MACHBASE 조회
 
 ```js
 SCRIPT({
@@ -267,7 +267,7 @@ cpu.percent,1725343895315420000,73.6
 cpu.percent,1725343898315887000,6.1
 ```
 
-#### Query BRIDGE-SQLITE
+#### BRIDGE-SQLITE 조회
 
 ```js
 SCRIPT({
@@ -297,9 +297,9 @@ testing,1732589744886,49.93214293713331
 testing,1732589744886,54.485508690434905
 ```
 
-#### Using $.yieldArray()
+#### $.yieldArray() 사용
 
-Choose specific columns from the result of `$.db().query()` to yield using `$.yield()`. Use `$.yieldArray()` (Version 8.0.39 or later) to yield all columns in a time.
+`$.db().query()` 결과에서 특정 컬럼만 골라 `$.yield()`로 내보냅니다. 모든 컬럼을 한 번에 내보내려면 `$.yieldArray()`(버전 8.0.39 이상)를 사용하세요.
 
 ```js
 SCRIPT({
@@ -311,9 +311,9 @@ SCRIPT({
 CSV()
 ```
 
-#### Using $.db().query().yield()
+#### $.db().query().yield() 사용
 
-Or use `$.db().query().yield()` (Version 8.0.39 or later) to yield automatically.
+또는 `$.db().query().yield()`(버전 8.0.39 이상)로 자동으로 내보낼 수 있습니다.
 
 ```js
 SCRIPT({
@@ -331,9 +331,9 @@ CSV( header(true) )
 
 ### $.db().exec()
 
-If the SQL is not a SELECT statement, use `$.db().exec()` to execute INSERT, DELETE, CREATE TABLE statements.
+SELECT가 아닌 SQL이라면 `$.db().exec()`로 INSERT, DELETE, CREATE TABLE 문을 실행합니다.
 
-#### Execute on MACHBASE
+#### MACHBASE에서 실행
 
 ```js
 SCRIPT({
@@ -367,7 +367,7 @@ SCRIPT({
 CSV()
 ```
 
-#### Execute on BRIDGE-SQLITE
+#### BRIDGE-SQLITE에서 실행
 
 ```js
 SCRIPT({
@@ -401,7 +401,7 @@ SCRIPT({
 CSV()
 ```
 
-To query a bridged database in the SQL editor, use the `-- env: bridge=name` notation for the query.
+SQL 에디터에서 브리지 데이터베이스를 조회하려면 쿼리에 `-- env: bridge=name` 표기를 사용하세요.
 
 ```sql
 -- env: bridge=mem
@@ -416,9 +416,9 @@ FROM
 
 ### $.request().do()
 
-**Syntax**: `$.request(url [, option]).do(callback)`
+**문법**: `$.request(url [, option]).do(callback)`
 
-**Request Option:**
+**요청 옵션:**
 
 ```js
 {
@@ -428,27 +428,27 @@ FROM
 }
 ```
 
-The actual request is made when `.then()` is called with a callback function to handle the response. The callback function receives a Response object as an argument, which provides several properties and methods.
+실제 요청은 응답을 처리할 콜백 함수와 함께 `.then()`이 호출될 때 이루어집니다. 콜백 함수는 여러 속성과 메서드를 제공하는 Response 객체를 인자로 받습니다.
 
-**Response Properties:**
+**Response 속성:**
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |:---------|:----:|:------------|
-| `.ok` | Boolean | `true` if the status code of the response is success. (`200<= status < 300`) |
-| `.status` | Number | http response code |
-| `.statusText` | String | status code and message. e.g. `200 OK` |
-| `.url` | String | request url |
-| `.headers` | Map | response headers |
+| `.ok` | Boolean | 응답 상태 코드가 성공이면 `true` (`200<= status < 300`) |
+| `.status` | Number | HTTP 응답 코드 |
+| `.statusText` | String | 상태 코드와 메시지. 예: `200 OK` |
+| `.url` | String | 요청 URL |
+| `.headers` | Map | 응답 헤더 |
 
-**Response Methods:**
+**Response 메서드:**
 
-The Response object provides useful methods that serves the body content of the response.
+Response 객체는 응답 본문을 다루는 유용한 메서드를 제공합니다.
 
-| Method | Description |
+| 메서드 | 설명 |
 |:-------|:------------|
-| `.text(callback(txt))` | Call the callback with content in a string |
-| `.blob(callback(bin))` | Call the callback with content in a binary array |
-| `.csv(callback(row))` | Parse the content into CSV format and call `callback()` for each row (record). |
+| `.text(callback(txt))` | 내용을 문자열로 콜백에 전달 |
+| `.blob(callback(bin))` | 내용을 바이너리 배열로 콜백에 전달 |
+| `.csv(callback(row))` | 내용을 CSV로 파싱해 행(레코드)마다 `callback()` 호출 |
 
 **Usage:**
 
@@ -467,11 +467,11 @@ $.request("https://server/path", {
 
 ### finalize()
 
-If the JavaScript code in `SCRIPT()` defines a `function finalize() {}`, the system will automatically call this function after all records have been processed.
+`SCRIPT()` 안의 JavaScript 코드가 `function finalize() {}`를 정의하면, 모든 레코드 처리가 끝난 뒤 시스템이 이 함수를 자동으로 호출합니다.
 
-The following two code examples are equivalent; both yield `999` as the final record.
+다음 두 코드 예제는 동일하며, 둘 다 마지막 레코드로 `999`를 내보냅니다.
 
-**Using finalize() function:**
+**finalize() 함수 사용:**
 
 ```js
 FAKE( arrange(1, 3, 1) )
@@ -484,7 +484,7 @@ SCRIPT({
 CSV()
 ```
 
-**Using deinit code:**
+**deinit 코드 사용:**
 
 ```js
 FAKE( arrange(1, 3, 1) )
@@ -500,7 +500,7 @@ SCRIPT({
 CSV()
 ```
 
-This example yields 4 records: `1`,`2`,`3`,`999`.
+이 예제는 레코드 4개 `1`,`2`,`3`,`999`를 내보냅니다.
 
 ## Examples
 
@@ -513,11 +513,11 @@ SCRIPT({
 DISCARD()
 ```
 
-### Builtin Math Object
+### 내장 Math 객체
 
-#### Using JavaScript
+#### JavaScript 사용
 
-Javascript builtin functions are available:
+JavaScript 내장 함수를 사용할 수 있습니다:
 
 ```js
 FAKE(meshgrid(linspace(0,2*3.1415,30), linspace(0, 3.1415, 20)))
@@ -542,9 +542,9 @@ CHART(
 )
 ```
 
-#### Using SET-MAP Functions
+#### SET-MAP 함수 사용
 
-The equivalent result using SET-MAP functions instead of Javascript is:
+JavaScript 대신 SET-MAP 함수로 같은 결과를 얻는 방법입니다:
 
 ```js
 FAKE(meshgrid(linspace(0,2*3.1415,30), linspace(0, 3.1415, 20)))
@@ -633,9 +633,9 @@ SCRIPT({
 CSV(header(true))
 ```
 
-### Request JSON Text
+### JSON 텍스트 요청
 
-This example demonstrates how to fetch JSON content from a remote server and parse it using Javascript.
+이 예제는 원격 서버에서 JSON 내용을 가져와 JavaScript로 파싱하는 방법을 보여줍니다.
 
 ```js
 SCRIPT({

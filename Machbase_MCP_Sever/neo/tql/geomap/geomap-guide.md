@@ -1,52 +1,52 @@
 # Machbase Neo GEOMAP()
 
-**Available since version 8.0.44**
+**버전 8.0.44부터 사용 가능**
 
-**Syntax**: `GEOMAP( [geomapID()] [, tileTemplate()] [, size()] )` 
+**문법**: `GEOMAP( [geomapID()] [, tileTemplate()] [, size()] )` 
 
-`GEOMAP` generates a map display and shows markers and geometric shapes based on provided coordinates.
-It functions similarly to `CHART`, but it uses coordinates instead of scalar values. The supported coordinates system is [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System).
+`GEOMAP`은 지도를 생성하고, 주어진 좌표를 기준으로 마커와 도형을 표시합니다.
+`CHART`와 비슷하게 동작하지만 스칼라 값 대신 좌표를 사용합니다. 지원하는 좌표계는 WGS84입니다.
 
-The `GEOMAP()` function processes input data in JavaScript Object format.
-Each input object must include `type` and `coordinates` fields, with an optional `properties` field.
+`GEOMAP()` 함수는 JavaScript 객체 형식의 입력 데이터를 처리합니다.
+각 입력 객체는 `type`과 `coordinates` 필드를 반드시 포함해야 하며, `properties` 필드는 선택입니다.
 
-A layer in the `GEOMAP()` function is an object that is rendered on the map according to its specified type.
-For example, a layer with the type `circle` will display a circle on the map based on the provided properties.
+`GEOMAP()` 함수의 레이어는 지정된 타입에 따라 지도 위에 렌더링되는 객체입니다.
+예를 들어 타입이 `circle`인 레이어는 주어진 속성에 따라 지도에 원을 표시합니다.
 
 ## tileTemplate()
 
-**Syntax**: `tileTemplate(url_template)`
+**문법**: `tileTemplate(url_template)`
 
-The map tile server url template.
-The default is `https://tile.openstreetmap.org/{z}/{x}/{y}.png`.
+지도 타일 서버 URL 템플릿입니다.
+기본값은 `https://tile.openstreetmap.org/{z}/{x}/{y}.png` 입니다.
 
-**Important:** If the map clients (web browsers) cannot access the default tile server due to the firewall and organization's security policy, you will need to run your own tile server inside your organization and set the tile server URL using `tileTemplate()`. Instructions on how to run a tile server are beyond the scope of this document. Please refer to the following for more information about the tile server: https://wiki.openstreetmap.org/wiki/Tile_servers
+**중요:** 방화벽이나 조직 보안 정책 때문에 지도 클라이언트(웹 브라우저)가 기본 타일 서버에 접근할 수 없다면, 조직 내부에 자체 타일 서버를 운영하고 `tileTemplate()`으로 그 URL을 지정해야 합니다. 타일 서버 운영 방법은 이 문서의 범위를 벗어납니다. 자세한 내용은 다음을 참고하세요: https://wiki.openstreetmap.org/wiki/Tile_servers
 
 ## tileGrayscale()
 
-**Syntax**: `tileGrayscale(scale)`
+**문법**: `tileGrayscale(scale)`
 
-- `scale` *float* Set the gray scale of the tile image it should be 0 ≤ scale ≤ 1.0. (Default: `0`)
+- `scale` *float* 타일 이미지의 회색조를 설정합니다. 0 ≤ scale ≤ 1.0 범위여야 합니다. (기본값: `0`)
 
 ## geomapID()
 
-**Syntax**: `geomapID(id)`
+**문법**: `geomapID(id)`
 
-If you need to specify the map id (*string*) instead of auto-generated one.
+자동 생성 대신 지도 id(*string*)를 직접 지정할 때 사용합니다.
 
 ## size()
 
-**Syntax**: `size(width, height)`
+**문법**: `size(width, height)`
 
-- `width` *string* map width in HTML syntax ex) `'800px'`
-- `height` *string* map height in HTML syntax ex) `'800px'`
+- `width` *string* HTML 문법의 지도 너비, 예) `'800px'`
+- `height` *string* HTML 문법의 지도 높이, 예) `'800px'`
 
 ## Layers
 
-Layers are markers and geometric shapes that `GEOMAP` shows on the map.
-The input data of `GEOMAP()` should be a dictionary structure represented as a JavaScript object.
+레이어는 `GEOMAP`이 지도에 표시하는 마커와 도형입니다.
+`GEOMAP()`의 입력 데이터는 JavaScript 객체로 표현된 딕셔너리 구조여야 합니다.
 
-The object must have `type` and `coordinates` fields, with an optional `properties` field.
+객체는 `type`과 `coordinates` 필드를 반드시 가져야 하며, `properties` 필드는 선택입니다.
 
 **syntax**
 
@@ -62,11 +62,11 @@ The object must have `type` and `coordinates` fields, with an optional `properti
 }
 ```
 
-| Name            | Type          | Description   |
+| 이름            | 타입          | 설명   |
 |:--------------- |:--------------|:--------------|
-| `type`          | `String`      | Type of the layer. <br/> e.g., `marker`, `circle`, `circleMarker`, etc. |
-| `coordinates`   | `[]Float`,<br/> `[][]Float`, ... | Coordinates for the `type` in [latitude, longitude] order |
-| `properties`    | `Dictionary` | Various options depending on the `type`.<br/>See [Properties](#properties) |
+| `type`          | `String`      | 레이어의 타입. <br/> 예: `marker`, `circle`, `circleMarker` 등 |
+| `coordinates`   | `[]Float`,<br/> `[][]Float`, ... | 해당 `type`의 좌표, [위도, 경도] 순서 |
+| `properties`    | `Dictionary` | `type`에 따른 다양한 옵션.<br/>Properties 참고 |
 
 ## marker
 
@@ -89,11 +89,11 @@ GEOMAP()
 
 ## circleMarker
 
-**Properties**
+**속성**
 
-| Property        | Default          | Description   |
+| 속성        | 기본값          | 설명   |
 |:--------------- |:-----------------|:--------------|
-| `radius`        | 10               | Radius of the circle marker, in pixels. |
+| `radius`        | 10               | 원형 마커의 반지름(픽셀). |
 
 ```js
 FAKE(json({
@@ -117,11 +117,11 @@ GEOMAP()
 
 ## circle
 
-**Properties**
+**속성**
 
-| Property        | Default          | Description   |
+| 속성        | 기본값          | 설명   |
 |:--------------- |:-----------------|:--------------|
-| `radius`        | 10               | Radius of the circle, in meters. |
+| `radius`        | 10               | 원의 반지름(미터). |
 
 ```js
 FAKE(json({
@@ -198,29 +198,29 @@ GEOMAP()
 
 ## Properties
 
-## Layer Properties
+## 레이어 속성
 
-| Property        | Type   | Default   | Description   |
+| 속성        | 타입   | 기본값   | 설명   |
 |:--------------- |:-------|:----------|:--------------|
-| `stroke`        | Boolean| `true`    | Whether to draw stroke along the path. Set it to false to disable borders on polygons or circles. |
-| `color`         | String | `'#3388ff'` | Stroke color  |
-| `weight`        | Number | `3`       | Stroke width in pixels |
-| `opacity`       | Number | `1.0`     | The opacity of the marker.|
-| `fillColor`     | String |           | Fill color. Defaults to the value of the color property. |
-| `fillOpacity`   | Number | `0.2`     | Fill opacity. |
-| `popup`         | Object | `null`    | See [Popup](#popup). |
-| `tooltip`       | Object | `null`    | See [Tooltip](#tooltip). |
+| `stroke`        | Boolean| `true`    | 경로를 따라 선을 그릴지 여부. false로 두면 다각형·원의 테두리가 사라집니다. |
+| `color`         | String | `'#3388ff'` | 선 색상  |
+| `weight`        | Number | `3`       | 선 두께(픽셀) |
+| `opacity`       | Number | `1.0`     | 마커의 불투명도.|
+| `fillColor`     | String |           | 채움 색상. 기본값은 color 속성의 값입니다. |
+| `fillOpacity`   | Number | `0.2`     | 채움 불투명도. |
+| `popup`         | Object | `null`    | Popup 참고. |
+| `tooltip`       | Object | `null`    | Tooltip 참고. |
 
 ## Popup
 
-If layer properties has `popup` object it displays popup message when user click the layer.
+레이어 속성에 `popup` 객체가 있으면 사용자가 레이어를 클릭할 때 팝업 메시지를 표시합니다.
 
-| Property        | Type   | Default    | Description   |
+| 속성        | 타입   | 기본값    | 설명   |
 |:--------------- |:-------|:-----------|:--------------|
-| `content`       | String |            | The content of the popup in Text/HTML. |
-| `open`          | Boolean| `false`    | Set initial open state |
-| `maxWidth`      | Number | `300`      | Max width of the popup, in pixels. |
-| `minWidth`      | Number | `50`       | Min width of the popup, in pixels. |
+| `content`       | String |            | 팝업 내용(텍스트/HTML). |
+| `open`          | Boolean| `false`    | 초기 열림 상태 지정 |
+| `maxWidth`      | Number | `300`      | 팝업 최대 너비(픽셀). |
+| `minWidth`      | Number | `50`       | 팝업 최소 너비(픽셀). |
 
 ```js
 FAKE(json({
@@ -248,17 +248,17 @@ GEOMAP()
 
 ## Tooltip
 
-**Available since version 8.0.44**
+**버전 8.0.44부터 사용 가능**
 
-Used to display small texts on top of map layers.
+지도 레이어 위에 짧은 텍스트를 표시할 때 사용합니다.
 
-| Property         | Type   | Default    | Description   |
+| 속성         | 타입   | 기본값    | 설명   |
 |:--------------- |:-------|:-----------|:--------------|
-| `content`       | String |            | The content of the popup in Text/HTML. |
-| `open`          | Boolean| `false`    | Set initial open state |
-| `direction`     | String | `auto`     | Direction where to open the tooltip. `right,left,top,bottom,center,auto` |
-| `permanent`     | Boolean| `false`    | Whether to open the tooltip permanently or only on mouseover |
-| `opacity`       | Number | `0.9`      | Tooltip container opacity |
+| `content`       | String |            | 팝업 내용(텍스트/HTML). |
+| `open`          | Boolean| `false`    | 초기 열림 상태 지정 |
+| `direction`     | String | `auto`     | 툴팁이 열릴 방향. `right,left,top,bottom,center,auto` |
+| `permanent`     | Boolean| `false`    | 툴팁을 항상 열어둘지, 마우스오버 시에만 열지 |
+| `opacity`       | Number | `0.9`      | 툴팁 컨테이너 불투명도 |
 
 ```js
 FAKE(json({
@@ -286,10 +286,10 @@ GEOMAP()
 
 ## Examples
 
-Load test data from a CSV file and insert it into the "TRIP" table.
-This TQL downloads the CSV file from the given URL, 
-converts the CSV strings into the appropriate data types,
-and inserts the records into the TRIP table.
+CSV 파일에서 테스트 데이터를 불러와 "TRIP" 테이블에 넣습니다.
+이 TQL은 주어진 URL에서 CSV 파일을 내려받아, 
+CSV 문자열을 적절한 데이터 타입으로 변환하고,
+레코드를 TRIP 테이블에 삽입합니다.
 
 ```js
 // CSV Format: TIME, LAT, LON
@@ -384,10 +384,10 @@ SCRIPT({
 GEOMAP()
 ```
 
-## Distance and Speed
+## 거리와 속도
 
-Using the Haversine formula to calculate the distance moved in meters between two points,
-then computing the moving speed in kilometers per hour (Km/H) based on the time difference between these points.
+하버사인 공식으로 두 지점 사이의 이동 거리를 미터 단위로 계산하고,
+두 지점의 시간 차이를 이용해 이동 속도를 시속(Km/H)으로 구합니다.
 
 ### SQL
 

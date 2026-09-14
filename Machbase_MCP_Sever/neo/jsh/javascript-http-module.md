@@ -2,24 +2,24 @@
 
 ## request()
 
-Convenient function for making HTTP client requests.
+HTTP 클라이언트 요청을 간편하게 보내는 함수입니다.
 
-**Syntax**
+**문법**
 
 ```js
 request(url, option)
 ```
 
-**Parameters**
+**파라미터**
 
-- `url` `String` destination address. e.g. `http://192.168.0.120/api/members`
-- `option` `Object` optional [ClientRequestOption](#clientrequestoption).
+- `url` `String` 대상 주소. 예: `http://192.168.0.120/api/members`
+- `option` `Object` 선택적 ClientRequestOption.
 
-**Return value**
+**반환값**
 
-- `Object` [ClientRequest](#clientrequest)
+- `Object` ClientRequest
 
-**Usage example**
+**사용 예제**
 
 ```js
 const {println} = require("@jsh/process");
@@ -40,20 +40,20 @@ try {
 
 ## Client
 
-The HTTP client.
+HTTP 클라이언트입니다.
 
-**Creation**
+**생성**
 
-| Constructor             | Description                          |
+| 생성자             | 설명                          |
 |:------------------------|:-------------------------------------|
-| new Client()            | Instantiates a HTTP client           |
+| new Client()            | HTTP 클라이언트를 생성합니다           |
 
 ### do()
 
-The do() function is a method of the HTTP client that sends an HTTP request to a specified URL and processes the response.
-It supports optional request options (e.g., method, headers, body) and a callback function to handle the response.
+do() 함수는 지정한 URL로 HTTP 요청을 보내고 응답을 처리하는 HTTP 클라이언트의 메서드입니다.
+선택적 요청 옵션(method, headers, body 등)과 응답을 처리할 콜백 함수를 지원합니다.
 
-**Syntax**
+**문법**
 
 ```js
 client.do(url)
@@ -61,24 +61,24 @@ client.do(url, option)
 client.do(url, option, callback)
 ```
 
-**Parameters**
+**파라미터**
 
 - `url` `String`
-- `option` `Object` [ClientRequestOption](#clientrequestoption)
-- `callback` `(response) => {}` callback function with [ClientResponse](#clientresponse).
+- `option` `Object` ClientRequestOption
+- `callback` `(response) => {}` ClientResponse를 받는 콜백 함수.
 
-**Return value**
+**반환값**
 
 - `Object`
 
-| Property           | Type       | Description        |
+| 속성           | 타입       | 설명        |
 |:-------------------|:-----------|:-------------------|
-| status             | Number     | http status code   |
-| statusText         | String     | http status message|
-| url                | String     | request url        |
-| error              | String     | error message      |
+| status             | Number     | HTTP 상태 코드   |
+| statusText         | String     | HTTP 상태 메시지|
+| url                | String     | 요청 URL        |
+| error              | String     | 오류 메시지      |
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -99,65 +99,156 @@ client.do(
 
 ## ClientRequestOption
 
-| Option              | Type         | Default        | Description         |
+| 옵션              | 타입         | 기본값        | 설명         |
 |:--------------------|:-------------|:---------------|:--------------------|
 | method              | String       | `GET`          | GET, POST, DELETE, PUT... |
 | headers             | Object       |                |                     |
-| body                | String       |                | Content to send     |
-| unix                | String       |                | Unix Domain Socket file path |
+| body                | String       |                | 보낼 내용     |
+| unix                | String       |                | Unix 도메인 소켓 파일 경로 |
 
-If the `unix` option is specified, the HTTP client will attempt to connect to the server using the provided Unix domain socket file path.
+`unix` 옵션을 지정하면 HTTP 클라이언트가 주어진 Unix 도메인 소켓 파일 경로로 서버에 연결을 시도합니다.
 
 ## ClientRequest
 
 ### do()
 
-The do() function is a method of the HTTP client that sends an HTTP request to a specified URL and processes the response.
+do() 함수는 지정한 URL로 HTTP 요청을 보내고 응답을 처리하는 HTTP 클라이언트의 메서드입니다.
 
-**Syntax**
+**문법**
 
 ```js
 do(callback)
 ```
 
-**Parameters**
+**파라미터**
 
-- `callback` `(response) => {}` callback function.
+- `callback` `(response) => {}` 콜백 함수.
 
-**Return value**
+**반환값**
 
 None.
 
+### 헤더 메서드
+
+| 메서드 | 설명 |
+|:-------|:-----|
+| `setHeader(name, value)` | 요청 헤더를 설정합니다 |
+| `getHeader(name)` | 요청 헤더 값을 반환합니다 |
+| `hasHeader(name)` | 해당 헤더가 있는지 반환합니다 |
+| `removeHeader(name)` | 요청 헤더를 제거합니다 |
+| `getHeaders()` | 설정된 헤더 전체를 객체로 반환합니다 |
+| `getHeaderNames()` | 설정된 헤더 이름 배열을 반환합니다 |
+
+```js
+const http = require('http');
+const req = http.request('http://127.0.0.1:8080/hello');
+req.setHeader('X-Test-Header', 'TestValue');
+console.println(req.hasHeader('X-Test-Header'));
+console.println(req.getHeader('X-Test-Header'));
+req.end();
+```
+
+### write()
+
+요청 본문 청크를 기록합니다. `chunk`는 `string`, `Uint8Array`를 지원하며 성공 시 `true`, 실패 시 `false`를 반환합니다.
+
+**문법**
+
+```js
+write(chunk[, encoding][, callback])
+```
+
+### end()
+
+요청을 종료하고 전송합니다. `callback`을 전달하면 응답 객체를 인자로 받습니다.
+
+**문법**
+
+```js
+end([data[, encoding]][, callback])
+```
+
+### destroy()
+
+요청 객체를 파기하고 필요 시 error 이벤트를 발생시킵니다.
+
+**문법**
+
+```js
+destroy([err])
+```
+
+### 이벤트
+
+- `response` (응답 객체)
+- `error` (`Error`)
+- `end` ()
+
 ## ClientResponse
 
-**Properties**
+HTTP 응답 객체입니다. Node.js 호환 API에서는 `IncomingMessage`라고도 부릅니다.
 
-| Property           | Type       | Description        |
+**속성**
+
+| 속성           | 타입       | 설명        |
 |:-------------------|:-----------|:-------------------|
-| status             | Number     | status code. e.g. 200, 404 |
-| statusText         | String     | e.g. 200 OK        |
-| headers            | Object     | response headers   |
-| method             | String     | request method     |
-| url                | String     | request url        |
-| error              | String     | error message      |
+| status             | Number     | 상태 코드. 예: 200, 404 |
+| statusCode         | Number     | 상태 코드 (Node 호환 이름) |
+| statusText         | String     | 예: 200 OK        |
+| statusMessage      | String     | 상태 메시지 (Node 호환 이름) |
+| ok                 | Boolean    | 상태 코드가 2xx이면 `true` |
+| headers            | Object     | 응답 헤더   |
+| rawHeaders         | Array      | 정규화하지 않은 원본 헤더 |
+| httpVersion        | String     | HTTP 버전   |
+| complete           | Boolean    | 본문 수신 완료 여부 |
+| method             | String     | 요청 메서드     |
+| url                | String     | 요청 URL        |
+| error              | String     | 오류 메시지      |
+| raw                | Object     | 내부 Go 응답 객체 |
 
 ### text()
 
-Returns the entire response body as a single string.
+응답 본문 전체를 하나의 문자열로 반환합니다. 기본 인코딩은 `utf-8`입니다.
 
 ### json()
 
-Parses the response body and returns it as a JSON object.
+응답 본문을 파싱해 JSON 객체로 반환합니다. 파싱에 실패하면 예외가 발생할 수 있습니다.
 
 ### csv()
 
-Parses the response body and returns it as an array of string arrays, where each inner array represents a row of CSV data.
+응답 본문을 파싱해 문자열 배열의 배열로 반환하며, 각 내부 배열이 CSV 데이터의 한 행을 나타냅니다.
+
+### readBody()
+
+응답 본문을 문자열로 읽습니다. 기본 인코딩은 `utf-8`입니다.
+
+**문법**
+
+```js
+readBody([encoding])
+```
+
+### readBodyBuffer()
+
+응답 본문을 바이너리 버퍼로 읽습니다.
+
+### setTimeout(), close()
+
+`setTimeout(msecs[, callback])`으로 응답 대기 시간을 설정합니다. 응답 본문은 일반적인 처리 흐름에서 자동으로 닫히며, 필요하면 `close()`를 명시적으로 호출할 수 있습니다.
+
+```js
+const http = require('http');
+http.get('http://127.0.0.1:8080/hello', (res) => {
+  console.println(res.ok, res.statusCode);
+  console.println(res.text());
+});
+```
 
 ## Server
 
-The HTTP server.
+HTTP 서버입니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http")
@@ -178,47 +269,47 @@ svr.static("/html", "/html")
 svr.serve();
 ```
 
-**Creation**
+**생성**
 
-| Constructor             | Description                          |
+| 생성자             | 설명                          |
 |:------------------------|:-------------------------------------|
-| new Server(options)      | Instantiates a HTTP server          |
+| new Server(options)      | HTTP 서버를 생성합니다          |
 
-**Options**
+**옵션**
 
-| Option       | Type      | Default    | Description         |
+| 옵션       | 타입      | 기본값    | 설명         |
 |:-------------|:----------|:-----------|:--------------------|
 | network      | String    | `tcp`      | `tcp`, `unix`       |
 | address      | String    |            | `host:port`, `/path/to/file` |
 
 - TCP/IP: `{network:"tcp", address:"192.168.0.100:8080"}`
-- Unix Domain Socket: `{network:"unix", address:"/tmp/http.sock"}`
+- Unix 도메인 소켓: `{network:"unix", address:"/tmp/http.sock"}`
 
 ### all()
 
-The all() function is a method of the HTTP server that adds a route to handle all HTTP methods, including GET, POST, PUT, DELETE, and others. It allows you to define a single handler for multiple request types.
+all() 함수는 GET, POST, PUT, DELETE 등 모든 HTTP 메서드를 처리하는 라우트를 추가하는 HTTP 서버의 메서드입니다. 여러 요청 유형에 대해 하나의 핸들러를 정의할 수 있습니다.
 
-Key Features:
+주요 특징:
 
-1. Universal Method Handling: Handles all HTTP methods for a specific route.
-2. Custom Request Processing: Provides a callback function to process incoming requests using the context parameter, which contains request-specific details.
+1. 모든 메서드 처리: 특정 라우트에 대해 모든 HTTP 메서드를 처리합니다.
+2. 사용자 정의 요청 처리: 요청별 세부 정보를 담은 context 파라미터로 들어오는 요청을 처리하는 콜백 함수를 제공합니다.
 
-**Syntax**
+**문법**
 
 ```js
 all(request_path, handler)
 ```
 
-**Parameters**
+**파라미터**
 
-- `request_path` `String` The URL path to match.
-- `handler` `(context) => {}` A callback function that processes incoming requests, with the [context](#servercontext) parameter providing details like request headers, parameters, and body.
+- `request_path` `String` 매칭할 URL 경로.
+- `handler` `(context) => {}` 들어오는 요청을 처리하는 콜백 함수이며, context 파라미터가 요청 헤더·파라미터·본문 등의 정보를 제공합니다.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -232,24 +323,24 @@ svr.serve();
 
 ### get()
 
-The get() function is a method of the HTTP server that adds a route to handle HTTP GET requests. It allows you to define a handler for processing incoming GET requests to a specific URL path.
+get() 함수는 HTTP GET 요청을 처리하는 라우트를 추가하는 HTTP 서버의 메서드입니다. 특정 URL 경로로 들어오는 GET 요청을 처리할 핸들러를 정의할 수 있습니다.
 
-**Syntax**
+**문법**
 
 ```js
 get(request_path, handler)
 ```
 
-**Parameters**
+**파라미터**
 
-- `request_path` `String` The URL path to match.
-- `handler` `(context) => {}` A callback function that processes incoming requests, with the [context](#servercontext) parameter providing details like request headers, parameters, and body.
+- `request_path` `String` 매칭할 URL 경로.
+- `handler` `(context) => {}` 들어오는 요청을 처리하는 콜백 함수이며, context 파라미터가 요청 헤더·파라미터·본문 등의 정보를 제공합니다.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -264,24 +355,24 @@ svr.serve();
 
 ### post()
 
-The post() function is a method of the HTTP server that adds a route to handle HTTP POST requests. It allows you to define a handler for processing incoming POST requests to a specific URL path.
+post() 함수는 HTTP POST 요청을 처리하는 라우트를 추가하는 HTTP 서버의 메서드입니다. 특정 URL 경로로 들어오는 POST 요청을 처리할 핸들러를 정의할 수 있습니다.
 
-**Syntax**
+**문법**
 
 ```js
 post(request_path, handler)
 ```
 
-**Parameters**
+**파라미터**
 
-- `request_path` `String`  The URL path to match.
-- `handler` `(context) => {}` A callback function that processes incoming requests, with the [context](#servercontext) parameter providing request-specific details.
+- `request_path` `String`  매칭할 URL 경로.
+- `handler` `(context) => {}` 들어오는 요청을 처리하는 콜백 함수이며, context 파라미터가 요청별 세부 정보를 제공합니다.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -296,67 +387,67 @@ svr.serve();
 
 ### put()
 
-Add a route to handle PUT method.
+PUT 메서드를 처리하는 라우트를 추가합니다.
 
-**Syntax**
+**문법**
 
 ```js
 put(request_path, handler)
 ```
 
-**Parameters**
+**파라미터**
 
 - `request_path` `String`
-- `handler` `(context) => {}` A callback function that processes incoming requests, with the [context](#servercontext) parameter providing request-specific details.
+- `handler` `(context) => {}` 들어오는 요청을 처리하는 콜백 함수이며, context 파라미터가 요청별 세부 정보를 제공합니다.
 
-**Return value**
+**반환값**
 
 None.
 
 ### delete()
 
-Add a route to handle DELETE method.
+DELETE 메서드를 처리하는 라우트를 추가합니다.
 
-**Syntax**
+**문법**
 
 ```js
 delete(request_path, handler)
 ```
 
-**Parameters**
+**파라미터**
 
 - `request_path` `String`
-- `handler` `(context) => {}` A callback function that processes incoming requests, with the [context](#servercontext) parameter providing request-specific details.
+- `handler` `(context) => {}` 들어오는 요청을 처리하는 콜백 함수이며, context 파라미터가 요청별 세부 정보를 제공합니다.
 
-**Return value**
+**반환값**
 
 None.
 
 ### static()
 
-The static() function is a method of the HTTP server that defines a route to serve files from a specified static directory. It is useful for serving static assets like HTML, CSS, JavaScript, images, or other files in response to HTTP requests.
+static() 함수는 지정한 정적 디렉터리의 파일을 제공하는 라우트를 정의하는 HTTP 서버의 메서드입니다. HTML, CSS, JavaScript, 이미지 등 정적 자산을 HTTP 요청에 응답해 제공할 때 유용합니다.
 
-Key Features:
+주요 특징:
 
-1. Static File Serving: Serves files from a specified directory for requests matching a given path.
-2. Efficient Resource Delivery: Ideal for delivering static assets in web applications.
+1. 정적 파일 제공: 주어진 경로와 일치하는 요청에 대해 지정한 디렉터리의 파일을 제공합니다.
+2. 효율적인 리소스 전달: 웹 애플리케이션에서 정적 자산을 전달하기에 적합합니다.
 
-**Syntax**
+**문법**
 
 ```js
 static(request_path, dir_path)
 ```
 
-**Parameters**
+**파라미터**
 
-- `request_path` `String` The URL path to match.
-- `dir_path` `String` The directory path containing the static files to serve.
+- `request_path` `String` 매칭할 URL 경로.
+- `dir_path` `String` 제공할 정적 파일이 들어 있는 디렉터리 경로.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -368,29 +459,29 @@ svr.serve();
 
 ### staticFile()
 
-The staticFile() function is a method of the HTTP server that defines a route to serve a specific static file for a given request path. It is useful for serving individual files, such as a single HTML page, image, or configuration file, in response to HTTP requests.
+staticFile() 함수는 주어진 요청 경로에 대해 특정 정적 파일을 제공하는 라우트를 정의하는 HTTP 서버의 메서드입니다. 단일 HTML 페이지, 이미지, 설정 파일 같은 개별 파일을 제공할 때 유용합니다.
 
-Key Features:
+주요 특징:
 
-- Single File Serving: Serves a specific file for a specified request path.
-- Efficient Resource Delivery: Ideal for delivering individual static resources.
+- 단일 파일 제공: 지정한 요청 경로에 대해 특정 파일을 제공합니다.
+- 효율적인 리소스 전달: 개별 정적 리소스를 전달하기에 적합합니다.
 
-**Syntax**
+**문법**
 
 ```js
 staticFile(request_path, file_path)
 ```
 
-**Parameters**
+**파라미터**
 
-- `request_path` `String` The URL path to match.
-- `file_path` `String` The file path of the static file to serve.
+- `request_path` `String` 매칭할 URL 경로.
+- `file_path` `String` 제공할 정적 파일의 경로.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -402,21 +493,21 @@ svr.serve();
 
 ### loadHTMLGlob()
 
-**Syntax**
+**문법**
 
 ```js
 loadHTMLGlob(pattern)
 ```
 
-**Parameters**
+**파라미터**
 
-- `pattern` `String` The file path glob pattern.
+- `pattern` `String` 파일 경로 glob 패턴.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -431,22 +522,22 @@ svr.serve();
 
 ### ws() (since v8.5.2)
 
-The `ws()` method attaches a WebSocket endpoint to the HTTP server. It provides an alternative to using `WebSocketServer` from the `ws` module when you want WebSocket handling integrated directly into the HTTP server.
+`ws()` 메서드는 HTTP 서버에 WebSocket 엔드포인트를 붙입니다. WebSocket 처리를 HTTP 서버에 직접 통합하고 싶을 때 `ws` 모듈의 `WebSocketServer` 대신 사용할 수 있습니다.
 
-**Syntax**
+**문법**
 
 ```js
 ws(path, options)
 ```
 
-**Parameters**
+**파라미터**
 
-- `path` `String` The URL path to accept WebSocket connections on.
+- `path` `String` WebSocket 연결을 받을 URL 경로.
 - `options` `Object`:
-  - `verifyClient` `({origin, req}) => Boolean` Synchronously decides whether to accept the handshake. Return `false` to reject.
-  - `handleProtocols` `(protocols, req) => String|false` Selects one value from requested subprotocols.
+  - `verifyClient` `({origin, req}) => Boolean` 핸드셰이크 수락 여부를 동기적으로 결정합니다. 거부하려면 `false`를 반환하세요.
+  - `handleProtocols` `(protocols, req) => String|false` 요청된 하위 프로토콜 중 하나를 선택합니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -462,29 +553,29 @@ svr.ws('/ws', {
 svr.serve();
 ```
 
-> **Note:** `verifyClient()` and `handleProtocols()` are synchronous. Promise-based or await-style flows are not supported. For full WebSocket server capabilities, see the `ws` module documentation.
+> **참고:** `verifyClient()`와 `handleProtocols()`는 동기 함수입니다. Promise나 await 방식은 지원하지 않습니다. WebSocket 서버의 전체 기능은 `ws` 모듈 문서를 참고하세요.
 
 ### serve()
 
-The serve() function is a method of the HTTP server that starts the server and blocks the control flow until the stop() function is called.
-It begins listening for incoming requests on the specified network and address.
+serve() 함수는 서버를 시작하고 stop() 함수가 호출될 때까지 제어 흐름을 막는 HTTP 서버의 메서드입니다.
+지정한 네트워크와 주소에서 들어오는 요청을 수신하기 시작합니다.
 
-**Syntax**
+**문법**
 
 ```js
 serve()
 serve(callback)
 ```
 
-**Parameters**
+**파라미터**
 
-- `callback` `(result)=>{}` An optional callback function that receives a [ServerResult](#ServerResult) object containing details like the network type and address.
+- `callback` `(result)=>{}` 네트워크 유형과 주소 등의 정보를 담은 ServerResult 객체를 받는 선택적 콜백 함수.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 const http = require("@jsh/http");
@@ -497,138 +588,138 @@ svr.serve((result) => {
 
 ### close()
 
-Stop and shutdown the server.
+서버를 멈추고 종료합니다.
 
-**Syntax**
+**문법**
 
 ```js
 close()
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
 ## ServerResult
 
-**Properties**
+**속성**
 
-| Property           | Type       | Description           |
+| 속성           | 타입       | 설명           |
 |:-------------------|:-----------|:----------------------|
-| network            | String     | e.g. `tcp`            |
-| message            | String     | e.g. `127.0.0.1:8080` |
+| network            | String     | 예: `tcp`            |
+| message            | String     | 예: `127.0.0.1:8080` |
 
 ## ServerContext
 
-**Properties**
+**속성**
 
-| Property           | Type       | Description           |
+| 속성           | 타입       | 설명           |
 |:-------------------|:-----------|:----------------------|
-| request            | Object     | [ServerRequest](#serverrequest) |
+| request            | Object     | ServerRequest |
 
 ### abort()
 
-**Syntax**
+**문법**
 
 ```js
 abort()
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
 ### redirect()
 
-**Syntax**
+**문법**
 
 ```js
 redirect(statusCode, url)
 ```
 
-**Parameters**
+**파라미터**
 
-- `statusCode` `Number` HTTP status code. e.g. `302`, `http.status.Found`
-- `url` `String` address to redirect.
+- `statusCode` `Number` HTTP 상태 코드. 예: `302`, `http.status.Found`
+- `url` `String` 리다이렉트할 주소.
 
-**Return value**
+**반환값**
 
 None.
 
 ### setHeader()
 
-**Syntax**
+**문법**
 
 ```js
 setHeader(name, value)
 ```
 
-**Parameters**
+**파라미터**
 
 - `name` `String`
 - `value` `String`
 
-**Return value**
+**반환값**
 
 None.
 
 ### param()
 
-**Syntax**
+**문법**
 
 ```js
 param(name)
 ```
 
-**Parameters**
+**파라미터**
 
 - `name` `String`
 
-**Return value**
+**반환값**
 
 - `String`
 
 ### query()
 
-**Syntax**
+**문법**
 
 ```js
 query(name)
 ```
 
-**Parameters**
+**파라미터**
 
 - `name` `String`
 
-**Return value**
+**반환값**
 
 - `String`
 
 ### TEXT()
 
-**Syntax**
+**문법**
 
 ```js
 TEXT(statusCode, content)
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 svr.get("/formats/text", ctx => {
@@ -654,21 +745,21 @@ svr.get("/formats/text", ctx => {
 
 ### JSON()
 
-**Syntax**
+**문법**
 
 ```js
 JSON(statusCode, content)
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 svr.get("/formats/json", ctx => {
@@ -698,21 +789,21 @@ svr.get("/formats/json-indent", ctx => {
 
 ### YAML()
 
-**Syntax**
+**문법**
 
 ```js
 YAML(statusCode, content)
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 svr.get("/formats/yaml", ctx => {
@@ -728,21 +819,21 @@ svr.get("/formats/yaml", ctx => {
 
 ### TOML
 
-**Syntax**
+**문법**
 
 ```js
 TOML(statusCode, content)
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 svr.get("/formats/toml", ctx => {
@@ -758,21 +849,21 @@ svr.get("/formats/toml", ctx => {
 
 ### XML()
 
-**Syntax**
+**문법**
 
 ```js
 XML(statusCode, content)
 ```
 
-**Parameters**
+**파라미터**
 
 None.
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 svr.get("/formats/xml", ctx => {
@@ -786,23 +877,23 @@ svr.get("/formats/xml", ctx => {
 
 ### HTML()
 
-**Syntax**
+**문법**
 
 ```js
 HTML(statusCode, template, obj)
 ```
 
-**Parameters**
+**파라미터**
 
-- `statusCode` `Number` HTTP Response Status Code
-- `template` `String` Template name
-- `obj` `any` Template value
+- `statusCode` `Number` HTTP 응답 상태 코드
+- `template` `String` 템플릿 이름
+- `obj` `any` 템플릿 값
 
-**Return value**
+**반환값**
 
 None.
 
-**Usage example**
+**사용 예제**
 
 ```js
 svr.loadHTMLGlob("/templates/*.html")
@@ -837,9 +928,9 @@ svr.get("/hello.html", ctx => {
 
 ## ServerRequest
 
-**Properties**
+**속성**
 
-| Property           | Type       | Description           |
+| 속성           | 타입       | 설명           |
 |:-------------------|:-----------|:----------------------|
 | method             | String     |                       |
 | host               | String     |                       |
@@ -851,23 +942,23 @@ svr.get("/hello.html", ctx => {
 
 ### getHeader()
 
-**Syntax**
+**문법**
 
 ```js
 getHeader(name)
 ```
 
-**Parameters**
+**파라미터**
 
 - `name` `String` head name. e.g. `Content-Type`, `Content-Length`
 
-**Return value**
+**반환값**
 
-- `String` header value.
+- `String` 헤더 값.
 
 ## status
 
-Defines http status codes.
+HTTP 상태 코드를 정의합니다.
 
 ```js
 const http = require("@jsh/http");

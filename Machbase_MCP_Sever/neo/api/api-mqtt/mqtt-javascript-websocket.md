@@ -1,10 +1,10 @@
 # Machbase Neo MQTT JavaScript & WebSocket Client
 
-We will use the MQTT.js library for our JavaScript client, available at [MQTT.js GitHub Repository](https://github.com/mqttjs/MQTT.js).
+JavaScript 클라이언트로는 MQTT.js GitHub 저장소에서 제공하는 MQTT.js 라이브러리를 사용합니다.
 
 ## Node.js
 
-Install `mqtt.js` library.
+`mqtt.js` 라이브러리를 설치합니다.
 
 ```sh
 npm install mqtt --save
@@ -43,7 +43,7 @@ client.on("message", (topic, message) => {
 });
 ```
 
-Run `main.js` with `node` command.
+`node` 명령으로 `main.js`를 실행합니다.
 
 ```sh
 $ node main.js
@@ -59,15 +59,15 @@ $ node main.js
 
 ## Websocket
 
-Since Machbase Neo v8.0.28, MQTT over WebSocket is supported.
+Machbase Neo v8.0.28부터 WebSocket 기반 MQTT를 지원합니다.
 
-To include MQTT.js in our project, embed it from the CDN using the following script tag:
+프로젝트에 MQTT.js를 포함하려면 다음 스크립트 태그로 CDN에서 불러옵니다:
 
 ```html
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 ````
 
-By default, the WebSocket address for MQTT is `ws://127.0.0.1:5654/web/api/mqtt`, served by the Machbase Neo HTTP server.
+기본적으로 MQTT의 WebSocket 주소는 Machbase Neo HTTP 서버가 제공하는 `ws://127.0.0.1:5654/web/api/mqtt` 입니다.
 
 ```html
 <html>

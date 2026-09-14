@@ -1,29 +1,29 @@
 # Machbase Neo JavaScript mathx Module
 
-The `mathx` module provides data generators, sample-array helpers, FFT, and statistics functions for use in `SCRIPT()` within TQL and in `*.js` JSH applications.
+`mathx` 모듈은 TQL의 `SCRIPT()`와 `*.js` JSH 애플리케이션에서 쓸 수 있는 데이터 생성기, 샘플 배열 도우미, FFT, 통계 함수를 제공합니다.
 
 ```js
 const m = require("mathx");
 ```
 
-> **Note**: `series()`, `unzip()`, `zip()`, and the `oscillator()` `noise` option were added in Machbase Neo v8.5.5.
+> **참고**: `series()`, `unzip()`, `zip()`, 그리고 `oscillator()`의 `noise` 옵션은 Machbase Neo v8.5.5에서 추가되었습니다.
 
 ## Generators
 
 ### oscillator()
 
-Generates synthetic oscillator samples as `[time, value]` tuples.
+합성 오실레이터 샘플을 `[time, value]` 튜플로 생성합니다.
 
 ```js
 oscillator(options)
 ```
 
-- `options.components` `Array<Object>` (required) — wave components, each `{ amplitude, frequencyHz, phaseRad?, bias? }`.
+- `options.components` `Array<Object>` (필수) — 파형 성분들. 각각 `{ amplitude, frequencyHz, phaseRad?, bias? }` 형태입니다.
 - `options.timeRange` `Object` (required) — `{ from, to }` (e.g. `{ from: "0s", to: "10s" }`).
-- `options.sample` `Number | String` Optional — number of samples, or a sampling rate string with an `Hz` suffix.
-- `options.noise` `Number | Object` Optional — noise added to each sample.
-  - `Number`: interpreted as the noise amplitude.
-  - `Object`: `{ amplitude, seed? }`, where `amplitude` is the noise strength and `seed` makes the noise reproducible.
+- `options.sample` `Number | String` 선택 — 샘플 개수, 또는 `Hz` 접미가 붙은 샘플링 레이트 문자열.
+- `options.noise` `Number | Object` 선택 — 각 샘플에 더할 노이즈.
+  - `Number`: 노이즈 진폭으로 해석됩니다.
+  - `Object`: `{ amplitude, seed? }` 이며 `amplitude`는 노이즈 세기, `seed`는 노이즈를 재현 가능하게 합니다.
 
 ```js
 const m = require("mathx");
@@ -38,23 +38,23 @@ const gen = m.oscillator({
 
 ### arrange(), linspace(), meshgrid()
 
-- `arrange(start, end, step)` — array of numbers from `start` to `end` with the given increment.
-- `linspace(start, end, count)` — `count` evenly spaced numbers across the range.
-- `meshgrid(arr1, arr2)` — coordinate pairs from two input arrays.
+- `arrange(start, end, step)` — `start`부터 `end`까지 주어진 증분으로 만든 숫자 배열.
+- `linspace(start, end, count)` — 범위를 균등 간격으로 나눈 `count`개의 숫자.
+- `meshgrid(arr1, arr2)` — 두 입력 배열로 만든 좌표 쌍.
 
-## Sample-array helpers
+## 샘플 배열 도우미
 
 ### series()
 
-Converts tuple samples into separate arrays.
+튜플 샘플을 별도의 배열들로 변환합니다.
 
 ```js
 series(samples, options)
 ```
 
-- `samples` `Array<[time, Number]>` — tuple samples.
-- `options` `Object` Optional — `{ xKey?, yKey? }`, key names for the returned arrays (defaults `"time"` and `"value"`).
-- Returns an `Object` with two arrays; default shape is `{ time, value }`.
+- `samples` `Array<[time, Number]>` — 튜플 샘플.
+- `options` `Object` 선택 — `{ xKey?, yKey? }`, 반환 배열의 키 이름 (기본값 `"time"`, `"value"`).
+- 두 개의 배열을 가진 `Object`를 반환하며 기본 형태는 `{ time, value }` 입니다.
 
 ```js
 const m = require("mathx");
@@ -67,7 +67,7 @@ console.log(custom.ts.length, custom.amp.length);
 
 ### unzip()
 
-Splits tuple samples into two arrays: `Array<[x, y]>` → `[Array<x>, Array<y>]`.
+튜플 샘플을 두 배열로 나눕니다: `Array<[x, y]>` → `[Array<x>, Array<y>]`.
 
 ```js
 const m = require("mathx");
@@ -78,7 +78,7 @@ console.log(y); // [10, 20, 30]
 
 ### zip()
 
-Combines two equal-length arrays into tuple samples: two `Array` → `Array<[x, y]>`.
+길이가 같은 두 배열을 튜플 샘플로 결합합니다: `Array` 두 개 → `Array<[x, y]>`.
 
 ```js
 const m = require("mathx");
@@ -90,16 +90,16 @@ console.log(samples[0]); // [1, 10]
 
 ### fft()
 
-Performs Fast Fourier Transform analysis.
+고속 푸리에 변환 분석을 수행합니다.
 
 ```js
 fft(times, amplitudes)   // or fft(timesAndAmplitudes)
 ```
 
-Returns the frequency/amplitude result of the transform.
+변환의 주파수/진폭 결과를 반환합니다.
 
 ## Statistics
 
-The module also provides array/statistics helpers that operate on `Array<Number>`:
+이 모듈은 `Array<Number>`에 대해 동작하는 배열·통계 도우미도 제공합니다:
 
 `sort()`, `sum()`, `mean()`, `median()`, `medianInterp()`, `mode()`, `quantile()`, `quantileInterp()`, `cdf()`, `stdDev()`, `stdErr()`, `meanStdDev()`, `moment()`, `covariance()`, `correlation()`, `circularMean()`, `geometricMean()`, `harmonicMean()`, `entropy()`, and `linearRegression()` (returns `{ slope, intercept }`).

@@ -1,31 +1,31 @@
 # Machbase Neo Bridge - SQLite
 
-## Register a bridge to sqlite3
+## sqlite3 브리지 등록
 
-Register a bridge that connects to the SQLite.
+SQLite에 연결하는 브리지를 등록합니다.
 
 ```
 bridge add -t sqlite sqlitedb file:/data/sqlite.db;
 ```
 
-SQLite supports memory only mode like below.
+SQLite는 아래처럼 메모리 전용 모드를 지원합니다.
 
 ```
 bridge add -t sqlite mem file::memory:?cache=shared
 ```
 
-The command below is equivalent to the web UI shown in the following image.
+아래 명령은 다음 이미지의 웹 UI와 동일합니다.
 
-## Test the bridge's connectivity
+## 브리지 연결 확인
 
 ```
 machbase-neo» bridge test mem;
 Test bridge mem connectivity... success 11.917µs
 ```
 
-## Create table
+## 테이블 생성
 
-Open machbase-neo shell and execute the command below which creates a `mem_example` table via the `mem` bridge.
+machbase-neo 셸을 열고 아래 명령을 실행해 `mem` 브리지로 `mem_example` 테이블을 만듭니다.
 
 ```sh
 bridge exec mem CREATE TABLE IF NOT EXISTS mem_example(
@@ -40,7 +40,7 @@ bridge exec mem CREATE TABLE IF NOT EXISTS mem_example(
 );
 ```
 
-The standard SQL editor can execute SQL for the bridged database if there is an `-- env: bridge=<name>` comment. The *env* comment remains effective until it is cleared by `-- env: reset`.
+표준 SQL 에디터는 `-- env: bridge=<name>` 주석이 있으면 브리지 데이터베이스에 SQL을 실행할 수 있습니다. 이 *env* 주석은 `-- env: reset`으로 해제할 때까지 유효합니다.
 
 ```sql
 -- env: bridge=mem
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS mem_example(
 -- env: reset
 ```
 
-## DML on the SQL Editor
+## SQL 에디터에서의 DML
 
 ```sql
 -- env: bridge=mem
@@ -73,7 +73,7 @@ DELETE from mem_example;
 -- env: reset
 ```
 
-## *TQL* writing on the SQLite
+## SQLite에 *TQL*로 쓰기
 
 ```js
 FAKE( json({
@@ -97,16 +97,16 @@ machbase-neo» bridge query mem select * from mem_example;
 ╰────┴─────────┴──────────┴──────────┴───────┴───────┴──────┴──────────────────────────────────────╯
 ```
 
-## *TQL* reading from the SQLite
+## SQLite에서 *TQL*로 읽기
 
-Save the code below as `sqlite.tql`.
+아래 코드를 `sqlite.tql`로 저장합니다.
 
 ```js
 SQL(bridge('mem'), "select company, employee, created_on from mem_example")
 CSV()
 ```
 
-And call the endpoint with `curl` command or open the browser.
+그리고 `curl` 명령으로 엔드포인트를 호출하거나 브라우저에서 엽니다.
 
 ```sh
 curl -o - http://127.0.0.1:5654/db/tql/sqlite.tql
@@ -117,20 +117,20 @@ NovaWave,10,1704866777160399000
 Sunflower,20,1704866777160407000
 ```
 
-## Copy data from/to SQLite
+## SQLite와 데이터 복사
 
-This example demonstrates how to copy data from Machbase to an SQLite bridge.
+이 예제는 Machbase에서 SQLite 브리지로 데이터를 복사하는 방법을 보여줍니다.
 
 **Bridge**
 
-Define a `sqlite` bridge with the following details:
+다음 내용으로 `sqlite` 브리지를 정의합니다:
 
 - Type: `SQLite`
-- Connection string: `file:///tmp/sqlite.db`
+- 연결 문자열: `file:///tmp/sqlite.db`
 
 **SQL**
 
-Create the `example` table in the SQLite database located at "/tmp/sqlite.db".
+"/tmp/sqlite.db"에 있는 SQLite 데이터베이스에 `example` 테이블을 만듭니다.
 
 ```sql
 --env: bridge=sqlite
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS example (
 
 **TQL**
 
-The TQL script below executes a `SELECT` statement using the `SQL()` function to retrieve the required data, and then writes the data into the SQLite database using the `INSERT()` function with `bridge("sqlite")` as the first argument.
+아래 TQL 스크립트는 `SQL()` 함수로 `SELECT` 문을 실행해 필요한 데이터를 가져온 뒤, 첫 인자로 `bridge("sqlite")`를 준 `INSERT()` 함수로 SQLite 데이터베이스에 씁니다.
 
 ```js
 SQL(`select name, time, value from example where name = 'my-car'`)

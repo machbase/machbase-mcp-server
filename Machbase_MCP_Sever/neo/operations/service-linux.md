@@ -1,10 +1,10 @@
 # Machbase Neo Linux service
 
-Using *systemd* or *supervisord*, you can run and manage machbase-neo process as system service, so that make it to start automatically when the system boot.
+*systemd*나 *supervisord*를 사용하면 machbase-neo 프로세스를 시스템 서비스로 실행·관리할 수 있어 시스템 부팅 시 자동으로 시작됩니다.
 
-## Create start/stop script
+## 시작/중지 스크립트 작성
 
-**Create neo-start.sh**
+**neo-start.sh 작성**
 
 ```sh
 $ vi neo-start.sh
@@ -19,7 +19,7 @@ exec /data/machbase-neo serve --host 0.0.0.0 --log-filename /data/log/machbase-n
 $ chmod 755 neo-start.sh
 ```
 
-**Create neo-stop.sh**
+**neo-stop.sh 작성**
 
 ```sh
 $ vi neo-stop.sh
@@ -36,7 +36,7 @@ $ chmod 755 neo-stop.sh
 
 ## systemd
 
-### Step 1: Create neo.service
+### 1단계: neo.service 작성
 
 ```sh
 $ cd /etc/systemd/system
@@ -63,16 +63,16 @@ RestartSec=1
 WantedBy=multi-user.target   
 ```
 
-* Modify the `User` and paths according to your environment.
+* 환경에 맞게 `User`와 경로를 수정하세요.
 
-### Step 2: Activate the service
+### 2단계: 서비스 활성화
 
 ```sh
 $ sudo chmod 755 neo.service
 $ sudo systemctl daemon-reload
 ```
 
-Make the service to auto-start when host machine re-boot.
+호스트 장비가 재부팅될 때 서비스가 자동 시작되도록 설정합니다.
 
 ```sh
 $ sudo systemctl enable neo.service
@@ -80,7 +80,7 @@ $ sudo systemctl enable neo.service
 
 ### Step 3: Done
 
-After activating the service, you can control it with the following commands:
+서비스를 활성화한 뒤 다음 명령으로 제어할 수 있습니다:
 
 ```sh
 $ sudo systemctl start neo.service
@@ -90,7 +90,7 @@ $ sudo systemctl stop neo.service
 
 ## supervisord
 
-### Step 1: Create neo.conf
+### 1단계: neo.conf 작성
 
 ```sh
 $ cd /etc/supervisor/conf.d
@@ -109,10 +109,10 @@ stderr_logfile=/data/log/machbase-neo_stderr.log
 user=machbase   
 ```
 
-* Modify the `user` and paths according to your environment.
-* In the above example, the log folder `/data/log` should exist in advance.
+* 환경에 맞게 `user`와 경로를 수정하세요.
+* 위 예제에서 로그 폴더 `/data/log`가 미리 있어야 합니다.
 
-### Step 2: Update Supervisord
+### 2단계: Supervisord 갱신
 
 ```sh
 $ sudo supervisorctl reread
@@ -121,7 +121,7 @@ $ sudo supervisorctl update
 
 ### Step 3: Done
 
-After activating the service, you can control machbase-neo with the following commands:
+서비스를 활성화한 뒤 다음 명령으로 machbase-neo를 제어할 수 있습니다:
 
 ```sh
 $ sudo supervisorctl start neo
@@ -131,7 +131,7 @@ $ sudo supervisorctl stop neo
 
 ## PM2
 
-### Step 1: Create neo-start.sh
+### 1단계: neo-start.sh 작성
 
 ```sh
 $ vi neo-start.sh
@@ -142,31 +142,31 @@ $ vi neo-start.sh
 exec /data/machbase-neo serve --host 0.0.0.0
 ```
 
-* Logs will be managed by PM2, so the `--log-filename` option is not necessary.
+* 로그는 PM2가 관리하므로 `--log-filename` 옵션은 필요 없습니다.
 
-### Step 2: Executable neo-start.sh
+### 2단계: neo-start.sh 실행 권한 부여
 
 ```sh
 $ chmod 755 neo-start.sh
 ```
 
-### Step 3: Run machbase-neo using PM2
+### 3단계: PM2로 machbase-neo 실행
 
 ```sh
 $ pm2 start /data/neo-start.sh --name neo --log /data/log/machbase-neo.log
 ```
 
-Check the status of machbase-neo.
+machbase-neo의 상태를 확인합니다.
 
 ```sh
 $ pm2 status neo
 ```
 
-### Step 4: Make PM2 to auto-start
+### 4단계: PM2 자동 시작 설정
 
-* You can skip this process if you have already executed it.
+* 이미 실행했다면 이 과정은 건너뛰어도 됩니다.
 
-To automatically generate and configuration a startup script just type the command (without sudo) `pm2 startup`:
+시작 스크립트를 자동으로 생성·설정하려면 (sudo 없이) `pm2 startup` 명령을 입력합니다:
 
 ```sh
 $ pm2 startup
@@ -175,17 +175,17 @@ $ pm2 startup
 sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u machbase --hp /home/machbase
 ```
 
-Then copy/paste the displayed command onto the terminal:
+그리고 표시된 명령을 터미널에 복사해 붙여넣습니다:
 
 ```sh
 $ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u machbase --hp /home/machbase
 ```
 
-Now PM2 will automatically restart at boot.
+이제 PM2가 부팅 시 자동으로 재시작합니다.
 
-### Step 5: Saving the app list
+### 5단계: 앱 목록 저장
 
-Once you have started all desired apps, save the app list so it will respawn after reboot:
+원하는 앱을 모두 시작한 뒤, 재부팅 후에도 다시 실행되도록 앱 목록을 저장합니다:
 
 ```sh
 $ pm2 save
@@ -193,7 +193,7 @@ $ pm2 save
 
 ### Step 6: Done
 
-You can control machbase-neo with the following commands:
+다음 명령으로 machbase-neo를 제어할 수 있습니다:
 
 ```sh
 $ pm2 start neo

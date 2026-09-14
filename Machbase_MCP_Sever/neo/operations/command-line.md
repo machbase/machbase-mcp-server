@@ -2,87 +2,87 @@
 
 ## machbase-neo serve
 
-Start machbase-neo server process.
+machbase-neo 서버 프로세스를 시작합니다.
 
 ### Flags
 
-**General flags**
+**일반 플래그**
              
 | flag             | desc                                                              |
 |:-----------------|:----------------------------------------------------------------- |
-| `--host`         | listening network addr (default: `127.0.0.1`) ex) `--host 0.0.0.0`                  |
-| `-c`, `--config` | config file location ex) `--config /data/machbase-neo.conf`|
-| `--pid`          | file path to save pid ex) `--pid /data/machbase-neo.pid`    |
-| `--data`         | path to database (default: `./machbase_home`) ex) `--data /data/machbase`                 |
-| `--file`         | path to files (default: `.`) ex) `--file /data/files`                       |
-| `--backup-dir`   | path to the backup dir (default: `./backups`) ex) `--backup-dir /data/backups` |
-| `--pref`         | path to preference directory path (default: `~/.config/machbase`)                                |
-| `--preset`       | database preset `auto`, `fog`, `edge` (default: `auto`) ex) `--preset edge`    |
+| `--host`         | 수신 네트워크 주소 (기본값: `127.0.0.1`) 예) `--host 0.0.0.0`                  |
+| `-c`, `--config` | 설정 파일 위치. 예) `--config /data/machbase-neo.conf`|
+| `--pid`          | pid를 저장할 파일 경로. 예) `--pid /data/machbase-neo.pid`    |
+| `--data`         | 데이터베이스 경로 (기본값: `./machbase_home`) 예) `--data /data/machbase`                 |
+| `--file`         | 파일 경로 (기본값: `.`) 예) `--file /data/files`                       |
+| `--backup-dir`   | 백업 디렉토리 경로 (기본값: `./backups`) 예) `--backup-dir /data/backups` |
+| `--pref`         | 환경설정 디렉토리 경로 (기본값: `~/.config/machbase`)                                |
+| `--preset`       | 데이터베이스 프리셋 `auto`, `fog`, `edge` (기본값: `auto`) 예) `--preset edge`    |
 
-**Database Sessions flags**
+**데이터베이스 세션 플래그**
 
-Conceptually, if we divide machbase-neo into the API part (http, mqtt, etc.) that includes tql and the DBMS part, there have been no restrictions on traffic between the API and DBMS so far.
+개념적으로 machbase-neo를 tql을 포함한 API 부분(http, mqtt 등)과 DBMS 부분으로 나누어 보면, 지금까지 API와 DBMS 사이의 트래픽에는 제한이 없었습니다.
 
-If 100 MQTT clients and 100 HTTP clients, a total of 200 clients, execute a db query "simultaneously", 200 sessions will be executed in the DBMS. If there is a tool that can control the traffic flow delivered to the DBMS, it would be possible to configure flexibly depending on the situation. Therefore, new flags that can be used in `machbase-neo serve` have been added.
+MQTT 클라이언트 100개와 HTTP 클라이언트 100개, 총 200개 클라이언트가 "동시에" db 질의를 실행하면 DBMS에서 200개 세션이 실행됩니다. DBMS로 전달되는 트래픽 흐름을 제어할 수 있는 수단이 있다면 상황에 따라 유연하게 구성할 수 있습니다. 이를 위해 `machbase-neo serve`에서 사용할 수 있는 새 플래그가 추가되었습니다.
 
-Database session pool flags (Machbase Neo v8.5.5 or later):
+데이터베이스 세션 풀 플래그 (Machbase Neo v8.5.5 이상):
 
 | flag                     | desc                                                              |
 |:-------------------------|:----------------------------------------------------------------- |
-| `--max-open-conn`        | the maximum number of open connections to the database. (default `-1` unlimited) |
-| `--max-idle-conn`        | the maximum number of connections in the idle connection pool. If `<= 0`, no idle connections are retained. (default `2`) |
-| `--conn-max-lifetime`    | the maximum amount of time a connection may be reused. Expired connections may be closed lazily before reuse. If `<= 0`, connections are not closed due to age. (default `10m`) |
-| `--conn-max-idletime`    | the maximum amount of time a connection may be idle. Expired connections may be closed lazily before reuse. If `<= 0`, connections are not closed due to idle time. (default `1m`) |
+| `--max-open-conn`        | 데이터베이스에 대한 최대 열린 커넥션 수. (기본값 `-1`, 무제한) |
+| `--max-idle-conn`        | 유휴 커넥션 풀의 최대 커넥션 수. `<= 0`이면 유휴 커넥션을 유지하지 않습니다. (기본값 `2`) |
+| `--conn-max-lifetime`    | 커넥션을 재사용할 수 있는 최대 시간. 만료된 커넥션은 재사용 전에 지연 종료될 수 있습니다. `<= 0`이면 수명으로는 닫지 않습니다. (기본값 `10m`) |
+| `--conn-max-idletime`    | 커넥션이 유휴 상태로 있을 수 있는 최대 시간. 만료된 커넥션은 재사용 전에 지연 종료될 수 있습니다. `<= 0`이면 유휴 시간으로는 닫지 않습니다. (기본값 `1m`) |
 
-> **Note**: These direct pool-configuration flags replace the earlier CPU-factor-based connection settings (`--max-open-conn-factor`, `--max-open-query`, `--max-open-query-factor`).
+> **참고**: 이 직접 풀 설정 플래그들은 이전의 CPU 계수 기반 커넥션 설정(`--max-open-conn-factor`, `--max-open-query`, `--max-open-query-factor`)을 대체합니다.
 
-**Http flags**
+**HTTP 플래그**
 
-| flag                    | default     | desc                                                                      |
+| 플래그                  | 기본값      | 설명                                                                      |
 |:------------------------|:------------|:------------------------------------------------------------------------- |
-| `--http-linger`         | `-1`        | HTTP socket option, `-1` means disable SO_LINGER, `>=0` means set SO_LINGER |
-| `--http-readbuf-size`   | `0`         | HTTP socket read buffer size. `0` means use system default.                 |
-| `--http-writebuf-size`  | `0`         | HTTP socket write buffer size. `0` means use system default.                |
-| `--http-debug`          | `false`     | Enable HTTP Ddebug log                                                      |
-| `--http-debug-latency`  | `"0"`       | Log HTTP requests that take longer than the specified duration to respond (e.g., "3s"). "0" means all request. |
-| `--http-allow-statz`    |             | Allow source IPs (comma separated) to access `/db/statz` API. default allows only `127.0.0.1`. |
+| `--http-linger`         | `-1`        | HTTP 소켓 옵션. `-1`은 SO_LINGER 비활성화, `>=0`은 SO_LINGER 설정 |
+| `--http-readbuf-size`   | `0`         | HTTP 소켓 읽기 버퍼 크기. `0`은 시스템 기본값 사용.                 |
+| `--http-writebuf-size`  | `0`         | HTTP 소켓 쓰기 버퍼 크기. `0`은 시스템 기본값 사용.                |
+| `--http-debug`          | `false`     | HTTP 디버그 로그 활성화                                                      |
+| `--http-debug-latency`  | `"0"`       | 지정한 시간(예: "3s")보다 응답이 오래 걸린 HTTP 요청을 로그로 남깁니다. "0"은 모든 요청을 뜻합니다. |
+| `--http-allow-statz`    |             | `/db/statz` API에 접근할 수 있는 출발지 IP(쉼표 구분)를 허용합니다. 기본값은 `127.0.0.1`만 허용합니다. |
 
-**Log flags**
+**로그 플래그**
 
-| flag                    | default     | desc                                                                      |
+| 플래그                  | 기본값      | 설명                                                                      |
 |:------------------------|:------------|:------------------------------------------------------------------------- |
-| `--log-filename`        | `-` (stdout)| log file path ex) `--log-filename /data/logs/machbase-neo.log`       |
-| `--log-level`           | `INFO`      | log level. TRACE, DEBUG, INFO, WARN, ERROR ex) `--log-level INFO`    |
-| `--log-append`          | `true`      | append existing log file.                   |
-| `--log-rotate-schedule` | `@midnight` | time scheduled log file rotation            |
-| `--log-max-size`        | `10`        | file max size in MB                         |
-| `--log-max-backups`     | `1`         | maximum log file backups                    |
-| `--log-max-age`         | `7`         | maximum days in backup files                | 
-| `--log-compress`        | `false`     | gzip compress the backup files              |
-| `--log-time-utc`        | `false`     | use UTC time for logging                    |
+| `--log-filename`        | `-` (stdout)| 로그 파일 경로. 예) `--log-filename /data/logs/machbase-neo.log`       |
+| `--log-level`           | `INFO`      | 로그 레벨. TRACE, DEBUG, INFO, WARN, ERROR. 예) `--log-level INFO`    |
+| `--log-append`          | `true`      | 기존 로그 파일에 이어 씁니다.                   |
+| `--log-rotate-schedule` | `@midnight` | 시간 기반 로그 파일 회전            |
+| `--log-max-size`        | `10`        | 파일 최대 크기(MB)                         |
+| `--log-max-backups`     | `1`         | 로그 파일 백업 최대 개수                    |
+| `--log-max-age`         | `7`         | 백업 파일 최대 보관 일수                | 
+| `--log-compress`        | `false`     | 백업 파일을 gzip으로 압축              |
+| `--log-time-utc`        | `false`     | 로깅에 UTC 시간 사용                    |
 
-**Listener flags** (neo_since ver="8.0.36")
+**리스너 플래그** (neo_since ver="8.0.36")
 
-| flag             | default   | desc                            |
+| 플래그           | 기본값    | 설명                            |
 |:-----------------|:----------|-------------------------------- |
-| `--shell-port`   | `5652`    | ssh listen port                 |
-| `--mqtt-port`    | `5653`    | mqtt listen port                |
-| `--mqtt-sock`    | `/tmp/machbase-neo-mqtt-5653.sock`| mqtt unix socket |
-| `--http-port`    | `5654`    | http listen port                |
-| `--http-sock`    | `/tmp/machbase-neo-http-5654.sock` | http unix socket |
-| `--mach-port`    | `5656`    | machbase native listen port     |
+| `--shell-port`   | `5652`    | ssh 수신 포트                 |
+| `--mqtt-port`    | `5653`    | mqtt 수신 포트                |
+| `--mqtt-sock`    | `/tmp/machbase-neo-mqtt-5653.sock`| mqtt 유닉스 소켓 |
+| `--http-port`    | `5654`    | http 수신 포트                |
+| `--http-sock`    | `/tmp/machbase-neo-http-5654.sock` | http 유닉스 소켓 |
+| `--mach-port`    | `5656`    | machbase 네이티브 수신 포트     |
 
 > **📌 IMPORTANT**  
-> Since the default of `--host` is the loopback address, it is not allowed to access machbase-neo from the remote hosts.  
-> Set `--host <host-address>` or `--host 0.0.0.0` for accepting the network connections from remote clients.
+> `--host`의 기본값이 루프백 주소이므로 원격 호스트에서는 machbase-neo에 접속할 수 없습니다.  
+> 원격 클라이언트의 네트워크 연결을 받으려면 `--host <host-address>` 또는 `--host 0.0.0.0`을 설정하세요.
 
-If execute `machbase-neo serve` with no flags,
+플래그 없이 `machbase-neo serve`를 실행하면
 
 ```sh
 $ machbase-neo serve
 ```
 
-it is equivalent with
+다음과 동일합니다
 
 ```sh
 $ machbase-neo serve --host 127.0.0.1 --data ./machbase_home --file . --preset auto
@@ -90,43 +90,43 @@ $ machbase-neo serve --host 127.0.0.1 --data ./machbase_home --file . --preset a
 
 ## machbase-neo shell
 
-Start machbase-neo shell. It will start interactive mode shell if there are no other arguments.
+machbase-neo 셸을 시작합니다. 다른 인자가 없으면 대화형 모드 셸로 시작합니다.
 
-**Flags**
+**플래그**
 
-| flag (long)       | default                | desc                                                             |
+| 플래그(긴 형식)   | 기본값                 | 설명                                                             |
 |:------------------|:-----------------------|:-----------------------------------------------------------------|
-| `-s`, `--server`  | `127.0.0.1:5654`       | machbase-neo's HTTP address. e.g. `--server 127.0.0.1:5654` |
-| `--user`          | `sys`                  | user name. env: `NEOSHELL_USER`         |
-| `--password`      | `manager`              | password. env: `NEOSHELL_PASSWORD`      |
+| `-s`, `--server`  | `127.0.0.1:5654`       | machbase-neo의 HTTP 주소. 예) `--server 127.0.0.1:5654` |
+| `--user`          | `sys`                  | 사용자명. 환경 변수: `NEOSHELL_USER`         |
+| `--password`      | `manager`              | 비밀번호. 환경 변수: `NEOSHELL_PASSWORD`      |
 
-When machbase-neo shell starts, it is looking for the user name and password from OS's environment variables `NEOSHELL_USER` and `NEOSHELL_PASSWORD`. Then if the flags `--user` and `--password` are provided, it will override the provided values instead of the environment variables.
+machbase-neo 셸이 시작되면 OS 환경 변수 `NEOSHELL_USER`와 `NEOSHELL_PASSWORD`에서 사용자명과 비밀번호를 찾습니다. 그리고 `--user`, `--password` 플래그가 주어지면 환경 변수 대신 플래그 값이 우선합니다.
 
-### Precedence of username and password
+### 사용자명과 비밀번호의 우선순위
 
-#### Step 1: Command line flags
+#### 1단계: 명령행 플래그
 
-If `--user`, `--password` is provided? Use the given values
+`--user`, `--password`가 주어졌는가? 주어진 값을 사용합니다
 
-#### Step 2: Environment variables
+#### 2단계: 환경 변수
 
-If `$NEOSHELL_USER` (on windows `%NEOSHELL_USER%`) is set? Use the value as the user name.
+`$NEOSHELL_USER`(윈도우는 `%NEOSHELL_USER%`)가 설정되어 있는가? 그 값을 사용자명으로 사용합니다.
 
-If `$NEOSHELL_PASSWORD` (on windows `%NEOSHELL_PASSWORD%`) is set? Use the value as the password.
+`$NEOSHELL_PASSWORD`(윈도우는 `%NEOSHELL_PASSWORD%`)가 설정되어 있는가? 그 값을 비밀번호로 사용합니다.
 
-#### Step 3: Default
+#### 3단계: 기본값
 
-None of those are provided? Use default value `sys` and `manager`.
+아무것도 주어지지 않았는가? 기본값 `sys`와 `manager`를 사용합니다.
 
-### Practical usage
+### 실전 사용법
 
-For the security, use instant environment variables as below example.
+보안을 위해 아래 예제처럼 일회성 환경 변수를 사용하세요.
 
 ```sh
 $ NEOSHELL_PASSWORD='my-secret' machbase-neo shell --user sys
 ```
 
-Be aware when you use `--password` flag, the secret can be exposed by simple `ps` command as like an example below.
+`--password` 플래그를 사용하면 아래 예제처럼 단순한 `ps` 명령만으로도 비밀번호가 노출될 수 있으니 주의하세요.
 
 ```sh
 $ machbase-neo shell --user sys --password manager
@@ -137,8 +137,8 @@ $ ps -aef |grep machbase-neo
   501 13551  3598   0  9:33AM ttys000    0:00.07 machbase-neo shell --user sys --password manager
 ```
 
-**Run Query**
-  
+**질의 실행**
+
 ```sh
 machbase-neo» select binary_signature from v$version;
 ┌────────┬─────────────────────────────────────────────┐
@@ -149,14 +149,14 @@ machbase-neo» select binary_signature from v$version;
 a row fetched.
 ```
 
-**Create Table**
+**테이블 생성**
 
 ```sh
 machbase-neo» create tag table if not exists example (name varchar(20) primary key, time datetime basetime, value double summarized);
 executed.
 ```
 
-**Schema Table**
+**테이블 스키마**
 
 ```sh
 machbase-neo» desc example;
@@ -169,14 +169,14 @@ machbase-neo» desc example;
 └────────┴───────┴──────────┴────────┘
 ```
 
-**Insert Table**
+**테이블 입력**
 
 ```sh
 machbase-neo» insert into example values('tag0', to_date('2021-08-12'), 100);
 a row inserted.
 ```
 
-**Select Table**
+**테이블 조회**
 
 ```sh
 machbase-neo» select * from example;
@@ -188,20 +188,20 @@ machbase-neo» select * from example;
 a row fetched.
 ```
 
-**Drop Table**
+**테이블 삭제**
 
 ```sh
 machbase-neo» drop table example;
 executed.
 ```
 
-### Sub commands
+### 하위 명령 — 실행
 
 #### explain
 
 Syntax `explain [--full] <sql>`
 
-Shows the execution plan of the sql.
+sql의 실행 계획을 보여줍니다.
 
 ```sh
 machbase-neo» explain select * from example where name = 'tag.1';
@@ -259,9 +259,11 @@ machbase-neo» explain select * from example where name = 'tag.1';
        --eof <string>     specify eof line, use any string matches [a-zA-Z0-9]+ (default: '.')
 ```
 
+### 하위 명령 — show
+
 #### show info
 
-Display the server information.
+서버 정보를 표시합니다.
 
 ```sh
 machbase-neo» show info;
@@ -288,7 +290,7 @@ machbase-neo» show info;
 
 #### show ports
 
-Display the server's interface ports
+서버의 인터페이스 포트를 표시합니다
 
 ```sh
 machbase-neo» show ports;
@@ -306,7 +308,7 @@ machbase-neo» show ports;
 
 Syntax: `show tables [-a]`
 
-Display the table list. If flag `-a` is specified, the result includes the hidden tables.
+테이블 목록을 표시합니다. `-a` 플래그를 지정하면 숨겨진 테이블도 결과에 포함됩니다.
 
 ```sh
 machbase-neo» show tables;
@@ -323,7 +325,7 @@ machbase-neo» show tables;
 
 Syntax `show table [-a] <table>`
 
-Display the column list of the table. If flag `-a` is specified, the result includes the hidden columns.
+테이블의 컬럼 목록을 표시합니다. `-a` 플래그를 지정하면 숨겨진 컬럼도 결과에 포함됩니다.
 
 ```sh
 machbase-neo» show table example -a;
@@ -393,6 +395,8 @@ a row fetched.
 a row fetched.
 ```
 
+### 하위 명령 — 세션·스키마
+
 #### session list
 
 Syntax: `session list`
@@ -433,7 +437,7 @@ machbase-neo» session stat;
 
 Syntax `desc [-a] <table>`
 
-Describe table structure.
+테이블 구조를 설명합니다.
 
 ```sh
 machbase-neo» desc example;
@@ -450,7 +454,7 @@ machbase-neo» desc example;
 
 Syntax `machbase-neo restore --data <machbase_home_dir> <backup_dir>`
 
-Restore database from backup.
+백업에서 데이터베이스를 복원합니다.
 
 ```sh
 $ machbase-neo restore --data <machbase home dir>  <backup dir>
@@ -458,7 +462,7 @@ $ machbase-neo restore --data <machbase home dir>  <backup dir>
 
 ## machbase-neo gen-config
 
-Prints out default config template.
+기본 설정 템플릿을 출력합니다.
 
 ```
 $ machbase-neo gen-config ↵

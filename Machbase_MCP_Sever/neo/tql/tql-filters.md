@@ -1,12 +1,12 @@
 # Machbase Neo TQL Filters
 
-## Measuring Sensors
+## 센서 측정
 
-The IoT data we can observe is composed of values measured through sensors. Every sensor inherently includes some degree of noise, which represents unavoidable errors. Data without any noise, in a purely theoretical sense, can only be mathematically generated as virtual data.
+우리가 관찰하는 IoT 데이터는 센서로 측정한 값들로 이루어집니다. 모든 센서에는 피할 수 없는 오차인 노이즈가 어느 정도 섞여 있습니다. 노이즈가 전혀 없는 데이터는 이론적으로만 존재하며, 수학적으로 만들어낸 가상 데이터로만 가능합니다.
 
-### Pure Signal
+### 순수 신호
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     $.result = { columns: ["val", "sig"], types: ["double", "double"] }
@@ -29,7 +29,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)
@@ -50,11 +50,11 @@ CHART(
 )
 ```
 
-### Noise Characteristics
+### 노이즈의 특성
 
-Generally, noise tends to be higher frequency than the data we intend to observe, as depicted in the graph below.
+일반적으로 노이즈는 아래 그래프처럼 우리가 관찰하려는 데이터보다 주파수가 높은 경향이 있습니다.
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     $.result = { columns: ["val", "sig", "noise"], types: ["double", "double", "double"] }
@@ -80,7 +80,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)
@@ -104,13 +104,13 @@ CHART(
 )
 ```
 
-### Signal with Noise
+### 노이즈가 섞인 신호
 
-Ultimately, the values measured through sensors result in a graph like the one below, where noise is mixed in.
+결국 센서로 측정한 값은 노이즈가 섞인 아래와 같은 그래프가 됩니다.
 
-In databases, the stored values are a blend of the aforementioned noise, and during the data analysis process, we often desire to observe the data with some degree of noise removal (noise filtering).
+데이터베이스에 저장된 값에는 이러한 노이즈가 섞여 있으며, 분석 과정에서는 노이즈를 어느 정도 제거한(노이즈 필터링) 데이터를 보고 싶을 때가 많습니다.
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     $.result = { columns: ["val", "sig"], types: ["double", "double"] }
@@ -135,7 +135,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)
@@ -155,11 +155,11 @@ CHART(
 )
 ```
 
-## Average Filter
+## 평균 필터
 
-Imagine the zero-point calibration process for sensors. When we accumulate consecutive values and calculate their average, we can observe that the sine wave, as shown below, eventually converges to zero.
+센서의 영점 조정 과정을 떠올려 보세요. 연속된 값을 누적해 평균을 구하면, 아래처럼 사인파가 결국 0으로 수렴하는 것을 볼 수 있습니다.
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     const filter = require("@jsh/filter")
@@ -188,7 +188,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)
@@ -210,11 +210,11 @@ CHART(
 )
 ```
 
-## Moving Average Filter
+## 이동평균 필터
 
-Instead of calculating the average for the entire accumulated sample, we use a fixed-size window of samples to compute the average. This concept aligns with the commonly seen moving average over a certain number of days in stock charts.
+누적된 전체 샘플의 평균을 구하는 대신, 고정 크기의 윈도우에 담긴 샘플로 평균을 계산합니다. 주식 차트에서 흔히 보는 며칠 단위 이동평균과 같은 개념입니다.
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     const filter = require("@jsh/filter")
@@ -244,7 +244,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)
@@ -266,16 +266,16 @@ CHART(
 )
 ```
 
-## Low Pass Filter
+## 저역통과 필터
 
-While moving averages are convenient to use and understand, they have some limitations:
+이동평균은 쓰기 쉽고 이해하기 쉽지만 몇 가지 한계가 있습니다:
 
-- They tend to be slow in reflecting recent trends due to equal weighting applied to all samples within the window.
-- They are less responsive to significant changes in values.
+- 윈도우 안의 모든 샘플에 같은 가중치를 주기 때문에 최근 추세를 반영하는 속도가 느립니다.
+- 값이 크게 변할 때 반응이 둔합니다.
 
-To address this, a common practice is to apply different weights to the most recent and older values within the window when calculating the average.
+이를 보완하기 위해 평균을 계산할 때 윈도우 안의 최근 값과 오래된 값에 서로 다른 가중치를 주는 방법을 흔히 사용합니다.
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     const filter = require("@jsh/filter")
@@ -305,7 +305,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)
@@ -327,13 +327,13 @@ CHART(
 )
 ```
 
-## Kalman Filter
+## 칼만 필터
 
-The `model()` argument of the `MAP_KALMAN()` function takes input values representing mathematical system variables. Explaining how to determine optimal system values lies beyond the scope of this document. However, in practice, you can easily apply a simple Kalman filter model in TQL and iteratively find empirically optimal parameters.
+`MAP_KALMAN()` 함수의 `model()` 인자는 수학적 시스템 변수를 나타내는 값을 받습니다. 최적의 시스템 값을 결정하는 방법은 이 문서의 범위를 벗어납니다. 다만 실무에서는 TQL에서 간단한 칼만 필터 모델을 적용해보며 경험적으로 최적 파라미터를 찾아갈 수 있습니다.
 
-The example below demonstrates how changing the model’s value affects the graph. Feel free to experiment with different model values and observe how the graph responds.
+아래 예제는 모델 값을 바꿨을 때 그래프가 어떻게 달라지는지 보여줍니다. 여러 모델 값을 바꿔가며 그래프의 반응을 확인해 보세요.
 
-**Using SCRIPT:**
+**SCRIPT 사용:**
 ```js
 SCRIPT({
     const filter = require("@jsh/filter")
@@ -365,7 +365,7 @@ CHART(
 )
 ```
 
-**Using SET-MAP:**
+**SET-MAP 사용:**
 ```js
 FAKE(arrange(1,5,0.03))
 MAPVALUE(0, round(value(0)*100)/100)

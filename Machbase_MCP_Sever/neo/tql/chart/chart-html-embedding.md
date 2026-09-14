@@ -1,6 +1,6 @@
 # Machbase Neo Embed Chart in HTML
 
-Save the code below as `basic_line.tql` and we will show you how to embed the result of this TQL into web page.
+아래 코드를 `basic_line.tql`로 저장한 뒤, 이 TQL의 결과를 웹 페이지에 삽입하는 방법을 설명합니다.
 
 ```js
 FAKE( linspace(0, 360, 100))
@@ -25,13 +25,13 @@ CHART(
 </html>
 ```
 
-## JSON Response
+## JSON 응답
 
-Call `.tql` script file with a custom HTTP header `X-Tql-Output: json` (available since version 8.0.42, which replaces the deprecated header `X-Chart-Output` from version 8.0.14) to produce the result in JSON instead of full HTML document, so that caller can embed the chart into any place of the HTML DOM.
+`.tql` 스크립트 파일을 호출할 때 HTTP 헤더 `X-Tql-Output: json`을 지정하면(버전 8.0.42부터 사용 가능하며, 8.0.14의 폐기된 `X-Chart-Output` 헤더를 대체합니다) 전체 HTML 문서 대신 JSON으로 결과를 받을 수 있습니다. 이를 통해 호출한 쪽에서 HTML DOM의 원하는 위치에 차트를 삽입할 수 있습니다.
 
-The `X-Tql-Output: json` header is actually equivalent to the `CHART()` SINK with `chartJson(true)` option like `CHART( chartJson(true), chartOption({...}))`.
+`X-Tql-Output: json` 헤더는 실제로 `CHART()` SINK에 `chartJson(true)` 옵션을 지정한 것(`CHART( chartJson(true), chartOption({...}))`)과 동일합니다.
 
-When the response of `/db/tql` is JSON, it contains required addresses of the result javascript.
+`/db/tql`의 응답이 JSON일 때, 결과 자바스크립트에 필요한 주소들이 담겨 있습니다.
 
 ```json
 {
@@ -46,12 +46,12 @@ When the response of `/db/tql` is JSON, it contains required addresses of the re
 }
 ```
 
-**Response Fields:**
-- `chartID` - Random generated chartID of echarts, a client can set a specific ID with `chartID()` option.
-- `jsAssets` - Server returns the addresses of echarts resources. The array may contain the main echarts (`echarts.min.js`) and extra plugins javascript files.
-- `jsCodeAssets` - Machbase Neo generates the javascript to properly render the echarts with the result data.
+**응답 필드:**
+- `chartID` - echarts의 무작위 생성 chartID이며, 클라이언트가 `chartID()` 옵션으로 특정 ID를 지정할 수 있습니다.
+- `jsAssets` - 서버가 반환하는 echarts 리소스 주소입니다. 메인 echarts(`echarts.min.js`)와 추가 플러그인 자바스크립트 파일이 포함될 수 있습니다.
+- `jsCodeAssets` - Machbase Neo가 결과 데이터로 echarts를 올바르게 렌더링하기 위해 생성한 자바스크립트입니다.
 
-The HTML document below is an exmaple to utilize the JSON response above to render echarts.
+아래 HTML 문서는 위 JSON 응답을 활용해 echarts를 렌더링하는 예제입니다.
 
 ```html
 <html>
@@ -85,16 +85,16 @@ The HTML document below is an exmaple to utilize the JSON response above to rend
 </html>
 ```
 
-**Key Points:**
-- **Line 3**: Pre-load Apache ECharts library which is included in `jsAssets` fields in above response example.
-- **Line 14**: The HTTP header `X-Tql-Output: json` makes Machbase Neo TQL engine generate a JSON containing meta information of chart instead of full HTML document. Because when a client requests a `*.tql` file with `GET` method, Machbase Neo generates HTML document for the chart by default.
-- **Line 23**: Load js files into the HTML DOM tree that are generated and replied in `jsCodeAssets`.
+**핵심 포인트:**
+- **3번째 줄**: 위 응답 예제의 `jsAssets` 필드에 포함된 Apache ECharts 라이브러리를 미리 로드합니다.
+- **14번째 줄**: HTTP 헤더 `X-Tql-Output: json`은 Machbase Neo TQL 엔진이 전체 HTML 문서 대신 차트 메타 정보가 담긴 JSON을 생성하도록 합니다. 클라이언트가 `*.tql` 파일을 `GET`으로 요청하면 Machbase Neo는 기본적으로 차트용 HTML 문서를 생성하기 때문입니다.
+- **23번째 줄**: `jsCodeAssets`로 응답된 js 파일들을 HTML DOM 트리에 로드합니다.
 
-## Dynamic TQL
+## 동적 TQL
 
-The API `/db/tql` can receive POSTed TQL script and produces the result in javascript. Caller side javascript can load the result javascript dynamically as the example below.
+`/db/tql` API는 POST로 전달된 TQL 스크립트를 받아 결과를 자바스크립트로 생성할 수 있습니다. 호출 측 자바스크립트는 아래 예제처럼 결과 자바스크립트를 동적으로 로드할 수 있습니다.
 
-In this example, the `chartID()` (line 20) is provided and the document has a `<div>` with the same `id`.
+이 예제에서는 `chartID()`(20번째 줄)를 지정했고, 문서에 같은 `id`를 가진 `<div>`가 있습니다.
 
 ```html
 <html>
@@ -139,20 +139,20 @@ In this example, the `chartID()` (line 20) is provided and the document has a `<
 </html>
 ```
 
-## Loading Sequence Problem
+## 로딩 순서 문제
 
-In the examples above, if we tried to load both `jsAssets` and `jsCodeAssets` dynamically, like below code for example:
+위 예제들에서 `jsAssets`와 `jsCodeAssets`를 모두 동적으로 로드하려고 하면, 예를 들어 아래 코드처럼:
 
 ```js
 const assets = obj.jsAssets.concat(obj.jsCodeAssets)
 assets.forEach((js) => loadJS(js))
 ```
 
-There must be some loading sequence issue, because the chart library (Apache ECharts) in `obj.jsAssets` might not be completely loaded before `obj.jsCodeAssets` are loaded.
+로딩 순서 문제가 생길 수 있습니다. `obj.jsAssets`의 차트 라이브러리(Apache ECharts)가 완전히 로드되기 전에 `obj.jsCodeAssets`가 로드될 수 있기 때문입니다.
 
-To avoid the problem of loading sequence, it can be fixed like below code.
+이 문제는 아래 코드처럼 해결할 수 있습니다.
 
-**Add load event listener to enable callback for load-completion:**
+**load 이벤트 리스너를 추가해 로드 완료 콜백을 활성화:**
 
 ```js
 function loadJS(url, callback) {
@@ -167,7 +167,7 @@ function loadJS(url, callback) {
 }
 ```
 
-**When the last `jsAssets` loaded, start to load `jsCodeAssets`:**
+**마지막 `jsAssets`가 로드되면 `jsCodeAssets` 로드를 시작:**
 
 ```js
 for (let i = 0; i < obj.jsAssets.length; i++ ){

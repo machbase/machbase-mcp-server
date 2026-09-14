@@ -2,11 +2,11 @@
 
 ## haversine()
 
-`haversine()` is for calculating the Haversine distance.
-The Haversine formula is used to calculate the great-circle distance
-between two points on a sphere, given their latitudes and longitudes.
+`haversine()`은 하버사인 거리를 계산합니다.
+하버사인 공식은 구면 위 두 점의 위도와 경도가 주어졌을 때
+두 점 사이의 대권 거리를 계산하는 데 사용됩니다.
 
-**Usage example**
+**사용 예제**
 
 ```js
 m = require("@jsh/spatial");

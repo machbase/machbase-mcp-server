@@ -1,13 +1,13 @@
 # Machbase Neo JavaScript dbus Module
 
-The `dbus` module provides Linux-only D-Bus APIs for JSH applications, supporting method calls, property access, introspection, signal subscription, and name-owner watching.
+`dbus` 모듈은 JSH 애플리케이션에 Linux 전용 D-Bus API를 제공하며 메서드 호출, 속성 접근, 인트로스펙션, 시그널 구독, 이름 소유자 감시를 지원합니다.
 
 ```js
 const dbus = require("dbus");
 const conn = new dbus.Connection({ busType: dbus.BusType.Session });
 ```
 
-> **Note**: D-Bus functionality is Linux-only. Creating a connection fails if the runtime OS is not Linux.
+> **참고**: D-Bus 기능은 Linux 전용입니다. 런타임 OS가 Linux가 아니면 연결 생성에 실패합니다.
 
 ## BusType
 
@@ -16,52 +16,52 @@ const conn = new dbus.Connection({ busType: dbus.BusType.Session });
 
 ## Connection
 
-D-Bus connection object for interacting with services.
+서비스와 상호작용하기 위한 D-Bus 연결 객체입니다.
 
 ### new dbus.Connection(options)
 
 **Options:**
 
-| Option | Type | Default | Description |
+| 옵션 | 타입 | 기본값 | 설명 |
 |--------|------|---------|-------------|
-| `busType` | String | `dbus.BusType.Session` | D-Bus bus type |
+| `busType` | String | `dbus.BusType.Session` | D-Bus 버스 타입 |
 
-Throws for an invalid `busType` or on non-Linux platforms.
+잘못된 `busType`이거나 Linux가 아닌 플랫폼에서는 예외를 던집니다.
 
 ### close()
 
-Closes the D-Bus connection. Idempotent and safe to call multiple times.
+D-Bus 연결을 닫습니다. 멱등적이며 여러 번 호출해도 안전합니다.
 
 ### object(destination, path)
 
-Creates an `ObjectProxy` bound to the given destination/path.
+주어진 destination/path에 바인딩된 `ObjectProxy`를 만듭니다.
 
-- `destination` `String` — service name (e.g. `org.freedesktop.DBus`).
-- `path` `String` — object path (e.g. `/org/freedesktop/DBus`).
+- `destination` `String` — 서비스 이름 (예: `org.freedesktop.DBus`).
+- `path` `String` — 객체 경로 (예: `/org/freedesktop/DBus`).
 
 ### call(request)
 
-Calls a D-Bus method. `request` is a `CallRequest`. Returns a `CallResult`. Throws for missing fields or invalid object paths.
+D-Bus 메서드를 호출합니다. `request`는 `CallRequest`이며 `CallResult`를 반환합니다. 필드가 없거나 객체 경로가 잘못되면 예외를 던집니다.
 
 ### getProperty(request) / setProperty(request)
 
-Reads / writes a D-Bus property. `getProperty` takes a `PropertyRequest` and returns a `PropertyResult`; `setProperty` takes a `SetPropertyRequest`.
+D-Bus 속성을 읽거나 씁니다. `getProperty`는 `PropertyRequest`를 받아 `PropertyResult`를 반환하고, `setProperty`는 `SetPropertyRequest`를 받습니다.
 
 ### introspect(request)
 
-Gets introspection metadata for an object. `request` is an `IntrospectRequest`; returns an `IntrospectionNode`.
+객체의 인트로스펙션 메타데이터를 가져옵니다. `request`는 `IntrospectRequest`이며 `IntrospectionNode`를 반환합니다.
 
 ### subscribeSignal(request) / unsubscribeSignal(request)
 
-Subscribes / unsubscribes to D-Bus signals matching the criteria in a `SignalWatchRequest`. Returns the `Connection` for chaining. `subscribeSignal` throws if all match-criteria fields are empty; `unsubscribeSignal` throws when no matching subscription exists.
+`SignalWatchRequest`의 조건에 맞는 D-Bus 시그널을 구독하거나 해제합니다. 체이닝을 위해 `Connection`을 반환합니다. `subscribeSignal`은 모든 매칭 조건 필드가 비어 있으면 예외를 던지고, `unsubscribeSignal`은 일치하는 구독이 없으면 예외를 던집니다.
 
 ### watchName(name) / unwatchName(name)
 
-Starts / stops watching owner changes for a bus name (`name` is a D-Bus well-known name). Returns the `Connection` for chaining. `unwatchName` throws `"name watch not found"` when no active watch exists.
+버스 이름(`name`은 D-Bus well-known 이름)의 소유자 변경 감시를 시작하거나 중지합니다. 체이닝을 위해 `Connection`을 반환합니다. 활성 감시가 없으면 `unwatchName`은 `"name watch not found"` 예외를 던집니다.
 
 ### getNameOwner(name)
 
-Gets the current owner for a bus name. Returns a `NameOwnerResult`. Returns `hasOwner: false` when the name has no owner; it does not throw.
+버스 이름의 현재 소유자를 가져옵니다. `NameOwnerResult`를 반환합니다. 소유자가 없으면 `hasOwner: false`를 반환하며 예외를 던지지 않습니다.
 
 ## Events
 
@@ -69,7 +69,7 @@ Gets the current owner for a bus name. Returns a `NameOwnerResult`. Returns `has
 
 ### "signal"
 
-Emitted on every subscribed D-Bus signal.
+구독한 D-Bus 시그널마다 발생합니다.
 
 ```js
 conn.on("signal", (sig) => {
@@ -79,7 +79,7 @@ conn.on("signal", (sig) => {
 
 ### "name-owner-changed"
 
-Emitted when a watched name changes owner.
+감시 중인 이름의 소유자가 바뀌면 발생합니다.
 
 ```js
 conn.on("name-owner-changed", (evt) => {
@@ -91,27 +91,27 @@ conn.on("name-owner-changed", (evt) => {
 
 Created via `conn.object(destination, path)`.
 
-- `call(method, ...args)` — calls a method on the object. Returns the same shape as `CallResult`.
-- `getProperty(name, interfaceName)` / `get(name, interfaceName)` — returns a `PropertyResult` (full) or the property value only (`get`).
-- `setProperty(name, value, interfaceName)` / `set(name, value, interfaceName)` — writes a property.
+- `call(method, ...args)` — 객체의 메서드를 호출합니다. `CallResult`와 같은 형태를 반환합니다.
+- `getProperty(name, interfaceName)` / `get(name, interfaceName)` — `PropertyResult` 전체 또는 속성 값만(`get`) 반환합니다.
+- `setProperty(name, value, interfaceName)` / `set(name, value, interfaceName)` — 속성을 씁니다.
 - `introspect()` — returns an `IntrospectionNode`.
-- `subscribeSignal(member, interfaceName)` / `unsubscribeSignal(member, interfaceName)` — convenience wrappers that pass destination/path automatically.
+- `subscribeSignal(member, interfaceName)` / `unsubscribeSignal(member, interfaceName)` — destination/path를 자동으로 전달하는 편의 래퍼입니다.
 
-## Request / Response Structures
+## 요청 / 응답 구조
 
 ### CallRequest
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |----------|------|-------------|
-| `destination` | String | Service name |
-| `path` | String | Object path |
-| `method` | String | Fully qualified method name (`Interface.Method`) |
-| `args` | any[] | Method arguments |
-| `flags` | Number | D-Bus call flags |
+| `destination` | String | 서비스 이름 |
+| `path` | String | 객체 경로 |
+| `method` | String | 정규화된 메서드 이름 (`Interface.Method`) |
+| `args` | any[] | 메서드 인자 |
+| `flags` | Number | D-Bus 호출 플래그 |
 
-#### Argument Type Hints
+#### 인자 타입 힌트
 
-JavaScript numbers are ambiguous for strict integer D-Bus types (`uint16`, `int32`, and so on). When an exact D-Bus type is required, pass the argument as a `"type:value"` string.
+JavaScript 숫자는 `uint16`, `int32` 같은 엄격한 정수 D-Bus 타입에 대해 모호합니다. 정확한 D-Bus 타입이 필요하면 인자를 `"type:value"` 문자열로 전달하세요.
 
 ```js
 "uint16:123"
@@ -120,71 +120,71 @@ JavaScript numbers are ambiguous for strict integer D-Bus types (`uint16`, `int3
 "objectpath:/org/freedesktop/DBus"
 ```
 
-Supported types:
+지원 타입:
 
 - Integers: `byte`, `uint8`, `uint16`, `uint32`, `uint64`, `int16`, `int32`, `int64`
 - Floats: `float32`, `float64`, `double`
 - Other: `bool`, `string`, `objectpath`, `path`, `signature`
 
-Behavior notes:
+동작 참고사항:
 
-- Strings without a type prefix are passed as plain strings.
-- Unknown type prefixes (for example, `"custom:123"`) are not converted and are passed as-is.
-- If parsing fails for a recognized type, the call throws an error.
+- 타입 접두가 없는 문자열은 일반 문자열로 전달됩니다.
+- 알 수 없는 타입 접두(예: `"custom:123"`)는 변환되지 않고 그대로 전달됩니다.
+- 인식된 타입의 파싱이 실패하면 호출이 오류를 던집니다.
 
 ### CallResult
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |----------|------|-------------|
-| `destination` | String | Service name |
-| `path` | String | Object path |
-| `method` | String | Method name used for the call |
-| `body` | any[] | Returned values |
+| `destination` | String | 서비스 이름 |
+| `path` | String | 객체 경로 |
+| `method` | String | 호출에 사용된 메서드 이름 |
+| `body` | any[] | 반환된 값들 |
 
 ### PropertyRequest / SetPropertyRequest
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |----------|------|-------------|
-| `destination` | String | Service name |
-| `path` | String | Object path |
-| `interface` | String | Interface name |
-| `name` | String | Property name |
-| `value` | any | Property value to write (`SetPropertyRequest` only) |
+| `destination` | String | 서비스 이름 |
+| `path` | String | 객체 경로 |
+| `interface` | String | 인터페이스 이름 |
+| `name` | String | 속성 이름 |
+| `value` | any | 쓸 속성 값 (`SetPropertyRequest` 전용) |
 
 ### PropertyResult
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |----------|------|-------------|
-| `signature` | String | D-Bus signature |
-| `value` | any | Property value |
+| `signature` | String | D-Bus 시그니처 |
+| `value` | any | 속성 값 |
 
 ### IntrospectRequest / IntrospectionNode
 
-`IntrospectRequest` has `destination` and `path`. `IntrospectionNode` has `name` (String), `interfaces` (object[]), and `children` (object[]). Each interface includes methods, signals, properties, and annotations.
+`IntrospectRequest`는 `destination`과 `path`를 가집니다. `IntrospectionNode`는 `name`(String), `interfaces`(object[]), `children`(object[])을 가집니다. 각 인터페이스는 메서드, 시그널, 속성, 애너테이션을 포함합니다.
 
 ### SignalWatchRequest
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |----------|------|-------------|
-| `destination` | String | Optional; kept for symmetry |
-| `sender` | String | Signal sender filter |
-| `path` | String | Object path filter |
-| `interface` | String | Interface filter |
-| `member` | String | Member filter |
+| `destination` | String | 선택. 형태 일관성을 위해 유지됩니다 |
+| `sender` | String | 시그널 발신자 필터 |
+| `path` | String | 객체 경로 필터 |
+| `interface` | String | 인터페이스 필터 |
+| `member` | String | 멤버 필터 |
 
-At least one of `sender`, `path`, `interface`, `member` must be provided.
+`sender`, `path`, `interface`, `member` 중 최소 하나는 지정해야 합니다.
 
 ### NameOwnerResult
 
-| Property | Type | Description |
+| 속성 | 타입 | 설명 |
 |----------|------|-------------|
-| `name` | String | Requested bus name |
-| `owner` | String | Unique name (`:1.xx`) or empty string |
-| `hasOwner` | Boolean | Whether an owner exists |
+| `name` | String | 요청한 버스 이름 |
+| `owner` | String | 고유 이름(`:1.xx`) 또는 빈 문자열 |
+| `hasOwner` | Boolean | 소유자 존재 여부 |
 
-## Examples
+## 예제
 
-### Basic method call
+### 기본 메서드 호출
 
 ```js
 const dbus = require("dbus");
@@ -198,7 +198,7 @@ console.println("temperature:", temp.body[0]);
 conn.close();
 ```
 
-### Property operations
+### 속성 연산
 
 ```js
 const dbus = require("dbus");
@@ -213,7 +213,7 @@ console.println("mode:", dev.get("Mode", "com.plc.manufacture.Status"));
 conn.close();
 ```
 
-### Introspection
+### 인트로스펙션
 
 ```js
 const dbus = require("dbus");
@@ -229,7 +229,7 @@ for (const iface of node.interfaces) {
 conn.close();
 ```
 
-### Signal subscription
+### 시그널 구독
 
 ```js
 const dbus = require("dbus");
@@ -246,7 +246,7 @@ conn.on("signal", (sig) => {
 });
 ```
 
-### Name watching
+### 이름 감시
 
 ```js
 const dbus = require("dbus");
@@ -265,10 +265,10 @@ conn.on("name-owner-changed", (evt) => {
 });
 ```
 
-## Error Behavior
+## 오류 동작
 
-- Calling methods after `conn.close()` throws `"connection not initialized"`.
-- Missing required request fields throw errors.
-- Invalid object paths throw errors.
-- `getNameOwner()` returns `{ hasOwner: false }` for names without owners.
-- D-Bus functionality is Linux-only.
+- `conn.close()` 이후 메서드를 호출하면 `"connection not initialized"` 예외가 발생합니다.
+- 필수 요청 필드가 없으면 오류가 발생합니다.
+- 잘못된 객체 경로는 오류를 발생시킵니다.
+- 소유자가 없는 이름에 대해 `getNameOwner()`는 `{ hasOwner: false }`를 반환합니다.
+- D-Bus 기능은 Linux 전용입니다.

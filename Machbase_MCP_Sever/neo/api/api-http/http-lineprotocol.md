@@ -1,20 +1,20 @@
 # Machbase Neo HTTP ILP Line Protocol
 
-Machbase Neo provides a compatibility api that accepts messages in a format of influxdata lineprotocol for writing data.
-This api is convenient way to utilize existing client softwares that produce lineprotocol messages (e.g telegraf).
+Machbase Neo는 데이터 쓰기용으로 influxdata 라인 프로토콜 형식의 메시지를 받는 호환 API를 제공합니다.
+이 API는 라인 프로토콜 메시지를 생성하는 기존 클라이언트 소프트웨어(예: telegraf)를 활용하기에 편리한 방법입니다.
 
-**Since Machbase has a different scheme from influxdb, some translations will be automatically occurred.**
+**Machbase는 influxdb와 스키마가 다르므로 일부 항목이 자동으로 변환됩니다.**
 
-**Translation**
+**변환 규칙**
 
-| Machbase            | line protocol of influxdb                   |
+| Machbase            | influxdb 라인 프로토콜                   |
 | ------------------- | ------------------------------------------- |
 | table               | db                                          |
-| tag name            | measurement + `.` + field name              |
-| time                | timestamp                                   |
-| value               | value of the field (if it is not a number type, will be ignored and not inserted) |
+| 태그 이름            | measurement + `.` + 필드 이름              |
+| 시간                | 타임스탬프                                   |
+| 값               | 필드의 값 (숫자 타입이 아니면 무시되어 입력되지 않습니다) |
 
-**Line protocol example**
+**라인 프로토콜 예제**
 
 **HTTP:**
 ~~~
@@ -31,12 +31,12 @@ curl -o - -X POST "http://127.0.0.1:5654/metrics/write?db=example&precision=ms" 
     --data-binary 'my-car speed=87.6 1782878977000'
 ```
 
-This example inserts data into table `example` with `name`='my-car.speed', `value`=87.6 and `time`=1782878977000 (milliseconds, from `precision=ms`)
+이 예제는 `example` 테이블에 `name`='my-car.speed', `value`=87.6, `time`=1782878977000(`precision=ms`이므로 밀리초)로 데이터를 입력합니다
 
-**telegraf.conf example**
+**telegraf.conf 예제**
 
-As set telegraf's output config to use http port of Machbase Neo,
-the metrics that collected by telegraf are directly inserted into Machbase Neo.
+telegraf의 출력 설정을 Machbase Neo의 http 포트를 쓰도록 지정하면,
+telegraf가 수집한 지표가 Machbase Neo에 바로 입력됩니다.
 
 ```
 [[outputs.http]]

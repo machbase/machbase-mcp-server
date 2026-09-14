@@ -1,15 +1,15 @@
 # Machbase Neo Tag Analyzer Guide
 
-Tag Analyzer provides a feature to view and analyze data as charts using the rollup functionality of the Tag Table. Tag Analyzer is structured in the form of a dashboard composed of multiple charts, where each column of the dashboard represents a single chart.
+Tag Analyzer는 태그 테이블의 롤업 기능을 사용해 데이터를 차트로 보고 분석하는 기능입니다. Tag Analyzer는 여러 차트로 구성된 대시보드 형태이며, 대시보드의 각 칸이 하나의 차트에 해당합니다.
 
-## Applicable Tables
+## 사용 가능한 테이블
 
-The conditions for using Tag Analyzer are as follows:
-- Only Tag Tables can be used
-- To improve the query speed of the chart, create a Rollup Table in advance
-- Since the X-axis interval is automatically determined based on the time range of the chart query, it is recommended to create basic Rollups with intervals of 1 second, 1 minute, and 1 hour
+Tag Analyzer를 사용하기 위한 조건은 다음과 같습니다:
+- 태그 테이블만 사용할 수 있습니다
+- 차트 질의 속도를 높이려면 롤업 테이블을 미리 만들어 두세요
+- X축 간격은 차트 질의의 시간 범위에 따라 자동으로 결정되므로, 1초·1분·1시간 간격의 기본 롤업을 만들어 두는 것을 권장합니다
 
-### Example of Creating Tag Table and Rollup Table
+### 태그 테이블과 롤업 테이블 생성 예제
 
 ```sql
 CREATE TAG TABLE tag (NAME VARCHAR(80) PRIMARY KEY, TIME DATETIME BASETIME, VALUE DOUBLE SUMMARIZED);
@@ -19,216 +19,216 @@ CREATE ROLLUP _tag_rollup_min FROM _tag_rollup_sec INTERVAL 1 MIN;
 CREATE ROLLUP _tag_rollup_hour FROM _tag_rollup_min INTERVAL 1 HOUR;
 ```
 
-> **Note**: For more details about Tag Tables, refer to the Machbase manual (Feature and Tables > Tag Table).
+> **참고**: 태그 테이블에 대한 자세한 내용은 Machbase 매뉴얼(Feature and Tables > Tag Table)을 참고하세요.
 
 ## Dashboard
 
-### Screen Layout
+### 화면 구성
 
-The dashboard is composed of charts that display actual data. If there are multiple charts, they are displayed in multiple rows, with each row representing a single chart.
+대시보드는 실제 데이터를 표시하는 차트들로 구성됩니다. 차트가 여러 개면 여러 행으로 표시되며, 각 행이 하나의 차트입니다.
 
-1. **Control Area for the Entire Dashboard** - The time range applied to the dashboard is also displayed here
-2. **Panel Where Charts Are Displayed** - When a new chart is added, it is positioned below the existing charts
-3. **Button to Add a New Chart** - This button is always located in the bottommost row
+1. **대시보드 전체 제어 영역** - 대시보드에 적용된 시간 범위도 여기에 표시됩니다
+2. **차트가 표시되는 패널** - 새 차트를 추가하면 기존 차트 아래에 배치됩니다
+3. **새 차트 추가 버튼** - 이 버튼은 항상 맨 아래 행에 있습니다
 
-### Adding a Chart
+### 차트 추가
 
-To create a new chart, click the [+] button located at the bottom of the dashboard.
+새 차트를 만들려면 대시보드 하단의 [+] 버튼을 클릭합니다.
 
-1. **Select a Table** - Only tables in Tag format are displayed
-2. **Filter Tags** - The list of tags will be filtered to include only those containing the input value
-3. **Available Tags** - A list of available tags is displayed, with pagination shown at the bottom
-4. **Selected Tags** - Selected tags are displayed, and you can change the **Calc. mode**. Since the same tag can have different Calc. mode, duplicates are not checked
-5. **Select Chart Type** - Choose the type of chart (area chart, point chart, line chart). The appearance of the chart can be modified in the Display section of the chart settings
+1. **테이블 선택** - 태그 형식의 테이블만 표시됩니다
+2. **태그 필터** - 입력한 값을 포함하는 태그만 목록에 표시됩니다
+3. **사용 가능한 태그** - 사용 가능한 태그 목록이 표시되며 하단에 페이지 이동이 나타납니다
+4. **선택한 태그** - 선택한 태그가 표시되며 **Calc. mode**를 변경할 수 있습니다. 같은 태그라도 Calc. mode가 다를 수 있으므로 중복은 검사하지 않습니다
+5. **차트 종류 선택** - 차트 종류(영역 차트, 점 차트, 선 차트)를 고릅니다. 차트 외형은 차트 설정의 Display 섹션에서 바꿀 수 있습니다
 
-> **Calc. mode**: Aggregation functions used in STAT mode (e.g., avg, min, max, sum, count).
+> **Calc. mode**: STAT 모드에서 사용하는 집계 함수입니다(예: avg, min, max, sum, count).
 
-### Dashboard Controls
+### 대시보드 제어
 
-You can control the dashboard using the buttons located at the top of the dashboard.
+대시보드 상단의 버튼으로 대시보드를 제어할 수 있습니다.
 
 #### Time Range
 
-The time range applied to the dashboard is displayed. You can set a specific time range manually, as shown in the image, or configure it to synchronize with the current time. (e.g., now: current time, h: hours, m: minutes, s: seconds)
+대시보드에 적용된 시간 범위가 표시됩니다. 그림처럼 특정 시간 범위를 직접 지정할 수도 있고, 현재 시각과 동기화되도록 설정할 수도 있습니다. (예: now: 현재 시각, h: 시간, m: 분, s: 초)
 
-**Example**: now-3h = Current time – 3 hours
+**예**: now-3h = 현재 시각 – 3시간
 
-#### Control Buttons
+#### 제어 버튼
 
-1. **Reload Data** - Reloads the data and updates the charts. The time range and selection of the chart slide remain unchanged
-2. **Reset and Reload** - Reloads the data and updates the charts. The time range and selection of the chart slide revert to their original settings
-3. **Save** - Saves the Tag Analyzer dashboard with the file extension ".taz"
-4. **Save As** - Saves the Tag Analyzer dashboard with a new name
-5. **Overlap Chart** - Displays an Overlap Chart (Refer to "Overlap Chart")
-6. **Set Time Range** - Set the time range for the query. This time range applies to the entire dashboard (except when a time range is set separately in the chart settings)
+1. **Reload Data** - 데이터를 다시 읽어 차트를 갱신합니다. 차트 슬라이드의 시간 범위와 선택은 그대로 유지됩니다
+2. **Reset and Reload** - 데이터를 다시 읽어 차트를 갱신합니다. 차트 슬라이드의 시간 범위와 선택은 원래 설정으로 되돌아갑니다
+3. **Save** - Tag Analyzer 대시보드를 ".taz" 확장자로 저장합니다
+4. **Save As** - Tag Analyzer 대시보드를 새 이름으로 저장합니다
+5. **Overlap Chart** - 겹침 차트를 표시합니다("Overlap Chart" 참고)
+6. **Set Time Range** - 질의할 시간 범위를 설정합니다. 이 시간 범위는 대시보드 전체에 적용됩니다(차트 설정에서 별도로 시간 범위를 지정한 경우는 제외)
 
-**Time Range Options**:
-- The time range can use now or last:
-  - **now**: The current time
-  - **last**: The last time of the stored data
-- Clicking an item in the Quick Range will set the From/To fields to the corresponding time period
+**시간 범위 옵션**:
+- 시간 범위에는 now 또는 last를 사용할 수 있습니다:
+  - **now**: 현재 시각
+  - **last**: 저장된 데이터의 마지막 시각
+- Quick Range의 항목을 클릭하면 From/To 필드가 해당 기간으로 설정됩니다
 
-#### Overlap Chart
+#### 겹침 차트(Overlap Chart)
 
-The Overlap Chart feature allows you to compare multiple charts by overlaying their graphs onto a single chart.
+겹침 차트 기능을 사용하면 여러 차트의 그래프를 하나의 차트에 겹쳐 놓고 비교할 수 있습니다.
 
-1. **Select Charts** - Click on the chart title to select the charts you want to compare. Selected charts will have a highlighted border
-   - Only charts with a single series can be used for the Overlap Chart
-   - The time range of the first chart clicked will be applied to the Overlap Chart, and an icon will appear in front of the chart title to indicate this
-2. **Create Overlap** - Click the Overlap Chart button to overlay the selected charts into a single chart
-   - You can fine-tune the time range for each tag individually when querying
+1. **차트 선택** - 비교할 차트의 제목을 클릭해 선택합니다. 선택된 차트는 테두리가 강조됩니다
+   - 단일 시리즈 차트만 겹침 차트에 사용할 수 있습니다
+   - 처음 클릭한 차트의 시간 범위가 겹침 차트에 적용되며, 이를 나타내는 아이콘이 차트 제목 앞에 표시됩니다
+2. **겹침 차트 생성** - Overlap Chart 버튼을 클릭해 선택한 차트들을 하나의 차트로 겹칩니다
+   - 질의 시 태그별로 시간 범위를 개별 조정할 수 있습니다
 
 ## Chart
 
-### Screen Layout
+### 화면 구성
 
-At the top of the chart, the time range of the currently displayed graph, the time interval of the x-axis ticks, and function buttons are displayed. At the bottom, there is a slider for selecting the time range to zoom in on within the dashboard's time range, along with the legend for the tags used in the chart.
+차트 상단에는 현재 표시 중인 그래프의 시간 범위, x축 눈금의 시간 간격, 기능 버튼이 표시됩니다. 하단에는 대시보드 시간 범위 안에서 확대해 볼 구간을 고르는 슬라이더와 차트에 사용된 태그의 범례가 있습니다.
 
-1. **Chart Time Range** - The time range of the chart is displayed. You can select a specific portion of the dashboard's time range for a detailed view using the slider. The interval indicates the time interval of the x-axis ticks
-2. **Function Buttons** - Function buttons for controlling each chart are displayed:
-   - a. Reload the data to update the chart
-   - b. Redraw the chart. The time range and selection of the chart slide revert to their original settings
-   - c. Modify the chart settings (refer to "Chart Settings")
-   - d. Delete the chart
-   - e. Switch to "**RAW Data Mode**"
-   - f. Stat Query: Select the button and drag on the chart to display the stats. The FFT Chart functionality can also be used here
-3. **Chart Display Area** - The area where the actual chart is displayed
-4. **Slider Time Range** - Displays the time range of the slider used to select the time range for querying. The < > buttons shift the specified time range by 50%
-5. **Slider Controls** - Controls the slider and the selected range:
-   - a. The selected range on the slider expands by 12.5% (x2) or 25% (x4) on both sides. The time range displayed on the chart expands(making the slider bar larger)
-   - b. The selected range on the slider shrinks by 12.5% (x2) or 25% (x4) on both sides. The time range displayed on the chart decreases(making the slider bar smaller)
-   - c. The chart's time range changes to match the entire time range of the slider, and the selected area of the slider is centered with a size of 50% of the slider's length. This is used to view the chart's data in greater detail
-6. **Slider Bar** - Move or resize the slider to set the range currently queried on the chart
-7. **Legend** - The legend displays the data series shown on the chart. Clicking on a series in the legend toggles it on or off
+1. **차트 시간 범위** - 차트의 시간 범위가 표시됩니다. 슬라이더로 대시보드 시간 범위 중 일부를 골라 자세히 볼 수 있습니다. interval은 x축 눈금의 시간 간격을 뜻합니다
+2. **기능 버튼** - 각 차트를 제어하는 기능 버튼이 표시됩니다:
+   - a. 데이터를 다시 읽어 차트를 갱신합니다
+   - b. 차트를 다시 그립니다. 차트 슬라이드의 시간 범위와 선택은 원래 설정으로 되돌아갑니다
+   - c. 차트 설정을 변경합니다("차트 설정" 참고)
+   - d. 차트를 삭제합니다
+   - e. "**RAW Data 모드**"로 전환합니다
+   - f. Stat Query: 버튼을 선택하고 차트에서 드래그하면 통계가 표시됩니다. 여기서 FFT 차트 기능도 사용할 수 있습니다
+3. **차트 표시 영역** - 실제 차트가 그려지는 영역입니다
+4. **슬라이더 시간 범위** - 질의할 시간 범위를 고르는 슬라이더의 시간 범위를 표시합니다. < > 버튼은 지정한 시간 범위를 50%씩 이동시킵니다
+5. **슬라이더 제어** - 슬라이더와 선택 범위를 제어합니다:
+   - a. 슬라이더의 선택 범위가 양쪽으로 12.5%(x2) 또는 25%(x4)만큼 넓어집니다. 차트에 표시되는 시간 범위가 넓어집니다(슬라이더 바가 커집니다)
+   - b. 슬라이더의 선택 범위가 양쪽으로 12.5%(x2) 또는 25%(x4)만큼 좁아집니다. 차트에 표시되는 시간 범위가 좁아집니다(슬라이더 바가 작아집니다)
+   - c. 차트의 시간 범위가 슬라이더 전체 시간 범위와 같아지고, 슬라이더의 선택 영역은 슬라이더 길이의 50% 크기로 가운데에 놓입니다. 차트 데이터를 더 자세히 볼 때 사용합니다
+6. **슬라이더 바** - 슬라이더를 옮기거나 크기를 조절해 차트에서 현재 질의하는 범위를 설정합니다
+7. **범례** - 차트에 표시된 데이터 시리즈를 보여줍니다. 범례의 시리즈를 클릭하면 표시/숨김이 전환됩니다
 
-#### RAW Data Mode
+#### RAW Data 모드
 
-**RAW Data mode** uses raw data stored in the database without applying the calc mode. If the number of selected data points exceeds the value calculated using the "Pixels between tick marks" setting, the queried time range will be adjusted, and the selected range on the slider will be updated accordingly.
+**RAW Data 모드**는 calc mode를 적용하지 않고 데이터베이스에 저장된 원본 데이터를 사용합니다. 선택한 데이터 포인트 수가 "Pixels between tick marks" 설정으로 계산한 값을 넘으면 질의 시간 범위가 조정되고, 슬라이더의 선택 범위도 그에 맞게 갱신됩니다.
 
 ### FFT Chart
 
-The "FFT Chart" feature becomes available when using the stat query function to retrieve stats for a selected range.
+선택 범위의 통계를 조회하는 stat query 기능을 사용하면 "FFT Chart" 기능을 쓸 수 있습니다.
 
-When querying stats, the "FFT Chart" button becomes available for use.
+통계를 조회하면 "FFT Chart" 버튼을 사용할 수 있게 됩니다.
 
-You can configure settings to view the FFT Chart:
-1. Select the tag for which you want to view the FFT chart
-2. Enter the range for Hz (set to 0 to disable)
-3. Choose between 2D or 3D chart. For the 3D chart, a time axis will be added
-4. Generate the FFT chart based on the entered conditions
+FFT 차트를 보기 위한 설정은 다음과 같습니다:
+1. FFT 차트를 볼 태그를 선택합니다
+2. Hz 범위를 입력합니다(0으로 두면 사용하지 않음)
+3. 2D 또는 3D 차트를 고릅니다. 3D 차트에는 시간 축이 추가됩니다
+4. 입력한 조건으로 FFT 차트를 생성합니다
 
-### Chart Settings
+### 차트 설정
 
-The settings of the currently viewed chart will be changed.
+현재 보고 있는 차트의 설정을 변경합니다.
 
-1. **Preview** - Displays the chart being configured. After changing the settings, you can view the changes by clicking the [Apply] button
-2. **Configuration Tabs** - The tab to select which field to modify:
-   - **General**: Modify general chart settings
-   - **Data**: Modify the tags used in the chart
-   - **Axes**: Change the settings for the X-axis and Y-axis
-   - **Display**: Modify settings related to the appearance of the chart
-   - **Time range**: Set the time range specific to the chart
-3. **Settings Area** - Area to modify values
-4. **Button Display Area**:
-   - **Apply**: Apply the changes to the chart. You can cancel by clicking the [Cancel] button
-   - **Ok**: Apply the changes and exit the settings mode (only the changes from pressing [Apply] will be applied)
-   - **Cancel**: Cancel the changes and exit the settings mode
+1. **Preview** - 설정 중인 차트를 표시합니다. 설정을 바꾼 뒤 [Apply] 버튼을 누르면 변경 내용을 볼 수 있습니다
+2. **설정 탭** - 어떤 항목을 수정할지 선택하는 탭입니다:
+   - **General**: 차트 일반 설정을 변경합니다
+   - **Data**: 차트에 사용된 태그를 변경합니다
+   - **Axes**: X축과 Y축 설정을 변경합니다
+   - **Display**: 차트 외형과 관련된 설정을 변경합니다
+   - **Time range**: 해당 차트에만 적용할 시간 범위를 설정합니다
+3. **설정 영역** - 값을 수정하는 영역입니다
+4. **버튼 영역**:
+   - **Apply**: 변경 내용을 차트에 적용합니다. [Cancel] 버튼으로 취소할 수 있습니다
+   - **Ok**: 변경 내용을 적용하고 설정 모드를 종료합니다([Apply]를 눌러 반영한 변경만 적용됩니다)
+   - **Cancel**: 변경을 취소하고 설정 모드를 종료합니다
 
 #### General
 
-Modify the general settings of the chart.
+차트의 일반 설정을 변경합니다.
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| Chart title | Modify the chart title |
-| Use Zoom when dragging | Use zoom when dragging within the chart area |
-| Keep Navigator Position | Save the selected area information of the slider when saving |
+| Chart title | 차트 제목을 변경합니다 |
+| Use Zoom when dragging | 차트 영역에서 드래그할 때 확대를 사용합니다 |
+| Keep Navigator Position | 저장할 때 슬라이더의 선택 영역 정보를 함께 저장합니다 |
 
 #### Data
 
-Edit the tags used in the chart.
+차트에 사용된 태그를 편집합니다.
 
-**Edit Tag Items**:
+**태그 항목 편집**:
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| Calc Mode | Change the aggregation function |
-| Tag Names | Change the tags being used. The table name is displayed in parentheses. (Tables cannot be modified.) |
-| Alias | Modify the content displayed in the legend. If not set, the Tag Name and Calc Mode will be displayed |
-| Color Icon | Change the color |
-| X | Delete the corresponding tag |
+| Calc Mode | 집계 함수를 변경합니다 |
+| Tag Names | 사용 중인 태그를 변경합니다. 괄호 안에 테이블 이름이 표시됩니다.(테이블은 변경할 수 없습니다.) |
+| Alias | 범례에 표시할 내용을 변경합니다. 지정하지 않으면 Tag Name과 Calc Mode가 표시됩니다 |
+| Color Icon | 색을 변경합니다 |
+| X | 해당 태그를 삭제합니다 |
 
-**Add Tags**: By clicking the [+] button at the bottom, a screen similar to the one used for chart creation will appear, allowing you to add tags.
+**태그 추가**: 하단의 [+] 버튼을 클릭하면 차트 생성 때와 비슷한 화면이 나타나 태그를 추가할 수 있습니다.
 
 #### Axes
 
-Modify the settings for the X-axis and Y-axis.
+X축과 Y축 설정을 변경합니다.
 
-> **Note**: The "Set additional Y-axis" option must be checked for the a. area to be activated.
+> **참고**: a 영역이 활성화되려면 "Set additional Y-axis" 옵션이 체크되어 있어야 합니다.
 
 **X-Axis**:
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| Display the X-Axis tick line | Draws the tick marks on the X-axis |
-| Pixels between tick marks | The number of pixels per data point on the X-axis. Number of data points that can be displayed = Horizontal resolution / Set value |
-| _(for)_ Raw | Value in RAW mode. (Typically used with values less than 1 to display large amounts of data.) |
-| _(for)_ Calculation | Value in STAT mode |
-| use Sampling | In RAW mode, Machbase's sampling feature is used to quickly retrieve **slide** data |
+| Display the X-Axis tick line | X축에 눈금선을 그립니다 |
+| Pixels between tick marks | X축에서 데이터 포인트 하나당 픽셀 수입니다. 표시 가능한 데이터 포인트 수 = 가로 해상도 / 설정값 |
+| _(for)_ Raw | RAW 모드에서의 값입니다.(대량 데이터를 표시하려고 보통 1보다 작은 값을 사용합니다.) |
+| _(for)_ Calculation | STAT 모드에서의 값입니다 |
+| use Sampling | RAW 모드에서 Machbase의 샘플링 기능으로 **슬라이드** 데이터를 빠르게 조회합니다 |
 
 **Y-Axis**:
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| The scale of the Y-Axis start at zero | The Y-axis starts from 0 |
-| Display the Y-Axis tick line | Draw the tick marks on the Y-axis |
-| Custom scale | Set the min/max values for the Y-axis |
-| Custom scale for raw data chart | Set the min/max values for the Y-axis in RAW mode |
-| use UCL | Set the UCL (Upper Control Limit) |
-| use LCL | Set the LCL (Lower Control Limit) |
+| The scale of the Y-Axis start at zero | Y축이 0에서 시작합니다 |
+| Display the Y-Axis tick line | Y축에 눈금선을 그립니다 |
+| Custom scale | Y축의 최소/최대 값을 설정합니다 |
+| Custom scale for raw data chart | RAW 모드에서 Y축의 최소/최대 값을 설정합니다 |
+| use UCL | UCL(관리 상한선)을 설정합니다 |
+| use LCL | LCL(관리 하한선)을 설정합니다 |
 
-**Additional Y-Axis**:
+**추가 Y축**:
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| Set additional Y-Axis | Configure whether to use an additional Y-axis |
-| The scale of the Y-Axis start at zero | The Y-axis starts from 0 |
-| Display the Y-Axis tick line | Draw the tick marks on the Y-axis |
-| Custom scale | Set the min/max values for the Y-axis |
-| Custom scale for raw data chart | Set the min/max values for the Y-axis in RAW mode |
-| use UCL | Set the UCL (Upper Control Limit) |
-| use LCL | Set the LCL (Lower Control Limit) |
-| Select Tag | Select the tag to be used. Clicking on a selected tag will deselect it |
+| Set additional Y-Axis | 추가 Y축 사용 여부를 설정합니다 |
+| The scale of the Y-Axis start at zero | Y축이 0에서 시작합니다 |
+| Display the Y-Axis tick line | Y축에 눈금선을 그립니다 |
+| Custom scale | Y축의 최소/최대 값을 설정합니다 |
+| Custom scale for raw data chart | RAW 모드에서 Y축의 최소/최대 값을 설정합니다 |
+| use UCL | UCL(관리 상한선)을 설정합니다 |
+| use LCL | LCL(관리 하한선)을 설정합니다 |
+| Select Tag | 사용할 태그를 선택합니다. 선택된 태그를 다시 클릭하면 선택이 해제됩니다 |
 
 #### Display
 
-Modify settings related to the appearance of the chart.
+차트 외형과 관련된 설정을 변경합니다.
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| Chart Type | Adjust the settings according to the selected chart type |
-| Display data point in the line chart | Show points for each data value |
-| Display legend | Set whether to display the legend |
-| Point Radius | Adjust the size of the points. If set to 0, it will not be displayed |
-| Opacity of Fill Area | Set the transparency of the area. (0~1) If set to 0, it will not be displayed |
-| Line Thickness | Set the thickness of the line |
+| Chart Type | 선택한 차트 종류에 맞게 설정을 조정합니다 |
+| Display data point in the line chart | 각 데이터 값에 점을 표시합니다 |
+| Display legend | 범례 표시 여부를 설정합니다 |
+| Point Radius | 점의 크기를 조정합니다. 0으로 두면 표시되지 않습니다 |
+| Opacity of Fill Area | 영역의 투명도를 설정합니다.(0~1) 0으로 두면 표시되지 않습니다 |
+| Line Thickness | 선의 두께를 설정합니다 |
 
 #### Time range
 
-Set the time range that applies only to the chart. If this value is not set, the time range from the dashboard will be used.
+해당 차트에만 적용할 시간 범위를 설정합니다. 이 값을 지정하지 않으면 대시보드의 시간 범위를 사용합니다.
 
-| Item | Description |
+| 항목 | 설명 |
 |:-----|:------------|
-| From | The starting value of the time range |
-| To | The ending value of the time range |
-| Quick range | Clicking an item will set the time range using "now" or "last" |
+| From | 시간 범위의 시작 값 |
+| To | 시간 범위의 끝 값 |
+| Quick range | 항목을 클릭하면 "now" 또는 "last"를 사용해 시간 범위가 설정됩니다 |
 
-## Quick Reference
+## 빠른 참조
 
-| Feature | Description | Requirements |
+| 기능 | 설명 | 요구 사항 |
 |---------|-------------|--------------|
-| **Dashboard** | Multiple chart visualization | Tag Tables only |
-| **Rollup Support** | Improved query performance | Recommended: 1 sec, 1 min, 1 hour rollups |
-| **Chart Types** | Area, Point, Line charts | Single or multiple series |
-| **Time Range** | Flexible time selection | now/last time references |
-| **FFT Analysis** | Frequency domain analysis | Available with stat queries |
+| **대시보드** | 여러 차트 시각화 | 태그 테이블만 |
+| **롤업 지원** | 질의 성능 향상 | 권장: 1초, 1분, 1시간 롤업 |
+| **차트 종류** | 영역, 점, 선 차트 | 단일 또는 다중 시리즈 |
+| **시간 범위** | 유연한 시간 선택 | now/last 시간 기준 |
+| **FFT 분석** | 주파수 영역 분석 | stat 질의와 함께 사용 가능 |

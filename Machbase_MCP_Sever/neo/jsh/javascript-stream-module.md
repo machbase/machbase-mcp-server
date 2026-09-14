@@ -1,12 +1,12 @@
 # Machbase Neo JavaScript Stream Module
 
-The `stream` module provides Node.js-style stream primitives for JSH applications, wrapping native Go `io.Reader` and `io.Writer` objects.
+`stream` 모듈은 네이티브 Go의 `io.Reader`·`io.Writer` 객체를 감싸, JSH 애플리케이션에 Node.js 방식의 스트림 기본 요소를 제공합니다.
 
 ```js
 const stream = require('stream');
 ```
 
-## Exported classes
+## 내보내는 클래스
 
 - `Readable`
 - `Writable`
@@ -14,80 +14,80 @@ const stream = require('stream');
 - `PassThrough`
 - `Transform`
 
-All classes inherit from `EventEmitter`.
+모든 클래스는 `EventEmitter`를 상속합니다.
 
 ## Readable
 
-Wraps a native reader object.
+네이티브 reader 객체를 감쌉니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new stream.Readable(nativeReader)
 ```
 
-<h6>Methods</h6>
+<h6>메서드</h6>
 
-- `read([size])` read data from the stream
-- `readString([size[, encoding]])` read as string
-- `pause()` pause the stream
-- `resume()` resume the stream
-- `isPaused()` check if paused
-- `pipe(destination[, options])` forward data to a writable destination
+- `read([size])` 스트림에서 데이터를 읽습니다
+- `readString([size[, encoding]])` 문자열로 읽습니다
+- `pause()` 스트림을 일시 정지합니다
+- `resume()` 스트림을 재개합니다
+- `isPaused()` 일시 정지 상태인지 확인합니다
+- `pipe(destination[, options])` 쓰기 가능한 대상으로 데이터를 전달합니다
 - `unpipe([destination])` stop piping
-- `destroy([error])` destroy the stream
-- `close()` close the stream
+- `destroy([error])` 스트림을 파기합니다
+- `close()` 스트림을 닫습니다
 
-<h6>Properties</h6>
+<h6>속성</h6>
 
 - `readable`, `readableEnded`, `readableFlowing`, `readableHighWaterMark`
 
-<h6>Events</h6>
+<h6>이벤트</h6>
 
 - `data`, `end`, `error`, `close`, `pause`, `resume`
 
 ## Writable
 
-Wraps a native writer object.
+네이티브 writer 객체를 감쌉니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new stream.Writable(nativeWriter)
 ```
 
-<h6>Methods</h6>
+<h6>메서드</h6>
 
-- `write(data[, encoding])` write data; returns `true` on success, `false` otherwise
-- `end([data[, encoding]])` end the stream
-- `destroy([error])` destroy the stream
-- `close()` close the stream
+- `write(data[, encoding])` 데이터를 씁니다. 성공하면 `true`, 아니면 `false`를 반환합니다
+- `end([data[, encoding]])` 스트림을 종료합니다
+- `destroy([error])` 스트림을 파기합니다
+- `close()` 스트림을 닫습니다
 
-<h6>Properties</h6>
+<h6>속성</h6>
 
 - `writable`, `writableEnded`, `writableFinished`, `writableHighWaterMark`
 
-<h6>Events</h6>
+<h6>이벤트</h6>
 
 - `finish`, `error`, `close`
 
 ## Duplex
 
-Combines both readable and writable capabilities.
+읽기와 쓰기 기능을 모두 결합합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new stream.Duplex(reader, writer)
 ```
 
-Supports all `Readable` and `Writable` methods simultaneously.
+`Readable`과 `Writable`의 모든 메서드를 동시에 지원합니다.
 
 ## PassThrough
 
-An in-memory duplex stream that passes written data through unchanged. Useful for testing and buffering without native readers or writers.
+쓰인 데이터를 그대로 통과시키는 메모리 내 양방향 스트림입니다. 네이티브 reader·writer 없이 테스트하거나 버퍼링할 때 유용합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 new stream.PassThrough()
@@ -95,9 +95,9 @@ new stream.PassThrough()
 
 ## Transform
 
-Base class for custom transforms implemented in JavaScript. Subclasses override `_transform()` and optionally `_flush()`.
+JavaScript로 구현하는 사용자 정의 변환의 기반 클래스입니다. 하위 클래스는 `_transform()`을, 필요하면 `_flush()`도 재정의합니다.
 
-<h6>Syntax</h6>
+<h6>문법</h6>
 
 ```js
 class MyTransform extends stream.Transform {
@@ -111,7 +111,7 @@ class MyTransform extends stream.Transform {
 }
 ```
 
-## Usage example
+## 사용 예제
 
 ```js
 const stream = require('stream');
@@ -122,10 +122,10 @@ const ws = fs.createWriteStream('/work/output.txt', { encoding: 'utf8' });
 rs.pipe(ws);
 ```
 
-## Behavior notes
+## 동작 참고사항
 
-- High-water mark is fixed at 16384 bytes.
-- EOF conditions return `null` or empty strings and update `readableEnded`.
-- `write()` supports `string`, `Buffer`, `Array`, and `Uint8Array` values.
-- This is not a full drop-in replacement for Node.js streams.
-- Subclass `Transform` with manual output emission via `this.push()` for best results.
+- high-water mark는 16384바이트로 고정되어 있습니다.
+- EOF 상황에서는 `null` 또는 빈 문자열을 반환하고 `readableEnded`를 갱신합니다.
+- `write()`는 `string`, `Buffer`, `Array`, `Uint8Array` 값을 지원합니다.
+- Node.js 스트림을 완전히 대체하지는 않습니다.
+- 최적의 결과를 위해 `Transform`을 상속하고 `this.push()`로 직접 출력을 내보내세요.

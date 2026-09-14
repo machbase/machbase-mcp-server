@@ -1,30 +1,30 @@
 # Machbase Neo SQL Automatic Storage Management
 
-## Introduction
+## 소개
 
-Time-series databases, particularly those handling high-frequency data from numerous sources, face the challenge of continuous data accumulation. Ingesting potentially millions of data points per second necessitates substantial storage capacity. Over time, managing this storage often involves manual monitoring of disk utilization followed by periodic execution of `DELETE` operations to reclaim space, introducing operational complexity and potential for error. Furthermore, many applications require data to be retained only for a specific operational period, after which older data becomes obsolete.
+시계열 데이터베이스, 특히 다수의 소스에서 고빈도 데이터를 다루는 경우 데이터가 계속 쌓이는 문제에 직면합니다. 초당 수백만 건에 이를 수 있는 데이터 적재에는 상당한 저장 용량이 필요합니다. 시간이 지나면 디스크 사용량을 수동으로 모니터링하고 주기적으로 `DELETE`를 실행해 공간을 확보해야 하는데, 이는 운영 복잡도와 오류 가능성을 높입니다. 또한 많은 애플리케이션은 특정 기간 동안만 데이터를 보관하면 되고 그 이후의 오래된 데이터는 불필요해집니다.
 
-To address these challenges, Machbase implements an Automatic Storage Size Management mechanism through its **Retention Policy** feature. This feature provides a declarative approach to automatically purge data that has aged beyond a defined retention period, thereby maintaining predictable storage utilization and simplifying long-term data lifecycle management.
+이러한 문제를 해결하기 위해 Machbase는 **Retention Policy** 기능으로 자동 저장 용량 관리 메커니즘을 제공합니다. 정의된 보관 기간을 넘긴 데이터를 자동으로 삭제하는 선언적 방식으로, 저장 사용량을 예측 가능하게 유지하고 장기 데이터 수명 주기 관리를 단순화합니다.
 
-## Core Concepts: Retention Policy
+## 핵심 개념: Retention Policy
 
-A Retention Policy in Machbase defines a rule for the automatic, time-based deletion of data from specified tables. It operates based on two primary parameters:
+Machbase의 Retention Policy는 지정한 테이블에서 시간 기준으로 데이터를 자동 삭제하는 규칙을 정의합니다. 두 가지 주요 파라미터로 동작합니다:
 
-*   **Duration:** This specifies the maximum age of data to be retained within a table. Data older than this duration, measured relative to the current system time during the policy check, becomes eligible for deletion. The duration can be defined in units of `MONTH` or `DAY`.
-*   **Interval:** This determines the frequency at which Machbase checks the associated table(s) for data eligible for deletion based on the defined `DURATION`. The interval defines how often the retention enforcement process is executed and can be set in units of `DAY` or `HOUR`.
+*   **Duration:** 테이블에 보관할 데이터의 최대 나이를 지정합니다. 정책 검사 시점의 시스템 시간을 기준으로 이 기간보다 오래된 데이터가 삭제 대상이 됩니다. 단위는 `MONTH` 또는 `DAY`로 지정합니다.
+*   **Interval:** 정의된 `DURATION`에 따라 삭제 대상 데이터를 Machbase가 얼마나 자주 검사할지 결정합니다. 보관 정책 적용 프로세스의 실행 주기이며 `DAY` 또는 `HOUR` 단위로 설정합니다.
 
-When a Retention Policy is applied to a table, a background process periodically (as defined by `INTERVAL`) scans the table. It identifies and automatically deletes all data rows whose timestamp (specifically, the value in the `BASETIME` column) is older than the current system time minus the specified `DURATION`.
+Retention Policy가 테이블에 적용되면 백그라운드 프로세스가 `INTERVAL`에 따라 주기적으로 테이블을 스캔합니다. 타임스탬프(구체적으로 `BASETIME` 컬럼의 값)가 현재 시스템 시간에서 지정한 `DURATION`을 뺀 시점보다 오래된 행을 찾아 자동으로 삭제합니다.
 
-The lifecycle of managing data retention using this feature involves:
-1.  Creating a named Retention Policy object specifying the `DURATION` and `INTERVAL`.
-2.  Applying the created Retention Policy to one or more target tables.
-3.  Machbase automatically executing the deletion process according to the policy's schedule.
-4.  Optionally detaching the policy from a table if automatic deletion is no longer required for that table.
-5.  Optionally dropping the Retention Policy object itself once it is no longer applied to any tables.
+이 기능으로 데이터 보관을 관리하는 수명 주기는 다음과 같습니다:
+1.  `DURATION`과 `INTERVAL`을 지정해 이름 있는 Retention Policy 객체를 생성합니다.
+2.  생성한 Retention Policy를 하나 이상의 대상 테이블에 적용합니다.
+3.  Machbase가 정책 일정에 따라 삭제 프로세스를 자동 실행합니다.
+4.  해당 테이블에 자동 삭제가 더 이상 필요 없으면 정책을 분리합니다(선택).
+5.  어떤 테이블에도 적용되어 있지 않으면 Retention Policy 객체 자체를 삭제합니다(선택).
 
-## Creating a Retention Policy
+## Retention Policy 생성
 
-A Retention Policy is defined as a distinct database object using the `CREATE RETENTION` statement.
+Retention Policy는 `CREATE RETENTION` 문으로 독립적인 데이터베이스 객체로 정의합니다.
 
 **Syntax:**
 
@@ -34,15 +34,15 @@ CREATE RETENTION policy_name
     INTERVAL interval_value { DAY | HOUR };
 ```
 
-*   `policy_name`: A unique identifier chosen by the user for this specific retention policy.
-*   `duration_value`: An integer representing the length of the data retention period.
-*   `MONTH | DAY`: The time unit for the `duration_value`.
-*   `interval_value`: An integer representing the frequency of the deletion check.
-*   `DAY | HOUR`: The time unit for the `interval_value`.
+*   `policy_name`: 이 보관 정책을 위해 사용자가 정하는 고유 식별자입니다.
+*   `duration_value`: 데이터 보관 기간의 길이를 나타내는 정수입니다.
+*   `MONTH | DAY`: `duration_value`의 시간 단위입니다.
+*   `interval_value`: 삭제 검사 주기를 나타내는 정수입니다.
+*   `DAY | HOUR`: `interval_value`의 시간 단위입니다.
 
 **Examples:**
 
-Policy to retain data for 1 day, checking every 1 hour:
+데이터를 1일 보관하고 1시간마다 검사하는 정책:
 
 ```sql
 CREATE RETENTION policy_1d_1h
@@ -50,7 +50,7 @@ CREATE RETENTION policy_1d_1h
     INTERVAL 1 HOUR;
 ```
 
-Policy to retain data for 1 month (approximated), checking every 3 days:
+데이터를 1개월(근사) 보관하고 3일마다 검사하는 정책:
 
 ```sql
 CREATE RETENTION policy_1m_3d
@@ -58,9 +58,9 @@ CREATE RETENTION policy_1m_3d
     INTERVAL 3 DAY;
 ```
 
-## Applying a Retention Policy to a Table
+## 테이블에 Retention Policy 적용
 
-Once a Retention Policy is created, it must be explicitly associated with a target table using the `ALTER TABLE ... ADD RETENTION` statement. A table can only have one Retention Policy applied at any given time.
+Retention Policy를 생성한 뒤에는 `ALTER TABLE ... ADD RETENTION` 문으로 대상 테이블에 명시적으로 연결해야 합니다. 테이블 하나에는 한 번에 하나의 Retention Policy만 적용할 수 있습니다.
 
 **Syntax:**
 
@@ -68,8 +68,8 @@ Once a Retention Policy is created, it must be explicitly associated with a targ
 ALTER TABLE table_name ADD RETENTION policy_name;
 ```
 
-*   `table_name`: The name of the table to which the policy should be applied.
-*   `policy_name`: The name of a previously created Retention Policy object.
+*   `table_name`: 정책을 적용할 테이블 이름입니다.
+*   `policy_name`: 앞서 생성한 Retention Policy 객체의 이름입니다.
 
 **Example:**
 
@@ -77,37 +77,37 @@ ALTER TABLE table_name ADD RETENTION policy_name;
 CREATE TAG TABLE sensor_data ( name VARCHAR(20) PRIMARY KEY, time DATETIME BASETIME, value DOUBLE SUMMARIZED );
 ```
 
-Apply the policy_1d_1h to the sensor_data table:
+sensor_data 테이블에 policy_1d_1h를 적용합니다:
 
 ```sql
 ALTER TABLE sensor_data ADD RETENTION policy_1d_1h;
 ```
 
-## Monitoring Retention Policies
+## Retention Policy 모니터링
 
-Information about defined Retention Policies and their application status can be queried through system catalog views.
+정의된 Retention Policy와 적용 상태 정보는 시스템 카탈로그 뷰로 조회할 수 있습니다.
 
-*   **`M$RETENTION`:** This view lists all Retention Policy objects defined in the database, showing their names and configured `DURATION` and `INTERVAL` values (represented internally in seconds).
+*   **`M$RETENTION`:** 데이터베이스에 정의된 모든 Retention Policy 객체와 그 이름, 설정된 `DURATION`·`INTERVAL` 값(내부적으로 초 단위)을 보여줍니다.
 
     ```sql
     -- View all defined retention policies
     SELECT * FROM M$RETENTION;
     ```
 
-*   **`V$RETENTION_JOB`:** This view displays which policies are currently applied to which tables, along with the status of the retention job (e.g., `WAITING`) and the timestamp of the last successful deletion execution (`LAST_DELETED_TIME`).
+*   **`V$RETENTION_JOB`:** 어떤 정책이 어떤 테이블에 적용되어 있는지, 보관 작업의 상태(예: `WAITING`), 마지막 삭제 실행 시각(`LAST_DELETED_TIME`)을 보여줍니다.
 
     ```sql
     -- View retention policies currently applied to tables
     SELECT * FROM V$RETENTION_JOB;
     ```
 
-## Detaching and Removing Policies
+## 정책 분리 및 제거
 
-A Retention Policy can be detached from a table, stopping the automatic deletion process for that specific table. The policy object itself can then be deleted if it's no longer needed and not applied to any other tables.
+Retention Policy를 테이블에서 분리하면 해당 테이블의 자동 삭제가 중지됩니다. 이후 다른 테이블에도 적용되어 있지 않고 더 이상 필요 없다면 정책 객체 자체를 삭제할 수 있습니다.
 
-### Detaching from a Table
+### 테이블에서 분리
 
-Use the `ALTER TABLE ... DROP RETENTION` statement to disassociate a policy from a table.
+`ALTER TABLE ... DROP RETENTION` 문으로 테이블에서 정책 연결을 해제합니다.
 
 **Syntax:**
 
@@ -115,11 +115,11 @@ Use the `ALTER TABLE ... DROP RETENTION` statement to disassociate a policy from
 ALTER TABLE table_name DROP RETENTION;
 ```
 
-*   `table_name`: The name of the table from which to detach the currently applied policy.
+*   `table_name`: 현재 적용된 정책을 분리할 테이블 이름입니다.
 
-### Removing a Policy Object
+### 정책 객체 제거
 
-Use the `DROP RETENTION` statement to delete the policy definition itself. This operation will fail if the policy is still applied to any table.
+`DROP RETENTION` 문으로 정책 정의 자체를 삭제합니다. 정책이 아직 어떤 테이블에 적용되어 있으면 실패합니다.
 
 **Syntax:**
 
@@ -127,41 +127,41 @@ Use the `DROP RETENTION` statement to delete the policy definition itself. This 
 DROP RETENTION policy_name;
 ```
 
-*   `policy_name`: The name of the Retention Policy object to be deleted.
+*   `policy_name`: 삭제할 Retention Policy 객체의 이름입니다.
 
-**Dependency Example:**
+**의존성 예제:**
 
-Assume 'policy_1d_1h' is applied to 'sensor_data'. Attempting to drop the policy while it's in use will fail:
+'policy_1d_1h'가 'sensor_data'에 적용되어 있다고 가정합니다. 사용 중인 정책을 삭제하려 하면 실패합니다:
 
 ```sql
 DROP RETENTION policy_1d_1h;
 ```
 
-> Expected Error: `[ERR-02702: Policy (POLICY_1D_1H) is in use.]`
+> 예상 오류: `[ERR-02702: Policy (POLICY_1D_1H) is in use.]`
 
-First, detach the policy from the table:
+먼저 테이블에서 정책을 분리합니다:
 
 ```sql
 ALTER TABLE sensor_data DROP RETENTION;
 ```
 
-Now, dropping the policy object will succeed:
+이제 정책 객체 삭제가 성공합니다:
 
 ```sql
 DROP RETENTION policy_1d_1h;
 ```
 
-## Examples
+## 예제
 
-This section provides a step-by-step example of using the Retention Policy feature.
+이 절에서는 Retention Policy 기능을 단계별로 사용하는 예제를 보여줍니다.
 
-**1. Schema Setup:**
+**1. 스키마 준비:**
 
 ```sql
 DROP TABLE IF EXISTS ret_tag CASCADE;
 ```
 
-Create a sample TAG table (with Rollup for context, though not required for Retention):
+샘플 TAG 테이블을 만듭니다(맥락상 Rollup을 포함했지만 Retention에는 필수가 아닙니다):
 
 ```sql
 CREATE TAG TABLE ret_tag (
@@ -171,35 +171,35 @@ CREATE TAG TABLE ret_tag (
 ) WITH ROLLUP(MIN) TAG_PARTITION_COUNT=1;
 ```
 
-**2. Create Retention Policy:**
+**2. Retention Policy 생성:**
 
-Define a policy to keep data for 1 day, checking hourly:
+데이터를 1일 보관하고 매시간 검사하는 정책을 정의합니다:
 
 ```sql
 CREATE RETENTION policy_1d_1h DURATION 1 DAY INTERVAL 1 HOUR;
 ```
 
-Verify policy creation:
+정책 생성을 확인합니다:
 
 ```sql
 SELECT * FROM M$RETENTION WHERE POLICY_NAME = 'POLICY_1D_1H';
 ```
 
-**3. Apply Policy to Table:**
+**3. 테이블에 정책 적용:**
 
-Apply the created policy to the 'ret_tag' table:
+생성한 정책을 'ret_tag' 테이블에 적용합니다:
 
 ```sql
 ALTER TABLE ret_tag ADD RETENTION policy_1d_1h;
 ```
 
-Verify policy application (expected: a row showing RET_TAG, POLICY_1D_1H, state WAITING, and NULL last_deleted_time initially):
+정책 적용을 확인합니다(예상: RET_TAG, POLICY_1D_1H, 상태 WAITING, 초기 last_deleted_time은 NULL인 행):
 
 ```sql
 SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
 ```
 
-**4. Load Data (Including Old Data):**
+**4. 데이터 적재(오래된 데이터 포함):**
 
 ```tql
 -- Use TQL FAKE function to simulate loading 150,000 records
@@ -212,53 +212,53 @@ PUSHVALUE(0, "sensor-a") -- Assign a tag name
 APPEND(table("ret_tag")) -- Append to the target table
 ```
 
-**5. Verify Initial Data Load:**
+**5. 초기 적재 확인:**
 
-Check the total number of records inserted (expected: 150000 or close to it):
+입력된 전체 레코드 수를 확인합니다(예상: 150000 또는 그에 근접):
 
 ```sql
 SELECT COUNT(*) FROM ret_tag;
 ```
 
-**6. Wait for Retention Execution:**
+**6. 보관 정책 실행 대기:**
 
-Wait for a duration longer than the policy's `INTERVAL` (1 hour in this case). The background retention job will automatically run.
+정책의 `INTERVAL`(이 경우 1시간)보다 긴 시간을 기다립니다. 백그라운드 보관 작업이 자동으로 실행됩니다.
 
-**7. Verify Data Deletion:**
+**7. 데이터 삭제 확인:**
 
-Check the retention job status again (LAST_DELETED_TIME might be updated):
+보관 작업 상태를 다시 확인합니다(LAST_DELETED_TIME이 갱신되었을 수 있습니다):
 
 ```sql
 SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
 ```
 
-Check the record count again (expected: a number less than 150000, as records older than 1 day have been deleted):
+레코드 수를 다시 확인합니다(예상: 1일보다 오래된 레코드가 삭제되어 150000보다 작은 수):
 
 ```sql
 SELECT COUNT(*) FROM ret_tag;
 ```
 
-**8. Detach and Drop Policy:**
+**8. 정책 분리 및 삭제:**
 
-Stop automatic deletion for 'ret_tag':
+'ret_tag'의 자동 삭제를 중지합니다:
 
 ```sql
 ALTER TABLE ret_tag DROP RETENTION;
 ```
 
-Verify detachment (the row for ret_tag should disappear):
+분리를 확인합니다(ret_tag 행이 사라져야 합니다):
 
 ```sql
 SELECT * FROM V$RETENTION_JOB WHERE TABLE_NAME = 'RET_TAG';
 ```
 
-Remove the policy definition itself:
+정책 정의 자체를 제거합니다:
 
 ```sql
 DROP RETENTION policy_1d_1h;
 ```
 
-Verify removal (expected: no rows returned):
+제거를 확인합니다(예상: 반환 행 없음):
 
 ```sql
 SELECT * FROM M$RETENTION WHERE POLICY_NAME = 'POLICY_1D_1H';

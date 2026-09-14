@@ -1,25 +1,25 @@
 # Machbase Neo Metrics
 
-> **BETA Warning**  
-> The features described in this document are subject to change and may be updated in future releases.
+> **BETA 경고**  
+> 이 문서에서 설명하는 기능은 변경될 수 있으며 향후 릴리스에서 갱신될 수 있습니다.
 
-The metrics are provided in 1 minute, 5 minutes and 15 minutes sampling periods.
+지표는 1분, 5분, 15분 샘플링 주기로 제공됩니다.
 
 ## HTTP API
 
-To retrieve the metrics via the RESTful API, use the endpoint:
+RESTful API로 지표를 조회하려면 다음 엔드포인트를 사용합니다:
 
 ```
 http://127.0.0.1:5654/debug/statz?interval=[1m|5m|15m]&format=[json|html]
 ```
 
-This endpoint allows you to specify the interval for which you want to gather metrics, choosing from 1 minute, 5 minutes, or 15 minutes. Please note that this endpoint is only accessible from the same machine (localhost) by default.
+이 엔드포인트에서는 지표를 수집할 구간을 1분, 5분, 15분 중에서 지정할 수 있습니다. 이 엔드포인트는 기본적으로 같은 머신(localhost)에서만 접근할 수 있다는 점에 유의하세요.
 
-By default, the output format is JSON. If `format=html` is specified, the response will be in an HTML table.
+기본 출력 형식은 JSON입니다. `format=html`을 지정하면 응답이 HTML 표로 반환됩니다.
 
-## TQL with CHART
+## CHART를 사용하는 TQL
 
-The example below shows how to render machbase-neo's HTTP latency distribution in a chart. It uses `FAKE( statz(period, metrics...) )` SRC function, and then makes time-value pairs for input of the `CHART()`.
+아래 예제는 machbase-neo의 HTTP 지연 분포를 차트로 그리는 방법을 보여줍니다. `FAKE( statz(period, metrics...) )` SRC 함수를 사용한 뒤 `CHART()`의 입력으로 시간-값 쌍을 만듭니다.
 
 ```js
 FAKE(statz("15m", 
@@ -57,81 +57,81 @@ CHART(
 
 ## Metrics
 
-All metrics are based on the selected sampling period, which can be one of the following: 1 minute (`1m`), 5 minutes (`5m`), or 15 minutes (`15m`).
+모든 지표는 선택한 샘플링 주기를 기준으로 하며, 주기는 1분(`1m`), 5분(`5m`), 15분(`15m`) 중 하나입니다.
 
 ### HTTP
 
-| Metric                      |  Description                                                |
+| 지표                        |  설명                                                       |
 |:----------------------------|:------------------------------------------------------------|
-| `machbase:http:count`       |  Total number of HTTP requests                              |
-| `machbase:http:latency_p50` |  HTTP response latency at the 50th percentile, median (ns.) |
-| `machbase:http:latency_p90` |  HTTP response latency at the 90th percentile (ns.)         |
-| `machbase:http:latency_p99` |  HTTP response latency at the 99th percentile (ns.)         |
-| `machbase:http:recv_bytes`  |  Total size of HTTP request payloads                        |
-| `machbase:http:send_bytes`  |  Total size of HTTP response payloads                       |
-| `machbase:http:status_1xx`  |  Number of HTTP responses with 1xx status codes             |
-| `machbase:http:status_2xx`  |  Number of HTTP responses with 2xx status codes             |
-| `machbase:http:status_3xx`  |  Number of HTTP responses with 3xx status codes             |
-| `machbase:http:status_4xx`  |  Number of HTTP responses with 4xx status codes             |
-| `machbase:http:status_5xx`  |  Number of HTTP responses with 5xx status codes             |
+| `machbase:http:count`       |  전체 HTTP 요청 수                              |
+| `machbase:http:latency_p50` |  HTTP 응답 지연 50번째 백분위(중앙값, ns) |
+| `machbase:http:latency_p90` |  HTTP 응답 지연 90번째 백분위(ns)         |
+| `machbase:http:latency_p99` |  HTTP 응답 지연 99번째 백분위(ns)         |
+| `machbase:http:recv_bytes`  |  HTTP 요청 페이로드 총 크기                        |
+| `machbase:http:send_bytes`  |  HTTP 응답 페이로드 총 크기                       |
+| `machbase:http:status_1xx`  |  1xx 상태 코드 HTTP 응답 수             |
+| `machbase:http:status_2xx`  |  2xx 상태 코드 HTTP 응답 수             |
+| `machbase:http:status_3xx`  |  3xx 상태 코드 HTTP 응답 수             |
+| `machbase:http:status_4xx`  |  4xx 상태 코드 HTTP 응답 수             |
+| `machbase:http:status_5xx`  |  5xx 상태 코드 HTTP 응답 수             |
 
 ### MQTT
 
-| Metric                        | Description                                   |
+| 지표                          | 설명                                          |
 |:------------------------------|:----------------------------------------------|
-| `machbase:mqtt:recv_bytes`    | total number of bytes received (bytes)        |
-| `machbase:mqtt:send_bytes`    | total number of bytes sent (bytes)            |
-| `machbase:mqtt:recv_pkts`     | the total number of publish messages received |
-| `machbase:mqtt:send_pkts`     | total number of messages of any type sent     |
-| `machbase:mqtt:recv_msgs`     | total number of publish messages received     |
-| `machbase:mqtt:send_msgs`     | total number of publish messages sent         |
-| `machbase:mqtt:drop_msgs`     | total number of publish messages dropped to slow subscriber  |
-| `machbase:mqtt:retained`      | total number of retained messages active on the broker       |
-| `machbase:mqtt:subscriptions` | total number of subscriptions active on the broker           |
-| `machbase:mqtt:clients`       | total number of connected and disconnected clients with a persistent session currently connected and registered  |
-| `machbase:mqtt:clients_connected`      | number of currently connected clients  |
-| `machbase:mqtt:clients_disconnected`   | total number of persistent clients (with clean session disabled) that are registered at the broker but are currently disconnected  |
-| `machbase:mqtt:inflight`               | the number of messages currently in-flight          |
-| `machbase:mqtt:inflight_dropped`       | the number of inflight messages which were dropped  |
+| `machbase:mqtt:recv_bytes`    | 수신한 총 바이트 수        |
+| `machbase:mqtt:send_bytes`    | 전송한 총 바이트 수            |
+| `machbase:mqtt:recv_pkts`     | 수신한 publish 메시지 총수 |
+| `machbase:mqtt:send_pkts`     | 전송한 모든 종류의 메시지 총수     |
+| `machbase:mqtt:recv_msgs`     | 수신한 publish 메시지 총수     |
+| `machbase:mqtt:send_msgs`     | 전송한 publish 메시지 총수         |
+| `machbase:mqtt:drop_msgs`     | 느린 구독자로 인해 버려진 publish 메시지 총수  |
+| `machbase:mqtt:retained`      | 브로커에서 활성 상태인 retained 메시지 총수       |
+| `machbase:mqtt:subscriptions` | 브로커에서 활성 상태인 구독 총수           |
+| `machbase:mqtt:clients`       | 영속 세션을 가진 연결/비연결 클라이언트 총수  |
+| `machbase:mqtt:clients_connected`      | 현재 연결된 클라이언트 수  |
+| `machbase:mqtt:clients_disconnected`   | 브로커에 등록되어 있으나 현재 연결이 끊긴 영속 클라이언트(clean session 비활성) 총수  |
+| `machbase:mqtt:inflight`               | 현재 in-flight 상태인 메시지 수          |
+| `machbase:mqtt:inflight_dropped`       | 버려진 in-flight 메시지 수  |
 
 ### TQL
 
-| Metric                                         | Description                                     |
+| 지표                                           | 설명                                            |
 |:-----------------------------------------------|:------------------------------------------------|
-| `machbase:tql:cache:count_[avg\|max\|min]`     | Number of items in the TQL cache                |
-| `machbase:tql:cache:data_size_[avg\|max\|min]` | Total size of the TQL cache (bytes)             |
-| `machbase:tql:cache:evictions`                 | Number of items evicted from the TQL cache      |
-| `machbase:tql:cache:insertions`                | Number of new items inserted into the TQL cache |
-| `machbase:tql:cache:hits`                      | Number of cache hits in the TQL cache           |
-| `machbase:tql:cache:misses`                    | Number of cache misses in the TQL cache         |
+| `machbase:tql:cache:count_[avg\|max\|min]`     | TQL 캐시의 항목 수                |
+| `machbase:tql:cache:data_size_[avg\|max\|min]` | TQL 캐시 총 크기(바이트)             |
+| `machbase:tql:cache:evictions`                 | TQL 캐시에서 제거된 항목 수      |
+| `machbase:tql:cache:insertions`                | TQL 캐시에 새로 삽입된 항목 수 |
+| `machbase:tql:cache:hits`                      | TQL 캐시 히트 수           |
+| `machbase:tql:cache:misses`                    | TQL 캐시 미스 수         |
 
-### Database Sessions
+### 데이터베이스 세션
 
-| Metric                                             | Description                         |
+| 지표                                               | 설명                                |
 |:---------------------------------------------------|:------------------------------------|
-| `machbase:session:append:count`                    | Total number of appenders used      |
-| `machbase:session:append:in_use`                   | Number of appenders currently open  |
-| `machbase:session:conn:count`                      | Total number of connections used    |
-| `machbase:session:conn:in_use`                     | Number of connections currently open|
-| `machbase:session:stmt:count`                      | Total number of statements used     |
-| `machbase:session:stmt:in_use`                     | Number of statements currently open |
-| `machbase:session:conn:use_time_[avg\|max\|min]`   | Connection usage time (ns.)         |
-| `machbase:session:conn:wait_time_[avg\|max\|min]`  | Wait time for fetch iteration limit (ns.)                  |
-| `machbase:session:query:count`                     | Total number of queries (only those using fetch iteration) |
-| `machbase:session:query:exec_time_[avg\|max\|min]` | Execution time of prepared statements (ns.)                |
-| `machbase:session:query:fetch_time_[avg\|max\|min]`| Fetch time (ns.)                                           |
-| `machbase:session:query:wait_time_[avg\|max\|min]` | Wait time for iteration limit (ns.)                        |
-| `machbase:session:query:hwm:elapse`                | High Water Marked Query total elapsed time (ns.)           |
-| `machbase:session:query:hwm:exec_time`             | High Water Marked Query's statement preparation time (ns.) |
-| `machbase:session:query:hwm:fetch_time`            | High Water Marked Query's fetch time (ns.)                 |
-| `machbase:session:query:hwm:wait_time`             | High Water Marked Query's iteration limit wait time  (ns.) |
-| `machbase:session:query:hwm:sql_args`              | High Water Marked Query's SQL bind variables ([]string)    |
-| `machbase:session:query:hwm:sql_text`              | High Water Marked Query's SQL text (string)                |
+| `machbase:session:append:count`                    | 사용된 appender 총수      |
+| `machbase:session:append:in_use`                   | 현재 열려 있는 appender 수  |
+| `machbase:session:conn:count`                      | 사용된 커넥션 총수    |
+| `machbase:session:conn:in_use`                     | 현재 열려 있는 커넥션 수|
+| `machbase:session:stmt:count`                      | 사용된 statement 총수     |
+| `machbase:session:stmt:in_use`                     | 현재 열려 있는 statement 수 |
+| `machbase:session:conn:use_time_[avg\|max\|min]`   | 커넥션 사용 시간(ns)         |
+| `machbase:session:conn:wait_time_[avg\|max\|min]`  | fetch 반복 제한 대기 시간(ns)                  |
+| `machbase:session:query:count`                     | 전체 질의 수(fetch 반복을 사용하는 것만) |
+| `machbase:session:query:exec_time_[avg\|max\|min]` | prepared statement 실행 시간(ns)                |
+| `machbase:session:query:fetch_time_[avg\|max\|min]`| Fetch 시간(ns)                                           |
+| `machbase:session:query:wait_time_[avg\|max\|min]` | 반복 제한 대기 시간(ns)                        |
+| `machbase:session:query:hwm:elapse`                | High Water Mark 질의의 총 소요 시간(ns)           |
+| `machbase:session:query:hwm:exec_time`             | High Water Mark 질의의 statement 준비 시간(ns) |
+| `machbase:session:query:hwm:fetch_time`            | High Water Mark 질의의 fetch 시간(ns)                 |
+| `machbase:session:query:hwm:wait_time`             | High Water Mark 질의의 반복 제한 대기 시간(ns) |
+| `machbase:session:query:hwm:sql_args`              | High Water Mark 질의의 SQL 바인드 변수([]string)    |
+| `machbase:session:query:hwm:sql_text`              | High Water Mark 질의의 SQL 텍스트(string)                |
 
 ### Go
 
-| Metric                             | Description                          |
+| 지표                               | 설명                                 |
 |:-----------------------------------|:-------------------------------------|
-| `go:heap_in_use_[avg\|max\|min]`   | Heap usage (bytes)                   |
-| `go:cgo_call_[avg\|max\|min]`      | Number of CGO function calls         |
-| `go:goroutine_[avg\|max\|min]`     | Number of goroutines                 |
+| `go:heap_in_use_[avg\|max\|min]`   | 힙 사용량(바이트)                   |
+| `go:cgo_call_[avg\|max\|min]`      | CGO 함수 호출 수         |
+| `go:goroutine_[avg\|max\|min]`     | 고루틴 수                 |

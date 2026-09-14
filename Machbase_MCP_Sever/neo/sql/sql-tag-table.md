@@ -1,14 +1,14 @@
 # Machbase Neo SQL Tag Table
 
-## Overview of the Tag Table Data Model
+## 태그 테이블 데이터 모델 개요
 
-This document provides a comprehensive overview of the Machbase Tag Table, a specialized table structure optimized for storing, retrieving, and managing time-series sensor data within the Machbase time-series database system.
+이 문서는 Machbase 시계열 데이터베이스에서 센서 시계열 데이터를 저장·조회·관리하도록 최적화된 특수 테이블 구조인 Machbase 태그 테이블을 전반적으로 설명합니다.
 
-### Conceptual Data Model
+### 개념적 데이터 모델
 
-Traditional data modeling for sensor data often resembles a wide, CSV-like format where each row represents a single timestamp, and columns correspond to different sensor measurements (tags).
+센서 데이터의 전통적인 데이터 모델링은 CSV처럼 넓은(wide) 형태를 띠는 경우가 많습니다. 한 행이 하나의 시각을 나타내고, 각 컬럼이 서로 다른 센서 측정값(태그)에 대응합니다.
 
-**Traditional Data Model (Wide Format):**
+**전통적 데이터 모델(넓은 형태):**
 
 | timestamp           | temperature | humidity | pressure | vibration |
 | :------------------ | :---------- | :------- | :------- | :-------- |
@@ -16,14 +16,14 @@ Traditional data modeling for sensor data often resembles a wide, CSV-like forma
 | 2023-04-15 09:34:13 | 23.7        | 75.6     | 12       | 51        |
 | ...                 | ...         | ...      | ...      | ...       |
 
-*   **Characteristics:**
-    *   Manages measurements taken at the same time as a single record.
-    *   Facilitates viewing data in its original, wide format.
-    *   Schema modifications (adding/removing sensors/tags) are relatively inflexible and often require table alterations.
+*   **특징:**
+    *   같은 시각에 측정된 값들을 하나의 레코드로 관리합니다.
+    *   데이터를 원래의 넓은 형태 그대로 보기 좋습니다.
+    *   스키마 변경(센서·태그 추가/제거)이 유연하지 않아 테이블 변경이 필요한 경우가 많습니다.
 
-The Machbase Tag Table employs a different paradigm, structuring data in a tall/narrow format where each row represents a single measurement from a specific sensor (tag) at a particular time.
+Machbase 태그 테이블은 다른 방식을 씁니다. 한 행이 특정 시각에 특정 센서(태그)에서 측정된 값 하나를 나타내는 길고 좁은(tall/narrow) 형태로 데이터를 구성합니다.
 
-**Machbase Tag Table Data Model (Tall/Narrow Format):**
+**Machbase 태그 테이블 데이터 모델(길고 좁은 형태):**
 
 | TAGID         | timestamp           | value |
 | :------------ | :------------------ | :---- |
@@ -35,17 +35,17 @@ The Machbase Tag Table employs a different paradigm, structuring data in a tall/
 | humidity      | 2023-04-15 09:34:13 | 75.6  |
 | ...           | ...                 | ...   |
 
-*   **Characteristics:**
-    *   Transforms and stores each measurement as an individual record.
-    *   Offers maximum flexibility for schema evolution regarding tags (sensors); adding or removing tags does not require table structure changes.
-    *   Enables efficient aggregation and statistical analysis on a per-tag basis.
-    *   While the row count increases compared to the wide model, query and ingestion performance are typically enhanced due to the specialized architecture.
+*   **특징:**
+    *   각 측정값을 개별 레코드로 변환해 저장합니다.
+    *   태그(센서) 관점의 스키마 변화에 최대한의 유연성을 제공합니다. 태그를 추가하거나 제거해도 테이블 구조를 바꿀 필요가 없습니다.
+    *   태그 단위의 효율적인 집계와 통계 분석이 가능합니다.
+    *   넓은 모델에 비해 행 수는 늘어나지만, 전용 구조 덕분에 조회와 적재 성능은 대체로 향상됩니다.
 
-### Schema-Based Data Model Comparison
+### 스키마 기준 데이터 모델 비교
 
-The difference in data modeling is reflected in the table creation syntax.
+데이터 모델링의 차이는 테이블 생성 문법에도 그대로 드러납니다.
 
-**Traditional Schema (Example):**
+**전통적 스키마(예):**
 
 ```sql
 CREATE TABLE Vibration (
@@ -58,9 +58,9 @@ CREATE TABLE Vibration (
     -- Additional columns for each new sensor type
 );
 ```
-*This represents a common design approach but faces challenges with schema rigidity in dynamic IoT environments.*
+*흔한 설계 방식이지만, 변화가 잦은 IoT 환경에서는 스키마가 경직되는 문제가 있습니다.*
 
-**Machbase Tag Table Schema:**
+**Machbase 태그 테이블 스키마:**
 
 ```sql
 CREATE TAG TABLE Vibration (
@@ -69,19 +69,19 @@ CREATE TAG TABLE Vibration (
     value DOUBLE                   -- The actual measured value
 );
 ```
-*This structure simplifies the core data schema, focusing on the fundamental elements of time-series data: identifier, time, and value. Additional context is managed via metadata.*
+*이 구조는 시계열 데이터의 본질적 요소인 식별자·시간·값에 집중해 핵심 스키마를 단순화합니다. 부가적인 맥락 정보는 메타데이터로 관리합니다.*
 
-## Tag Table Fundamentals
+## 태그 테이블 기본
 
 ### Structure
 
-A Tag Table is an optimized table construct designed for the efficient ingestion, retrieval, and compression of structured sensor data. Its fundamental record structure consists of three core components:
+태그 테이블은 정형화된 센서 데이터를 효율적으로 적재·조회·압축하도록 설계된 최적화 테이블 구조입니다. 기본 레코드 구조는 세 가지 핵심 요소로 이뤄집니다:
 
-1.  **Identifier (`name` column by default):** A unique string that identifies the specific sensor or data source (e.g., `"sensor-A"`, `"factory1-machine2-temp"`). This identifier serves as the primary key within the associated metadata structure.
-2.  **Time (`time` column by default):** The timestamp indicating when the data point was generated or recorded. It is stored as a 64-bit integer, supporting nanosecond precision.
-3.  **Value (`value` column by default):** The actual measurement or event data associated with the identifier at the specified time. While various data types are supported, `DOUBLE` (64-bit floating-point) is common and enables diverse analytical functions.
+1.  **식별자(기본값은 `name` 컬럼):** 특정 센서나 데이터 소스를 식별하는 고유 문자열입니다(예: `"sensor-A"`, `"factory1-machine2-temp"`). 이 식별자는 연결된 메타데이터 구조에서 기본 키 역할을 합니다.
+2.  **시간(기본값은 `time` 컬럼):** 데이터 포인트가 생성되거나 기록된 시각입니다. 64비트 정수로 저장되며 나노초 정밀도를 지원합니다.
+3.  **값(기본값은 `value` 컬럼):** 해당 시각에 그 식별자와 연결된 실제 측정값 또는 이벤트 데이터입니다. 여러 데이터 타입을 지원하지만 `DOUBLE`(64비트 부동소수점)이 일반적이며 다양한 분석 함수를 사용할 수 있게 해 줍니다.
 
-Internally, a Tag Table separates metadata (descriptive information about tags) from the actual time-series data points.
+내부적으로 태그 테이블은 메타데이터(태그에 대한 설명 정보)와 실제 시계열 데이터 포인트를 분리해 관리합니다.
 
 ```
        Tag Table: Vibration
@@ -103,7 +103,7 @@ Internally, a Tag Table separates metadata (descriptive information about tags) 
 +--------------------------------------+------------------------------------------+
 ```
 
-The basic `CREATE` statement reflects this structure:
+기본 `CREATE` 문에 이 구조가 반영되어 있습니다:
 
 ```sql
 CREATE TAG TABLE Vibration (
@@ -115,33 +115,33 @@ CREATE TAG TABLE Vibration (
 -- Metadata columns are defined separately in the METADATA clause
 ```
 
-### Supported Data Types
+### 지원하는 데이터 타입
 
-Machbase Tag Tables support the following data types for the `value` column and any additional data columns:
+Machbase 태그 테이블은 `value` 컬럼과 추가 데이터 컬럼에 다음 데이터 타입을 지원합니다:
 
-| Type     | Description                      | Range / Representation                                          | NULL Representation           |
+| 타입     | 설명                             | 범위 / 표현                                                     | NULL 표현                     |
 | :------- | :------------------------------- | :-------------------------------------------------------------- | :---------------------------- |
-| `SHORT`    | 16-bit signed integer            | -32767 to 32767                                                 | -32768                        |
-| `USHORT`   | 16-bit unsigned integer          | 0 to 65534                                                      | 65535                         |
-| `INTEGER`  | 32-bit signed integer            | -2147483647 to 2147483647                                       | -2147483648                   |
-| `UINTEGER` | 32-bit unsigned integer          | 0 to 4294967294                                                 | 4294967295                    |
-| `LONG`     | 64-bit signed integer            | -9223372036854775807 to 9223372036854775807                     | -9223372036854775808          |
-| `ULONG`    | 64-bit unsigned integer          | 0 to 18446744073709551614                                      | 18446744073709551615          |
-| `FLOAT`    | 32-bit floating-point            | ±1.175494e-38 to ±3.402823e+38                                  | 3.402823466e+38               |
-| `DOUBLE`   | 64-bit floating-point            | ±2.225074e-308 to ±1.797693e+308                                | 1.7976931348623158e+308       |
-| `DATETIME` | Date and Time (nanosec precision)| From 1970-01-01 00:00:00 000:000:000 UTC                        | N/A                           |
-| `VARCHAR`  | Variable-length string (UTF-8) | 1 byte to 32KB (32767 bytes)                                    | NULL                          |
-| `IPV4`     | IPv4 address                     | "0.0.0.0" to "255.255.255.255"                                  | NULL                          |
-| `IPV6`     | IPv6 address                     | "::" to "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"               | NULL                          |
-| `JSON`     | JSON data type                   | Data length: 1 byte to 32KB; Path length: 1 to 512 characters | NULL                          |
+| `SHORT`    | 16비트 부호 있는 정수            | -32767 ~ 32767                                                  | -32768                        |
+| `USHORT`   | 16비트 부호 없는 정수            | 0 ~ 65534                                                       | 65535                         |
+| `INTEGER`  | 32비트 부호 있는 정수            | -2147483647 ~ 2147483647                                        | -2147483648                   |
+| `UINTEGER` | 32비트 부호 없는 정수            | 0 ~ 4294967294                                                  | 4294967295                    |
+| `LONG`     | 64비트 부호 있는 정수            | -9223372036854775807 ~ 9223372036854775807                      | -9223372036854775808          |
+| `ULONG`    | 64비트 부호 없는 정수            | 0 ~ 18446744073709551614                                       | 18446744073709551615          |
+| `FLOAT`    | 32비트 부동소수점                | ±1.175494e-38 ~ ±3.402823e+38                                   | 3.402823466e+38               |
+| `DOUBLE`   | 64비트 부동소수점                | ±2.225074e-308 ~ ±1.797693e+308                                 | 1.7976931348623158e+308       |
+| `DATETIME` | 날짜와 시간(나노초 정밀도)       | 1970-01-01 00:00:00 000:000:000 UTC 부터                        | 해당 없음                     |
+| `VARCHAR`  | 가변 길이 문자열(UTF-8)        | 1바이트 ~ 32KB(32767바이트)                                     | NULL                          |
+| `IPV4`     | IPv4 주소                        | "0.0.0.0" ~ "255.255.255.255"                                   | NULL                          |
+| `IPV6`     | IPv6 주소                        | "::" ~ "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"                | NULL                          |
+| `JSON`     | JSON 데이터 타입                 | 데이터 길이: 1바이트 ~ 32KB, 경로 길이: 1 ~ 512자             | NULL                          |
 
-**Note:** The `TEXT` and `BINARY` data types are **not supported** within Tag Tables.
+**참고:** 태그 테이블에서 `TEXT`와 `BINARY` 데이터 타입은 **지원되지 않습니다**.
 
-## Tag Table Creation and Internal Architecture
+## 태그 테이블 생성과 내부 구조
 
-### Creating Tag Tables
+### 태그 테이블 생성
 
-The fundamental syntax for creating a Tag Table is as follows:
+태그 테이블 생성의 기본 문법은 다음과 같습니다:
 
 ```sql
 CREATE TAG TABLE table_name (
@@ -158,30 +158,30 @@ METADATA (
 [ table_property = value [, ...] ];        -- Optional table properties
 ```
 
-**Key Components:**
+**주요 구성 요소:**
 
-| Element                      | Description                                                                                                                                 | Area       |
+| 요소                         | 설명                                                                                                                                        | 영역       |
 | :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :--------- |
-| `name_column` (`PRIMARY KEY`)  | The column holding the unique tag identifier (e.g., sensor name). Must be `VARCHAR` type with a specified maximum length. Declared as `PRIMARY KEY`. | Data/Meta  |
-| `time_column` (`BASETIME`)   | The column storing the timestamp for each data point, typically `DATETIME`. Must have the `BASETIME` property, indicating it's the primary time index. | Data       |
-| `value_column` [`SUMMARIZED`] | The column(s) holding the measurement values. Common types include `DOUBLE`, `LONG`. The optional `SUMMARIZED` keyword enables built-in statistical aggregations for this column. | Data       |
-| `additional_data_column`   | Optional columns to store supplementary data alongside the primary value for the same timestamp (e.g., quality flags, batch numbers).              | Data       |
-| `METADATA` clause            | Defines columns that store descriptive attributes (metadata) for each unique tag specified in the `name_column`. These attributes are linked via the `name_column`. | Meta       |
-| `table_property`             | Optional key-value pairs to configure table behavior and resource allocation (e.g., partitioning, statistics).                              | Table      |
+| `name_column` (`PRIMARY KEY`)  | 고유한 태그 식별자(예: 센서 이름)를 담는 컬럼입니다. 최대 길이를 지정한 `VARCHAR` 타입이어야 하며 `PRIMARY KEY`로 선언합니다. | 데이터/메타 |
+| `time_column` (`BASETIME`)   | 각 데이터 포인트의 시각을 저장하는 컬럼으로 보통 `DATETIME`입니다. 기본 시간 인덱스임을 뜻하는 `BASETIME` 속성이 있어야 합니다. | 데이터     |
+| `value_column` [`SUMMARIZED`] | 측정값을 담는 컬럼입니다. 보통 `DOUBLE`, `LONG`을 사용합니다. 선택적 `SUMMARIZED` 키워드를 붙이면 이 컬럼에 내장 통계 집계가 활성화됩니다. | 데이터     |
+| `additional_data_column`   | 같은 시각의 주 값과 함께 보조 데이터를 저장하는 선택 컬럼입니다(예: 품질 플래그, 배치 번호).                                    | 데이터     |
+| `METADATA` 절                | `name_column`에 지정된 각 고유 태그의 설명 속성(메타데이터)을 저장할 컬럼을 정의합니다. 이 속성들은 `name_column`으로 연결됩니다. | 메타       |
+| `table_property`             | 테이블 동작과 자원 할당을 설정하는 선택적 키-값 쌍입니다(예: 파티셔닝, 통계).                                               | 테이블     |
 
-### Tag Table Properties
+### 태그 테이블 속성
 
-Several properties can be configured during Tag Table creation to optimize performance and resource usage:
+태그 테이블 생성 시 성능과 자원 사용을 최적화하는 여러 속성을 설정할 수 있습니다:
 
-| Property                         | Description                                                                                                                               | Default | Notes                                                                                         |
+| 속성                             | 설명                                                                                                                                      | 기본값  | 비고                                                                                          |
 | :------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- | :------ | :-------------------------------------------------------------------------------------------- |
-| `TAG_PARTITION_COUNT`            | Number of internal data partitions (sub-tables) created. Affects parallelism for ingestion and querying.                                    | 4       | Higher values improve concurrency but increase memory usage. Use lower values (1 or 2) on resource-constrained edge devices. |
-| `TAG_DATA_PART_SIZE`             | Target size (in bytes) for data storage units within partitions.                                                                          | 16MB    | Influences memory allocation related to data buffering and indexing.                          |
-| `TAG_STAT_ENABLE`                | Enables/disables the collection of statistical metadata (min, max, count, sum) per tag. Required for `V$tableName_STAT` view.              | 1 (ON)  | Set to 0 to disable if statistics are not needed, potentially saving minor overhead.           |
-| `TAG_DUPLICATE_CHECK_DURATION`   | Time window (in nanoseconds) within which duplicate records (same name, time, value) are potentially ignored during ingestion.            | 0       | Helps manage redundant data from sources that might occasionally resend data points.          |
-| `VARCHAR_FIXED_LENGTH_MAX`       | Maximum length (in bytes) for `VARCHAR` data to be stored inline within the primary data storage. Longer strings may be stored externally. | 15      | Affects storage efficiency and retrieval performance for variable-length strings.               |
+| `TAG_PARTITION_COUNT`            | 생성되는 내부 데이터 파티션(하위 테이블) 수입니다. 적재와 조회의 병렬성에 영향을 줍니다.                                   | 4       | 값이 클수록 동시성이 좋아지지만 메모리 사용이 늘어납니다. 자원이 제한된 엣지 장비에서는 낮은 값(1 또는 2)을 사용하세요. |
+| `TAG_DATA_PART_SIZE`             | 파티션 내 데이터 저장 단위의 목표 크기(바이트)입니다.                                                                     | 16MB    | 데이터 버퍼링과 인덱싱 관련 메모리 할당에 영향을 줍니다.                                      |
+| `TAG_STAT_ENABLE`                | 태그별 통계 메타데이터(min, max, count, sum) 수집을 켜고 끕니다. `V$tableName_STAT` 뷰에 필요합니다.                       | 1 (켬)  | 통계가 필요 없으면 0으로 설정해 약간의 부담을 줄일 수 있습니다.                               |
+| `TAG_DUPLICATE_CHECK_DURATION`   | 적재 중 중복 레코드(같은 name, time, value)를 무시할 수 있는 시간 창(나노초)입니다.                                       | 0       | 데이터를 간혹 재전송하는 소스의 중복 데이터를 다루는 데 도움이 됩니다.                        |
+| `VARCHAR_FIXED_LENGTH_MAX`       | 주 데이터 저장 영역에 인라인으로 저장할 `VARCHAR` 데이터의 최대 길이(바이트)입니다. 더 긴 문자열은 외부에 저장될 수 있습니다. | 15      | 가변 길이 문자열의 저장 효율과 조회 성능에 영향을 줍니다.                                     |
 
-**Example with Properties:**
+**속성을 지정한 예제:**
 
 ```sql
 CREATE TAG TABLE basic (
@@ -198,14 +198,14 @@ TAG_STAT_ENABLE=0,
 TAG_DUPLICATE_CHECK_DURATION=3;
 ```
 
-### Internal Table Structure
+### 내부 테이블 구조
 
-Creating a Tag Table (e.g., `MYTAG`) results in the internal creation and management of several related objects:
+태그 테이블(예: `MYTAG`)을 만들면 내부적으로 다음의 관련 객체들이 함께 생성·관리됩니다:
 
-1.  **`MYTAG` (Virtual Table):** The primary interface for querying data. It presents a unified view combining metadata and time-series data.
-2.  **`_MYTAG_META` (Metadata Table):** Stores the metadata attributes defined in the `METADATA` clause. The `name` column acts as the primary key here, ensuring uniqueness for each tag's metadata entry. This table is typically memory-resident for fast lookups.
-3.  **`_MYTAG_DATA_N` (Data Partition Tables):** Internal tables (where `N` ranges from 0 to `TAG_PARTITION_COUNT - 1`) that store the actual time-series data (`time`, `value`, additional data columns). Data is distributed across these partitions based on the tag `name`.
-4.  **`V$MYTAG_STAT` (Statistics View):** A system view (if `TAG_STAT_ENABLE=1`) providing summary statistics (min/max time, min/max value, count, sum) for each tag, derived from the data partitions.
+1.  **`MYTAG`(가상 테이블):** 데이터를 조회하는 기본 인터페이스입니다. 메타데이터와 시계열 데이터를 결합한 통합 뷰를 제공합니다.
+2.  **`_MYTAG_META`(메타데이터 테이블):** `METADATA` 절에 정의한 메타데이터 속성을 저장합니다. 여기서는 `name` 컬럼이 기본 키 역할을 해 태그별 메타데이터 항목의 고유성을 보장합니다. 빠른 조회를 위해 보통 메모리에 상주합니다.
+3.  **`_MYTAG_DATA_N`(데이터 파티션 테이블):** 실제 시계열 데이터(`time`, `value`, 추가 데이터 컬럼)를 저장하는 내부 테이블입니다(`N`은 0부터 `TAG_PARTITION_COUNT - 1`까지). 데이터는 태그 `name`을 기준으로 이 파티션들에 분산됩니다.
+4.  **`V$MYTAG_STAT`(통계 뷰):** `TAG_STAT_ENABLE=1`일 때 제공되는 시스템 뷰로, 데이터 파티션에서 도출한 태그별 요약 통계(최소/최대 시각, 최소/최대 값, 건수, 합)를 제공합니다.
 
 ```
       << Internal Structure of MYTAG >>
@@ -241,17 +241,17 @@ Creating a Tag Table (e.g., `MYTAG`) results in the internal creation and manage
    (Data Partition) (Data Partition)         (Data Partition)
 ```
 
-## Metadata Management in Tag Tables
+## 태그 테이블의 메타데이터 관리
 
-### The Role of Metadata
+### 메타데이터의 역할
 
-Metadata provides essential context to raw time-series data points. By associating descriptive attributes (e.g., location, equipment type, manufacturer, unit of measure) with each tag (`name`), metadata enables:
+메타데이터는 원본 시계열 데이터 포인트에 필수적인 맥락을 제공합니다. 각 태그(`name`)에 설명 속성(예: 위치, 설비 종류, 제조사, 측정 단위)을 연결하면 다음이 가능해집니다:
 
-*   **Structured Search:** Filtering and querying data based on characteristics rather than just cryptic tag names.
-*   **Hierarchical Organization:** Representing relationships between sensors, equipment, locations, etc.
-*   **Enhanced Analysis:** Grouping and aggregating data across meaningful categories defined by metadata.
+*   **구조적 검색:** 알아보기 어려운 태그 이름 대신 특성을 기준으로 데이터를 필터링하고 조회할 수 있습니다.
+*   **계층적 구성:** 센서, 설비, 위치 등의 관계를 표현할 수 있습니다.
+*   **분석 강화:** 메타데이터로 정의한 의미 있는 범주로 데이터를 묶어 집계할 수 있습니다.
 
-**Conceptual Hierarchy Example:**
+**개념적 계층 예시:**
 
 ```
 Company
@@ -269,17 +269,17 @@ Company
     └── ... (similar structure)
 ```
 
-Each tag inherently possesses information about its context (e.g., plant, equipment).
+각 태그는 자신의 맥락 정보(예: 공장, 설비)를 본질적으로 가지고 있습니다.
 
-**Example Use Cases:**
+**활용 사례 예시:**
 
-*   "Retrieve the last minute of data for all 'Current Sensors' associated with 'Cranes' in the 'Ulsan Plant'."
-*   "Fetch all data from January 31st, 2022, between 11:00 and 12:00 for sensors whose names start with 'Current' belonging to 'Refrigerators'."
-*   "Find the maximum value recorded last month for the tag named 'Current-3' across all equipment starting with 'Air Conditioner' in all plants."
+*   "'울산 공장'의 '크레인'에 연결된 모든 '전류 센서'의 최근 1분 데이터를 조회한다."
+*   "'냉장고'에 속하고 이름이 'Current'로 시작하는 센서의 2022년 1월 31일 11:00~12:00 데이터를 모두 가져온다."
+*   "모든 공장에서 'Air Conditioner'로 시작하는 설비의 'Current-3' 태그에 대해 지난달 최댓값을 찾는다."
 
-### Defining and Utilizing Metadata Columns
+### 메타데이터 컬럼 정의와 활용
 
-Metadata columns are defined within the `METADATA` clause of the `CREATE TAG TABLE` statement.
+메타데이터 컬럼은 `CREATE TAG TABLE` 문의 `METADATA` 절에서 정의합니다.
 
 ```sql
 CREATE TAG TABLE MYTAG (
@@ -293,13 +293,13 @@ METADATA ( -- Define metadata columns here
 );
 ```
 
-Metadata columns can also be added to an existing Tag Table's metadata structure using `ALTER TABLE` on the internal metadata table (`_tableName_META`).
+기존 태그 테이블의 메타데이터 구조에는 내부 메타데이터 테이블(`_tableName_META`)에 `ALTER TABLE`을 실행해 컬럼을 추가할 수도 있습니다.
 
 ```sql
 ALTER TABLE _mytag_meta ADD COLUMN (line VARCHAR(16) DEFAULT 'op01');
 ```
 
-Metadata resides in the `_tableName_META` table, which is typically kept in memory for efficient joining during queries against the main virtual Tag Table. The `name` column serves as the unique key linking metadata attributes to the time-series data.
+메타데이터는 `_tableName_META` 테이블에 저장되며, 가상 태그 테이블에 대한 질의에서 효율적으로 조인하기 위해 보통 메모리에 유지됩니다. `name` 컬럼이 메타데이터 속성과 시계열 데이터를 잇는 고유 키 역할을 합니다.
 
 ```
        Metadata Area (_mytag_meta)             Data Area (_mytag_data_N)
@@ -313,15 +313,15 @@ Metadata resides in the `_tableName_META` table, which is typically kept in memo
        (Unique entries per NAME)                      (Time-series measurements)
 ```
 
-### Metadata Ingestion
+### 메타데이터 적재
 
-Metadata for a new tag is typically provided during the initial data ingestion for that tag. When appending data, if the tag `name` does not already exist in the `_tableName_META` table, a new metadata record is created using the values supplied in that append operation.
+새 태그의 메타데이터는 보통 그 태그의 첫 데이터 적재 시에 함께 제공됩니다. 데이터를 append할 때 태그 `name`이 `_tableName_META` 테이블에 아직 없으면, 해당 append 작업에서 제공된 값으로 새 메타데이터 레코드가 생성됩니다.
 
-**Important Consideration:** If a tag `name` already exists in the metadata table, subsequent data append operations for that tag **will not** update its existing metadata attributes. Metadata updates must be performed explicitly using the `UPDATE ... METADATA` command.
+**중요:** 태그 `name`이 메타데이터 테이블에 이미 있으면, 그 태그에 대한 이후 append 작업은 기존 메타데이터 속성을 갱신하지 **않습니다**. 메타데이터 갱신은 `UPDATE ... METADATA` 명령으로 명시적으로 해야 합니다.
 
-### Retrieving Data with Metadata Filters
+### 메타데이터 조건으로 데이터 조회
 
-Queries against the virtual Tag Table can include predicates (conditions) on both data columns (`time`, `value`, etc.) and metadata columns (`factory`, `equipment`, etc.). The database engine automatically joins the data partitions with the metadata table based on the tag `name`.
+가상 태그 테이블에 대한 질의에는 데이터 컬럼(`time`, `value` 등)과 메타데이터 컬럼(`factory`, `equipment` 등) 양쪽의 조건을 함께 넣을 수 있습니다. 데이터베이스 엔진이 태그 `name`을 기준으로 데이터 파티션과 메타데이터 테이블을 자동으로 조인합니다.
 
 ```sql
 -- Retrieve data for a specific tag in a specific factory and equipment
@@ -335,24 +335,24 @@ WHERE factory = 'Seoul'            -- Metadata filter
                AND TO_DATE('2022-12-31 23:59:59'); -- Time filter
 ```
 
-### Modifying Metadata Entries
+### 메타데이터 항목 수정
 
-Existing metadata attributes for a specific tag can be modified using the `UPDATE ... METADATA SET` syntax.
+특정 태그의 기존 메타데이터 속성은 `UPDATE ... METADATA SET` 문법으로 수정할 수 있습니다.
 
 ```sql
 UPDATE mytag METADATA SET equipment = 'chiller_unit_01', factory = 'Busan'
 WHERE name = 'tag-existing'; -- MUST specify the target tag via 'name = ...'
 ```
 
-**Constraints:**
+**제약 사항:**
 
-*   The `WHERE` clause **must** contain an equality predicate on the `name` column (`WHERE name = 'specific_tag_name'`).
-*   Other conditions in the `WHERE` clause are not permitted for metadata updates due to the key-value nature of the underlying metadata storage.
-*   Bulk updates based on metadata attribute values are not directly supported via this command (future enhancements may address this).
+*   `WHERE` 절에는 `name` 컬럼에 대한 등호 조건이 반드시 있어야 **합니다**(`WHERE name = 'specific_tag_name'`).
+*   메타데이터 저장 구조가 키-값 형태이므로 메타데이터 갱신에서는 `WHERE` 절의 다른 조건을 허용하지 않습니다.
+*   메타데이터 속성 값을 기준으로 한 일괄 갱신은 이 명령으로 직접 지원되지 않습니다(향후 개선될 수 있습니다).
 
-### Deleting Metadata Entries
+### 메타데이터 항목 삭제
 
-Metadata entries can be deleted using the `DELETE FROM ... METADATA` syntax.
+메타데이터 항목은 `DELETE FROM ... METADATA` 문법으로 삭제할 수 있습니다.
 
 ```sql
 DELETE FROM mytag METADATA WHERE name = 'tag_to_remove';
@@ -360,59 +360,59 @@ DELETE FROM mytag METADATA WHERE name = 'tag_to_remove';
 
 **Constraint:**
 
-*   A metadata entry **cannot** be deleted if corresponding time-series data still exists for that tag in the data partitions.
-*   Any associated time-series data must be deleted first using the standard `DELETE FROM table_name WHERE name = '...'` command before the metadata entry can be removed.
+*   데이터 파티션에 해당 태그의 시계열 데이터가 남아 있으면 메타데이터 항목을 삭제할 수 **없습니다**.
+*   메타데이터 항목을 지우려면 먼저 표준 `DELETE FROM table_name WHERE name = '...'` 명령으로 연결된 시계열 데이터를 삭제해야 합니다.
 
-### Use Case: Dynamic Tag Categorization via Metadata
+### 활용 사례: 메타데이터를 이용한 동적 태그 분류
 
-Metadata columns provide a powerful mechanism for dynamically classifying or annotating tags without altering the core data structure.
+메타데이터 컬럼을 사용하면 핵심 데이터 구조를 바꾸지 않고도 태그를 동적으로 분류하거나 표시할 수 있습니다.
 
-**Scenario:** Track tags that frequently generate errors or are used in specific reports.
+**시나리오:** 오류가 자주 발생하거나 특정 리포트에 쓰이는 태그를 추적합니다.
 
-1.  **Add an `alias` metadata column:**
+1.  **`alias` 메타데이터 컬럼을 추가합니다:**
     ```sql
     ALTER TABLE _basic_meta ADD COLUMN (alias VARCHAR(128) DEFAULT 'normal');
     ```
 
-2.  **Update metadata for specific tags:**
+2.  **특정 태그의 메타데이터를 갱신합니다:**
     ```sql
     UPDATE basic METADATA SET alias = 'error' WHERE name = 'tag-2';
     UPDATE basic METADATA SET alias = 'report' WHERE name = 'tag-4';
     ```
 
-3.  **Query data based on the dynamic category:**
+3.  **동적 분류를 기준으로 데이터를 조회합니다:**
     ```sql
-    -- Find data for tags marked as 'error' within a specific time range
+    -- 특정 시간 범위에서 'error'로 표시된 태그의 데이터를 찾습니다
     SELECT * FROM basic
     WHERE alias = 'error'
       AND time BETWEEN '2022-01-01' AND '2022-12-31';
 
-    -- Find data for tags marked for 'report'
+    -- 'report'로 표시된 태그의 데이터를 찾습니다
     SELECT * FROM basic
     WHERE alias = 'report'
       AND time BETWEEN '2022-01-01' AND '2022-12-31';
     ```
 
-### The Uniqueness and Usage of the `name` Column
+### `name` 컬럼의 고유성과 사용법
 
-The `name` column (or the column designated as `PRIMARY KEY` in the Tag Table definition) plays a critical role:
+`name` 컬럼(태그 테이블 정의에서 `PRIMARY KEY`로 지정한 컬럼)은 다음과 같은 핵심 역할을 합니다:
 
-*   **Primary Key for Metadata:** It uniquely identifies each tag within the `_tableName_META` table, enabling CRUD (Create, Read, Update, Delete) operations on metadata attributes. Tag names must be unique.
-*   **Link for Data Retrieval:** It connects the metadata attributes to the corresponding time-series data points during queries.
-*   **Direct Data Filtering:** It allows direct selection or filtering of raw and aggregated data for specific tags.
+*   **메타데이터의 기본 키:** `_tableName_META` 테이블에서 각 태그를 고유하게 식별해 메타데이터 속성의 생성·조회·갱신·삭제를 가능하게 합니다. 태그 이름은 고유해야 합니다.
+*   **데이터 조회의 연결 고리:** 질의 시 메타데이터 속성과 해당 시계열 데이터 포인트를 연결합니다.
+*   **직접 필터링:** 특정 태그의 원본 데이터와 집계 데이터를 직접 선택하거나 필터링할 수 있습니다.
 
-**Tips for Constructing `name` Values:**
+**`name` 값 구성 팁:**
 
-*   **Low Tag Cardinality (< 100 tags), No Metadata:** Use simple, human-readable unique strings (e.g., `'tag_001'`, `'temp_sensor_main'`). Direct querying by `name` is common.
-*   **High Tag Cardinality (>> 1000 tags), Rich Metadata:** Direct querying by the full `name` might be less frequent. Constructing the `name` by concatenating key metadata fields (e.g., `'factoryA-equipmentX-sensorTypeZ-instance01'`) can ensure uniqueness and provide some context, but primary querying should leverage the dedicated metadata columns for filtering (e.g., `WHERE factory = 'factoryA' AND equipment = 'equipmentX'`). This approach scales better for discovery and filtering in large, complex systems.
+*   **태그 수가 적고(100개 미만) 메타데이터가 없는 경우:** 사람이 읽기 쉬운 간단한 고유 문자열을 사용하세요(예: `'tag_001'`, `'temp_sensor_main'`). `name`으로 직접 조회하는 경우가 많습니다.
+*   **태그 수가 많고(1000개 이상) 메타데이터가 풍부한 경우:** 전체 `name`으로 직접 조회하는 일은 드뭅니다. 주요 메타데이터 필드를 이어 붙여 `name`을 구성하면(예: `'factoryA-equipmentX-sensorTypeZ-instance01'`) 고유성을 보장하고 맥락도 담을 수 있지만, 주된 조회는 전용 메타데이터 컬럼으로 필터링해야 합니다(예: `WHERE factory = 'factoryA' AND equipment = 'equipmentX'`). 이 방식이 크고 복잡한 시스템에서 탐색과 필터링에 더 잘 확장됩니다.
 
-## Tag Table Utilization
+## 태그 테이블 활용
 
-### Example Tag Table Design
+### 태그 테이블 설계 예제
 
-Consider a manufacturing scenario tracking various sensor readings associated with specific production lots.
+특정 생산 로트와 연결된 여러 센서 측정값을 추적하는 제조 현장 시나리오를 생각해 봅시다.
 
-Tag table definition:
+태그 테이블 정의:
 
 ```sql
 CREATE TAG TABLE tag (
@@ -428,33 +428,33 @@ METADATA (
 );
 ```
 
-Optional: Create an index on the additional data column for faster lookups by lot_no:
+선택: lot_no로 빠르게 조회하도록 추가 데이터 컬럼에 인덱스를 만듭니다:
 
 ```sql
 CREATE INDEX idx_tag_lot_no ON tag (lot_no) INDEX_TYPE TAG;
 ```
 
-**Example Queries:**
+**질의 예제:**
 
-Retrieve all tag data for a specific factory:
+특정 공장의 모든 태그 데이터를 조회합니다:
 
 ```sql
 SELECT * FROM tag WHERE factory_id = 'fac01';
 ```
 
-Retrieve data for a specific equipment within a specific factory:
+특정 공장의 특정 설비 데이터를 조회합니다:
 
 ```sql
 SELECT * FROM tag WHERE factory_id = 'fac01' AND equipment_id = 'equip01';
 ```
 
-Retrieve specific columns for data associated with a particular production lot (uses idx_tag_lot_no if beneficial):
+특정 생산 로트와 연결된 데이터에서 원하는 컬럼만 조회합니다(효과가 있으면 idx_tag_lot_no를 사용):
 
 ```sql
 SELECT name, time, value FROM tag WHERE lot_no = 'lot2001';
 ```
 
-Retrieve data for specific tags on specific equipment/factory within a time range:
+특정 공장·설비의 특정 태그 데이터를 시간 범위로 조회합니다:
 
 ```sql
 SELECT * FROM tag
@@ -464,23 +464,23 @@ WHERE factory_id = 'fac01'
   AND time BETWEEN TO_DATE('2023-08-15 00:00:00') AND TO_DATE('2023-08-15 23:59:59');
 ```
 
-### Basic Data Retrieval Operations
+### 기본 데이터 조회
 
-Standard SQL `SELECT` statements are used, leveraging the implicit indexing on `name` and `time`.
+`name`과 `time`에 대한 암묵적 인덱스를 활용해 표준 SQL `SELECT` 문을 사용합니다.
 
-Get total record count:
+전체 레코드 수를 구합니다:
 
 ```sql
 SELECT count(*) FROM tag;
 ```
 
-Get overall time range of data:
+데이터의 전체 시간 범위를 구합니다:
 
 ```sql
 SELECT min(time), max(time) FROM tag;
 ```
 
-Retrieve raw data for a specific tag within a time range (ordered chronologically):
+특정 태그의 원본 데이터를 시간 범위로 조회합니다(시간순 정렬):
 
 ```sql
 SELECT time, value FROM tag
@@ -488,7 +488,7 @@ WHERE name = 'TAG_00001'
   AND time BETWEEN TO_DATE('2023-01-01') AND TO_DATE('2023-01-31');
 ```
 
-Retrieve raw data for multiple specific tags, ordered reverse chronologically:
+여러 특정 태그의 원본 데이터를 최신순으로 조회합니다:
 
 ```sql
 SELECT /*+ SCAN_BACKWARD(tag) */ time, value FROM tag
@@ -496,13 +496,13 @@ WHERE name IN ('TAG1', 'TAG2')
   AND time BETWEEN TO_DATE('2023-01-01') AND TO_DATE('2023-01-31');
 ```
 
-**Note:** Predicates on the `name` column generally support equality (`=`) and `IN` list comparisons efficiently.
+**참고:** `name` 컬럼의 조건은 일반적으로 등호(`=`)와 `IN` 목록 비교를 효율적으로 지원합니다.
 
-### Complex Analytical Scenarios
+### 복합 분석 시나리오
 
-Tag Tables, especially when combined with metadata and optional rollup features, enable sophisticated analyses.
+태그 테이블은 메타데이터와 선택적 롤업 기능을 함께 쓰면 정교한 분석을 가능하게 합니다.
 
-**Example Scenario Setup:**
+**예제 시나리오 구성:**
 
 ```sql
 CREATE TAG TABLE MYTAG (
@@ -518,25 +518,25 @@ METADATA (
 WITH ROLLUP; -- Enable automatic time-based aggregation (details in Rollup documentation)
 ```
 
-**Types of Queries:**
+**질의 유형:**
 
-1.  **Raw Data Extraction:**
-    *   All tag data from 'Seoul' factory for Feb 12, 2024.
-    *   Data between 12:00 and 13:00 on Jul 12, 2024, for 'Compressors' in 'Seoul' factory.
-    *   Data between 13:20 and 13:30 on Sep 13, 2024, for tags starting with 'Current' associated with 'Cooling Units' across all factories.
-    *   Data from Dec 23 to Dec 29, 2024, for all tags marked with alias 'CriticalSensor'.
+1.  **원본 데이터 추출:**
+    *   2024년 2월 12일 '서울' 공장의 모든 태그 데이터.
+    *   2024년 7월 12일 12:00~13:00, '서울' 공장 '압축기'의 데이터.
+    *   2024년 9월 13일 13:20~13:30, 모든 공장의 '냉각 장치'에 연결되고 이름이 'Current'로 시작하는 태그의 데이터.
+    *   2024년 12월 23일부터 29일까지, alias가 'CriticalSensor'로 표시된 모든 태그의 데이터.
 
-2.  **Statistical Data Extraction (using Rollup):**
-    *   Monthly average `value` for all tags on 'Cranes' in 'Seoul' factory for the entire year 2024.
-    *   Daily maximum `value` for tags containing 'Current' in their name in 'Cheongju' factory during June 2024.
-    *   Monthly average `value` from 2020 to 2024 for all tags marked with alias 'CriticalSensor' across all factories.
+2.  **통계 데이터 추출(롤업 사용):**
+    *   2024년 한 해 동안 '서울' 공장 '크레인'의 모든 태그에 대한 월별 평균 `value`.
+    *   2024년 6월 '청주' 공장에서 이름에 'Current'가 포함된 태그의 일별 최대 `value`.
+    *   2020년부터 2024년까지 모든 공장에서 alias가 'CriticalSensor'인 모든 태그의 월별 평균 `value`.
 
-3.  **Analysis Based on Statistical Data (using Rollup):**
-    *   For all sensors containing 'Power' over the last 5 years, find the week and the corresponding maximum value recorded during that week.
-    *   For all sensors containing 'Temperature' in 'Cheongju' factory over the last year, find the day(s) with the highest daily maximum temperature and the average temperature on those days.
-    *   For sensors containing 'Pressure' across all factories over the last 3 months, identify the day(s) with the highest daily average pressure and the corresponding average value.
+3.  **통계 데이터 기반 분석(롤업 사용):**
+    *   최근 5년간 이름에 'Power'가 포함된 모든 센서에 대해, 주별 최댓값과 그 주를 찾습니다.
+    *   최근 1년간 '청주' 공장에서 이름에 'Temperature'가 포함된 모든 센서에 대해, 일별 최고 온도가 가장 높았던 날과 그날의 평균 온도를 찾습니다.
+    *   최근 3개월간 모든 공장에서 이름에 'Pressure'가 포함된 센서에 대해, 일별 평균 압력이 가장 높았던 날과 그 평균값을 찾습니다.
 
-**Example Query (Hourly Average and Last Value):**
+**질의 예제(시간별 평균과 마지막 값):**
 
 ```sql
 -- Get hourly average and last value for all tags in 'factory1' for a 12-hour period
@@ -552,9 +552,9 @@ GROUP BY name, rollup_time -- Group by tag and aggregated time interval
 ORDER BY name, rollup_time;
 ```
 
-### Data Model Transformation using PIVOT
+### PIVOT을 이용한 데이터 모델 변환
 
-The `PIVOT` clause allows transforming the tall/narrow Tag Table format back into a wide format, similar to the traditional model, for specific analysis or reporting needs.
+`PIVOT` 절을 사용하면 길고 좁은 태그 테이블 형태를 전통적 모델과 비슷한 넓은 형태로 되돌릴 수 있어 특정 분석이나 리포팅에 활용할 수 있습니다.
 
 ```sql
 -- Pivot selected tag values into columns based on time
@@ -574,7 +574,7 @@ PIVOT (
 WHERE "FRONT_AXIS_TORQUE" >= 40 AND "REAR_AXIS_TORQUE" >= 20; -- Optional filtering on pivoted columns
 ```
 
-**Example Output (Conceptual):**
+**출력 예시(개념):**
 
 ```
 time                          'FRONT_AXIS_TORQUE' 'REAR_AXIS_TORQUE' 'HOIST_AXIS_TORQUE' 'SLIDE_AXIS_TORQUE'
@@ -583,58 +583,58 @@ time                          'FRONT_AXIS_TORQUE' 'REAR_AXIS_TORQUE' 'HOIST_AXIS
 2018-12-07 14:56:26 220:000:000 3308                663                NULL                NULL
 ...                           ...                 ...                ...                 ...
 ```
-*(Note: Pivoted column names might need quoting if they match keywords or contain special characters).*
+*(참고: 피벗된 컬럼 이름이 키워드와 겹치거나 특수 문자를 포함하면 따옴표로 감싸야 할 수 있습니다.)*
 
-### Data Deletion Operations
+### 데이터 삭제
 
-Data deletion in Tag Tables is primarily time-based or tag-based. Point updates or deletions of individual records are generally not supported due to the append-optimized architecture.
+태그 테이블의 데이터 삭제는 주로 시간 기준 또는 태그 기준입니다. append에 최적화된 구조이므로 개별 레코드의 수정이나 삭제는 일반적으로 지원되지 않습니다.
 
-**Deletion Syntax Examples:**
+**삭제 문법 예제:**
 
-Delete all data BEFORE a specific timestamp across all tags:
+모든 태그에서 특정 시각 이전의 데이터를 모두 삭제합니다:
 
 ```sql
 DELETE FROM table_name BEFORE TO_DATE('2023-01-15 00:00:00');
 ```
 
-Delete ALL data from the table (use with extreme caution):
+테이블의 모든 데이터를 삭제합니다(각별히 주의해서 사용):
 
 ```sql
 DELETE FROM table_name;
 ```
 
-Delete all data for a SPECIFIC tag:
+특정 태그의 모든 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM table_name WHERE name = 'TAG01';
 ```
 
-Delete data for a SPECIFIC tag BEFORE a specific timestamp:
+특정 태그의 특정 시각 이전 데이터를 삭제합니다:
 
 ```sql
 DELETE FROM table_name WHERE name = 'TAG01' AND time < TO_DATE('2023-02-01 00:00:00');
 ```
 
-## Indexing in Tag Tables
+## 태그 테이블의 인덱스
 
-### Internal versus External Indexes
+### 내부 인덱스와 외부 인덱스
 
-Tag Tables incorporate highly optimized **internal indexes** automatically created on the (`name`, `time`) columns. These indexes are fundamental to the performance of typical time-series queries.
+태그 테이블은 (`name`, `time`) 컬럼에 자동으로 생성되는 고도로 최적화된 **내부 인덱스**를 갖추고 있습니다. 이 인덱스는 일반적인 시계열 질의 성능의 근간입니다.
 
-*   **Query `WHERE name = '...'`:** Utilizes the internal index to efficiently locate all data for the specified tag, returned in chronological order.
-*   **Query `WHERE time BETWEEN ... AND ...`:** Utilizes the internal index to scan data across all tags within the specified time range, returned in chronological order.
-*   **Query `WHERE name = '...' AND time BETWEEN ... AND ...`:** Utilizes the internal index for highly efficient retrieval of data for a specific tag within a specific time range.
-*   **Query `WHERE name = '...' AND time BETWEEN ... AND ... AND value > ...`:** Uses the internal index to find the relevant (`name`, `time`) data blocks, then applies the `value` filter to the retrieved data.
+*   **`WHERE name = '...'` 질의:** 내부 인덱스로 해당 태그의 모든 데이터를 효율적으로 찾아 시간순으로 반환합니다.
+*   **`WHERE time BETWEEN ... AND ...` 질의:** 내부 인덱스로 지정한 시간 범위 안의 모든 태그 데이터를 훑어 시간순으로 반환합니다.
+*   **`WHERE name = '...' AND time BETWEEN ... AND ...` 질의:** 내부 인덱스로 특정 태그의 특정 시간 범위 데이터를 매우 효율적으로 조회합니다.
+*   **`WHERE name = '...' AND time BETWEEN ... AND ... AND value > ...` 질의:** 내부 인덱스로 해당 (`name`, `time`) 데이터 블록을 찾은 뒤, 가져온 데이터에 `value` 조건을 적용합니다.
 
-**Challenge:** Queries that filter *only* on `value` columns (or additional data columns) without a `name` or `time` constraint cannot effectively use the primary internal index.
+**한계:** `name`이나 `time` 조건 없이 `value` 컬럼(또는 추가 데이터 컬럼)*만*으로 필터링하는 질의는 기본 내부 인덱스를 제대로 활용하지 못합니다.
 
-*   **Query `WHERE name = '...' AND value > ...` (without time constraint):** This requires scanning *all* data blocks associated with `'tag-1'` to apply the `value` filter. Performance degrades proportionally to the total amount of data for that tag.
+*   **`WHERE name = '...' AND value > ...` 질의(시간 조건 없음):** `value` 조건을 적용하려면 `'tag-1'`에 속한 *모든* 데이터 블록을 훑어야 합니다. 그 태그의 전체 데이터량에 비례해 성능이 떨어집니다.
 
-To address such scenarios, **external indexes** can be created.
+이런 경우에는 **외부 인덱스**를 만들 수 있습니다.
 
-### External Index Creation and Usage
+### 외부 인덱스 생성과 사용
 
-External indexes can be explicitly created on `value` columns or other additional data columns to accelerate queries that filter primarily on these columns.
+이 컬럼들을 주로 필터링하는 질의를 빠르게 하려면 `value` 컬럼이나 다른 추가 데이터 컬럼에 외부 인덱스를 명시적으로 만들 수 있습니다.
 
 **Syntax:**
 
@@ -654,7 +654,7 @@ CREATE TAG TABLE mytag (
 );
 ```
 
-Create external indexes on 'value' and 'lot_no' columns:
+'value'와 'lot_no' 컬럼에 외부 인덱스를 만듭니다:
 
 ```sql
 CREATE INDEX idx_mytag_value ON mytag(value) INDEX_TYPE TAG;
@@ -664,29 +664,29 @@ CREATE INDEX idx_mytag_value ON mytag(value) INDEX_TYPE TAG;
 CREATE INDEX idx_mytag_lotno ON mytag(lot_no) INDEX_TYPE TAG;
 ```
 
-This query can now potentially use the external index idx_mytag_value:
+이제 이 질의는 외부 인덱스 idx_mytag_value를 사용할 수 있습니다:
 
 ```sql
 SELECT * FROM mytag WHERE name = 'TAG-2' AND value > 33;
 ```
 
-This query can potentially use the external index idx_mytag_lotno:
+이 질의는 외부 인덱스 idx_mytag_lotno를 사용할 수 있습니다:
 
 ```sql
 SELECT * FROM mytag WHERE lot_no = 'LOTXYZ' AND time > TO_DATE('2024-01-01');
 ```
 
-**Characteristics of External Indexes:**
+**외부 인덱스의 특성:**
 
-*   **Asynchronous:** Index updates may lag slightly behind data ingestion. There can be a small time gap where newly ingested data is not yet reflected in the external index.
-*   **Local Nature:** These indexes are typically partitioned locally alongside the data partitions. Query performance using external indexes may still exhibit some degradation as the overall data volume grows, although significantly better than a full scan without the index.
-*   **Resource Consumption:** External indexes consume additional storage space and incur some overhead during data ingestion.
+*   **비동기:** 인덱스 갱신이 데이터 적재보다 약간 늦을 수 있습니다. 새로 적재된 데이터가 외부 인덱스에 아직 반영되지 않은 짧은 시간 차가 있을 수 있습니다.
+*   **지역성:** 이 인덱스들은 보통 데이터 파티션과 함께 지역적으로 분할됩니다. 전체 데이터량이 늘어나면 외부 인덱스를 쓰는 질의도 다소 느려질 수 있지만, 인덱스 없이 전체를 훑는 것보다는 훨씬 낫습니다.
+*   **자원 소모:** 외부 인덱스는 추가 저장 공간을 사용하며 데이터 적재 시 약간의 부담을 더합니다.
 
-## Data Ingestion into Tag Tables
+## 태그 테이블 데이터 적재
 
-### Ingestion Methods Overview
+### 적재 방법 개요
 
-Machbase Neo provides multiple pathways for ingesting data into Tag Tables, catering to different performance requirements and client environments.
+Machbase Neo는 성능 요구와 클라이언트 환경에 따라 태그 테이블에 데이터를 적재하는 여러 경로를 제공합니다.
 
 ```
 +-------------------+      +-------------------+      +-------------------+
@@ -698,74 +698,74 @@ Machbase Neo provides multiple pathways for ingesting data into Tag Tables, cate
   or Append Protocol)        MQTT Subscription)        Append Protocol)
 ```
 
-### Detailed Ingestion Approaches
+### 적재 방식 상세
 
-1.  **SQL `INSERT` Statements:**
-    *   Uses standard `INSERT INTO table_name VALUES (...)` syntax.
-    *   Operates via request/response mechanism.
-    *   Suitable for low-volume or infrequent insertions.
-    *   **Not recommended** for high-throughput, high-volume time-series data due to performance limitations.
+1.  **SQL `INSERT` 문:**
+    *   표준 `INSERT INTO table_name VALUES (...)` 문법을 사용합니다.
+    *   요청/응답 방식으로 동작합니다.
+    *   적은 양이거나 드문 입력에 적합합니다.
+    *   성능 한계 때문에 고처리량·대용량 시계열 데이터에는 **권장하지 않습니다**.
 
-2.  **Append Protocol:**
-    *   A specialized, high-performance Machbase protocol optimized for bulk data ingestion.
-    *   Minimizes network overhead and server-side processing per record.
-    *   Accessible via:
-        *   **Machbase CLI (Command Line Interface):** Utilities for bulk loading from files.
-        *   **ODBC/JDBC/.NET:** Extended APIs provided by Machbase drivers enable Append operations.
-        *   **C/C++/Go SDKs:** Native libraries offer direct access to the Append API for maximum performance.
-        *   **Python (`machbaseAPI`):** Wrapper library providing access to Append functionality.
-    *   **Recommended** for most time-series ingestion scenarios requiring high throughput.
+2.  **Append 프로토콜:**
+    *   대량 데이터 적재에 최적화된 Machbase 전용 고성능 프로토콜입니다.
+    *   레코드당 네트워크 부담과 서버 측 처리를 최소화합니다.
+    *   다음을 통해 사용할 수 있습니다:
+        *   **Machbase CLI(명령행 인터페이스):** 파일에서 대량 적재하는 유틸리티입니다.
+        *   **ODBC/JDBC/.NET:** Machbase 드라이버가 제공하는 확장 API로 Append 작업을 수행합니다.
+        *   **C/C++/Go SDK:** 네이티브 라이브러리로 Append API에 직접 접근해 최고 성능을 냅니다.
+        *   **Python(`machbaseAPI`):** Append 기능에 접근하는 래퍼 라이브러리입니다.
+    *   높은 처리량이 필요한 대부분의 시계열 적재 시나리오에 **권장합니다**.
 
 3.  **REST API:**
-    *   Machbase Neo exposes HTTP endpoints for data interaction.
-    *   The data loading endpoint supports an `append` method parameter, which utilizes the efficient Append protocol internally.
-    *   Suitable for web-based clients or systems integrating via HTTP.
+    *   Machbase Neo는 데이터 처리를 위한 HTTP 엔드포인트를 제공합니다.
+    *   데이터 적재 엔드포인트는 `append` 메서드 파라미터를 지원하며, 내부적으로 효율적인 Append 프로토콜을 사용합니다.
+    *   웹 기반 클라이언트나 HTTP로 연동하는 시스템에 적합합니다.
 
-4.  **Other Languages (Python, Go, R):**
-    *   Typically leverage wrappers around the CLI or ODBC/Native SDKs to utilize the efficient Append protocol.
+4.  **기타 언어(Python, Go, R):**
+    *   보통 CLI나 ODBC/네이티브 SDK를 감싼 래퍼를 통해 효율적인 Append 프로토콜을 사용합니다.
 
-**Performance Note:** For demanding use cases like high-frequency vibration data (requiring hundreds of thousands to millions of inserts per second), utilizing the native C/C++ SDK with the Append API is often necessary to achieve peak ingestion rates.
+**성능 참고:** 고주파 진동 데이터처럼 초당 수십만~수백만 건의 입력이 필요한 까다로운 사례에서는 최고 적재 속도를 내기 위해 네이티브 C/C++ SDK와 Append API를 사용해야 하는 경우가 많습니다.
 
-## Operational Considerations
+## 운영 시 고려 사항
 
-### Key Usage Precautions
+### 주요 사용 주의점
 
-*   **Memory Consumption:** Each Tag Table consumes a baseline amount of memory related to its partitions (`TAG_PARTITION_COUNT`) and data buffers (`TAG_DATA_PART_SIZE`). Creating numerous Tag Tables can significantly impact overall server memory usage. Plan table creation considering available resources.
-*   **Query Performance:** `SELECT` queries lacking predicates on indexed columns (`name`, `time`, or columns with external indexes) will result in full table scans or large partial scans, leading to performance degradation proportional to data volume. Always include `name` and/or `time` range filters where possible.
-*   **External Indexes:** Only create external indexes on data/value columns if queries frequently filter *solely* on those columns without time constraints. They add storage and ingestion overhead.
-*   **Data Immutability:** Tag Tables are designed for append-only data. Updates to existing data records are not supported. Deletion is primarily time-based or whole-tag based.
-*   **Ingestion Method:** Select the appropriate ingestion method based on performance requirements. Use the Append protocol (via SDKs, CLI, drivers, or REST API `append` method) for high-volume data.
+*   **메모리 사용:** 각 태그 테이블은 파티션 수(`TAG_PARTITION_COUNT`)와 데이터 버퍼(`TAG_DATA_PART_SIZE`)에 따른 기본 메모리를 사용합니다. 태그 테이블을 많이 만들면 서버 전체 메모리 사용량에 큰 영향을 줍니다. 가용 자원을 고려해 테이블 생성을 계획하세요.
+*   **조회 성능:** 인덱스가 있는 컬럼(`name`, `time`, 또는 외부 인덱스가 있는 컬럼)에 조건이 없는 `SELECT` 질의는 전체 스캔이나 큰 범위의 부분 스캔을 유발해 데이터량에 비례해 성능이 떨어집니다. 가능하면 항상 `name`이나 `time` 범위 조건을 넣으세요.
+*   **외부 인덱스:** 시간 조건 없이 해당 컬럼*만*으로 자주 필터링하는 경우에만 데이터/값 컬럼에 외부 인덱스를 만드세요. 저장 공간과 적재 부담이 늘어납니다.
+*   **데이터 불변성:** 태그 테이블은 append 전용 데이터를 위해 설계되었습니다. 기존 데이터 레코드의 수정은 지원되지 않습니다. 삭제는 주로 시간 기준 또는 태그 전체 기준입니다.
+*   **적재 방식:** 성능 요구에 맞는 적재 방식을 선택하세요. 대용량 데이터에는 Append 프로토콜(SDK, CLI, 드라이버, REST API `append` 메서드)을 사용합니다.
 
-### Memory Consumption Considerations
+### 메모리 사용 고려 사항
 
-The memory footprint of a Tag Table is influenced by several factors:
+태그 테이블의 메모리 사용량은 다음 요인들의 영향을 받습니다:
 
-*   **Ingestion Buffers:** Proportional to `TAG_DATA_PART_SIZE` (default 16MB). Multiple buffers are used internally.
-*   **Number of Partitions:** `TAG_PARTITION_COUNT` (default 4). Each partition maintains its own buffers and index structures.
-*   **Index Space:** Dynamically allocated based on the volume and cardinality of data within each partition. Roughly related to `TAG_DATA_PART_SIZE` and average row size.
+*   **적재 버퍼:** `TAG_DATA_PART_SIZE`(기본 16MB)에 비례합니다. 내부적으로 여러 버퍼를 사용합니다.
+*   **파티션 수:** `TAG_PARTITION_COUNT`(기본 4)입니다. 파티션마다 자체 버퍼와 인덱스 구조를 유지합니다.
+*   **인덱스 공간:** 파티션별 데이터량과 카디널리티에 따라 동적으로 할당됩니다. 대략 `TAG_DATA_PART_SIZE`와 평균 행 크기에 관련됩니다.
 
-**Approximate Memory Formula per Table:**
+**테이블당 대략적인 메모리 계산식:**
 
 `Memory ≈ (TAG_DATA_PART_SIZE * BufferFactor) + ((IndexSizeFactor * TAG_DATA_PART_SIZE / AvgRowSize) * IndexOverheadFactor) * TAG_PARTITION_COUNT`
 
-*(Internal factors and dynamic allocation make precise calculation complex, but this illustrates the key drivers).*
+*(내부 요인과 동적 할당 때문에 정확한 계산은 복잡하지만, 주요 결정 요인을 보여 줍니다.)*
 
-With default settings (`TAG_PARTITION_COUNT=4`, `TAG_DATA_PART_SIZE=16MB`), a Tag Table can dynamically consume roughly **up to 4 GB** of memory (approx. 1GB per partition) under load, primarily for indexing and buffering.
+기본 설정(`TAG_PARTITION_COUNT=4`, `TAG_DATA_PART_SIZE=16MB`)에서 태그 테이블은 부하 상황에서 주로 인덱싱과 버퍼링을 위해 대략 **최대 4GB**(파티션당 약 1GB)의 메모리를 동적으로 사용할 수 있습니다.
 
-**Managing Memory Usage:**
+**메모리 사용 관리:**
 
-*   **Reduce `TAG_PARTITION_COUNT`:** Lowering the partition count (e.g., to 1 or 2) directly reduces the parallelism factor and associated memory. This can be adjusted dynamically via `ALTER TABLE` properties. Suitable for resource-constrained environments but may impact peak concurrent performance.
-*   **Tune `TAG_DATA_PART_SIZE`:** Reducing this property (e.g., to 4MB or 8MB, must be >= 1MB) via server configuration reduces the size of internal buffers and index segments, lowering memory pressure. This requires a server restart to take effect.
+*   **`TAG_PARTITION_COUNT` 축소:** 파티션 수를 낮추면(예: 1 또는 2) 병렬 계수와 그에 따른 메모리가 직접 줄어듭니다. `ALTER TABLE` 속성으로 동적으로 조정할 수 있습니다. 자원이 제한된 환경에 적합하지만 최대 동시 성능에는 영향이 있을 수 있습니다.
+*   **`TAG_DATA_PART_SIZE` 조정:** 서버 설정에서 이 값을 줄이면(예: 4MB나 8MB, 1MB 이상이어야 함) 내부 버퍼와 인덱스 세그먼트 크기가 줄어 메모리 압박이 완화됩니다. 적용하려면 서버를 재시작해야 합니다.
 
-## Summary
+## 요약
 
-The Machbase Tag Table is a specialized database object engineered for the efficient management of time-series sensor data. Key characteristics include:
+Machbase 태그 테이블은 센서 시계열 데이터를 효율적으로 관리하도록 설계된 특수 데이터베이스 객체입니다. 주요 특징은 다음과 같습니다:
 
-*   **Optimized Structure:** Employs a tall/narrow data model ([identifier, time, value]) ideal for sensor readings.
-*   **Metadata/Data Separation:** Decouples descriptive attributes (metadata) from raw time-series measurements (data), allowing flexible metadata management and efficient data storage.
-*   **Metadata Management:** Metadata is associated via a unique tag `name` (primary key) and supports flexible querying, addition, modification, and deletion (contingent on data deletion).
-*   **Data Operations:** Optimized for high-speed append operations. Retrieval is highly efficient when filtering by tag `name` and/or `time`. Data updates are not supported; deletion is primarily time-horizon or tag-based.
-*   **Extensibility:** Both metadata and data areas can be extended with additional columns to store richer contextual or measurement information.
-*   **Performance:** Leverages internal partitioning and specialized indexing for high ingestion throughput and fast time-based query performance.
+*   **최적화된 구조:** 센서 측정값에 적합한 길고 좁은 데이터 모델([식별자, 시간, 값])을 사용합니다.
+*   **메타데이터와 데이터 분리:** 설명 속성(메타데이터)과 원본 시계열 측정값(데이터)을 분리해 메타데이터를 유연하게 관리하고 데이터를 효율적으로 저장합니다.
+*   **메타데이터 관리:** 메타데이터는 고유한 태그 `name`(기본 키)으로 연결되며 유연한 조회·추가·수정·삭제를 지원합니다(삭제는 데이터 삭제가 선행되어야 함).
+*   **데이터 작업:** 고속 append 작업에 최적화되어 있습니다. 태그 `name`이나 `time`으로 필터링할 때 조회가 매우 효율적입니다. 데이터 수정은 지원되지 않으며 삭제는 주로 시간 범위 또는 태그 기준입니다.
+*   **확장성:** 메타데이터 영역과 데이터 영역 모두 컬럼을 추가해 더 풍부한 맥락 정보나 측정 정보를 저장할 수 있습니다.
+*   **성능:** 내부 파티셔닝과 전용 인덱싱으로 높은 적재 처리량과 빠른 시간 기준 질의 성능을 제공합니다.
 
-The Tag Table provides a robust and performant foundation for building scalable time-series applications within the Machbase ecosystem.
+태그 테이블은 Machbase 생태계에서 확장 가능한 시계열 애플리케이션을 구축하기 위한 견고하고 성능 좋은 기반을 제공합니다.

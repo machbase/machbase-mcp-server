@@ -1,105 +1,105 @@
 # Machbase Neo Timer Guide
 
-> **Important**: Machbase Neo commands end with a semicolon ( ; )
+> **중요**: Machbase Neo 명령은 세미콜론( ; )으로 끝납니다
 
-## Overview
-Timer is a feature that defines tasks to be executed at specific times or repeated at set intervals.
+## 개요
+타이머는 특정 시각에 실행하거나 정해진 간격으로 반복 실행할 작업을 정의하는 기능입니다.
 
-## Adding a New Timer
+## 새 타이머 추가
 
-You can register tasks that run according to a specified schedule. A web UI for timer management has been included since version 8.0.20.
+지정한 스케줄에 따라 실행되는 작업을 등록할 수 있습니다. 타이머 관리용 웹 UI는 8.0.20 버전부터 제공됩니다.
 
-### Adding via Web UI
-1. Select the timer icon from the left menu bar
-2. Click the `+` button in the top left
-3. Set Timer ID (name), Timer Spec, and TQL script path
-4. Click the "Create" button
+### 웹 UI로 추가하기
+1. 좌측 메뉴 바에서 타이머 아이콘을 선택합니다
+2. 좌측 상단의 `+` 버튼을 클릭합니다
+3. Timer ID(이름), Timer Spec, TQL 스크립트 경로를 설정합니다
+4. "Create" 버튼을 클릭합니다
 
-### Timer Start/Stop/Delete
-- Use toggle button to start/stop timers
-- Edit, start, stop, and delete available from detail page
+### 타이머 시작/정지/삭제
+- 토글 버튼으로 타이머를 시작/정지합니다
+- 상세 페이지에서 편집, 시작, 정지, 삭제가 가능합니다
 
-## Timer Schedule Specifications
+## 타이머 스케줄 지정
 
-There are three ways to define timer schedules:
+타이머 스케줄을 정의하는 방법은 세 가지입니다:
 
-### Examples
+### 예제
 ```
 0 30 * * * *           Every hour at 30 minutes
 @every 1h30m           Every 1 hour 30 minutes
 @daily                 Daily
 ```
 
-## CRON Expressions
+## CRON 표현식
 
-| Field | Required | Allowed Values | Special Characters |
+| 필드 | 필수 | 허용 값 | 특수 문자 |
 |-------|----------|----------------|-------------------|
 | Seconds | Yes | 0-59 | * / , - |
 | Minutes | Yes | 0-59 | * / , - |
 | Hours | Yes | 0-23 | * / , - |
 | Day | Yes | 1-31 | * / , - ? |
-| Month | Yes | 1-12 or JAN-DEC | * / , - |
-| Day of Week | Yes | 0-6 or SUN-SAT | * / , - ? |
+| 월(Month) | 예 | 1-12 또는 JAN-DEC | * / , - |
+| 요일(Day of Week) | 예 | 0-6 또는 SUN-SAT | * / , - ? |
 
-### Special Characters Description
+### 특수 문자 설명
 
-- **Asterisk `*`**: Matches all values in the field
-- **Slash `/`**: Indicates increments of ranges (e.g., 3-59/15 means starting from 3 minutes with 15-minute intervals)
-- **Comma `,`**: Separates list items (e.g., "MON,WED,FRI" means Monday, Wednesday, Friday)
-- **Hyphen `-`**: Defines ranges (e.g., 9-17 means 9 AM to 5 PM)
-- **Question mark `?`**: Used instead of `*` when leaving day or day of week field empty
+- **별표 `*`**: 해당 필드의 모든 값에 매칭됩니다
+- **슬래시 `/`**: 범위의 증가 간격을 나타냅니다(예: 3-59/15는 3분부터 15분 간격)
+- **쉼표 `,`**: 목록 항목을 구분합니다(예: "MON,WED,FRI"는 월·수·금)
+- **하이픈 `-`**: 범위를 정의합니다(예: 9-17은 오전 9시부터 오후 5시)
+- **물음표 `?`**: 일 또는 요일 필드를 비워 둘 때 `*` 대신 사용합니다
 
-## Predefined Schedules
+## 사전 정의된 스케줄
 
-| Expression | Description | Equivalent CRON |
+| 표현식 | 설명 | Equivalent CRON |
 |------------|-------------|-----------------|
-| @yearly (or @annually) | Once a year, midnight on January 1st | 0 0 0 1 1 * |
-| @monthly | Once a month, midnight on 1st of month | 0 0 0 1 * * |
-| @weekly | Once a week, midnight between Sat/Sun | 0 0 0 * * 0 |
-| @daily (or @midnight) | Once a day, midnight | 0 0 0 * * * |
-| @hourly | Once an hour, beginning of hour | 0 0 * * * * |
+| @yearly (또는 @annually) | 1년에 한 번, 1월 1일 자정 | 0 0 0 1 1 * |
+| @monthly | 한 달에 한 번, 매월 1일 자정 | 0 0 0 1 * * |
+| @weekly | 일주일에 한 번, 토/일 사이 자정 | 0 0 0 * * 0 |
+| @daily (또는 @midnight) | 하루에 한 번, 자정 | 0 0 0 * * * |
+| @hourly | 한 시간에 한 번, 정각 | 0 0 * * * * |
 
-## Interval Specification
+## 간격 지정
 
-Uses `@every <duration>` format, where duration is in formats like "300ms", "-1.5h", "2h45m".
-Valid time units: "ms", "s", "m", "h"
+`@every <duration>` 형식을 사용하며, duration은 "300ms", "-1.5h", "2h45m" 같은 형식입니다.
+사용 가능한 시간 단위: "ms", "s", "m", "h"
 
-### Examples
+### 예제
 ```
 @every 10h
 @every 1h10m30s
 ```
 
-## Command Line Usage
+## 명령행 사용법
 
 ### Add Timer
 ```bash
 timer add [--autostart] <name> <timer_spec> <tql-path>;
 ```
-- `--autostart`: Auto-start when machbase-neo starts
+- `--autostart`: machbase-neo 시작 시 자동 시작
 - `<name>`: Task name
-- `<timer_spec>`: Execution schedule
-- `<tql-path>`: TQL script to execute as task
+- `<timer_spec>`: 실행 스케줄
+- `<tql-path>`: 작업으로 실행할 TQL 스크립트
 
 ### List Timers
 ```bash
 timer list;
 ```
 
-### Start/Stop Timer
+### 타이머 시작/정지
 ```bash
 timer [start | stop] <name>;
 ```
 
-### Delete Timer
+### 타이머 삭제
 ```bash
 timer del <name>;
 ```
 
-## Hello World Example
+## Hello World 예제
 
-### 1. Create TQL Script
-Create `helloworld.tql` file and save the following code:
+### 1. TQL 스크립트 만들기
+`helloworld.tql` 파일을 만들고 다음 코드를 저장합니다:
 
 ```js
 CSV(`helloworld,0,0`)
@@ -109,13 +109,13 @@ INSERT("name", "time", "value", table("example"))
 ```
 
 ### 2. Test Script
-Execute the script to verify a single record is inserted into EXAMPLE table:
+스크립트를 실행해 EXAMPLE 테이블에 레코드 한 건이 입력되는지 확인합니다:
 
 ```sql
 select * from example where name = 'helloworld';
 ```
 
-Expected result:
+예상 결과:
 ```
 ┌────────┬────────────┬─────────────────────────┬────────────────────┐
 │ ROWNUM │ NAME       │ TIME(LOCAL)             │ VALUE              │
@@ -124,23 +124,23 @@ Expected result:
 └────────┴────────────┴─────────────────────────┴────────────────────┘
 ```
 
-### 3. Register Timer
-Register timer from command line:
+### 3. 타이머 등록
+명령행에서 타이머를 등록합니다:
 
 ```bash
 timer add helloworld "@every 5s" helloworld.tql;
 ```
 
-Check "Auto Start" option or manually start with toggle button.
+"Auto Start" 옵션을 켜거나 토글 버튼으로 직접 시작합니다.
 
-### 4. Verify Results
-Confirm new records are inserted every 5 seconds:
+### 4. 결과 확인
+5초마다 새 레코드가 입력되는지 확인합니다:
 
 ```sql
 select * from example where name = 'helloworld';
 ```
 
-Example result:
+결과 예시:
 ```
 ┌────────┬────────────┬─────────────────────────┬─────────────────────┐
 │ ROWNUM │ NAME       │ TIME(LOCAL)             │ VALUE               │
@@ -153,17 +153,17 @@ Example result:
 └────────┴────────────┴─────────────────────────┴─────────────────────┘
 ```
 
-### 5. Create Dashboard
-You can create an auto-refreshing dashboard to monitor timer operation.
+### 5. 대시보드 만들기
+자동 갱신 대시보드를 만들어 타이머 동작을 모니터링할 수 있습니다.
 
-## Timer Management
+## 타이머 관리
 
-### Check Timer Status from Command Line
+### 명령행에서 타이머 상태 확인
 ```bash
 timer list;
 ```
 
-Example result:
+결과 예시:
 ```
 ┌────────────┬───────────┬────────────────┬───────────┬─────────┐
 │ NAME       │ SPEC      │ TQL            │ AUTOSTART │ STATE   │
@@ -172,7 +172,7 @@ Example result:
 └────────────┴───────────┴────────────────┴───────────┴─────────┘
 ```
 
-### Timer Control
+### 타이머 제어
 ```bash
 # Start timer
 timer start helloworld;
@@ -183,12 +183,12 @@ timer stop helloworld;
 
 ---
 
-## Quick Reference
+## 빠른 참조
 
-| Operation | Command | Example |
+| 동작 | 명령 | 예 |
 |-----------|---------|---------|
 | Add Timer | `timer add <name> <spec> <tql-path>;` | `timer add daily_task "@daily" task.tql;` |
-| List Timers | `timer list;` | Shows all timers with status |
+| 타이머 목록 | `timer list;` | 모든 타이머와 상태를 표시 |
 | Start Timer | `timer start <name>;` | `timer start daily_task;` |
 | Stop Timer | `timer stop <name>;` | `timer stop daily_task;` |
-| Delete Timer | `timer del <name>;` | `timer del daily_task;` |
+| 타이머 삭제 | `timer del <name>;` | `timer del daily_task;` |

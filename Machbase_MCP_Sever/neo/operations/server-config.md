@@ -1,69 +1,69 @@
 # Machbase Neo Config file
 
-## Create a new config file
+## 새 설정 파일 생성
 
-Execute machbase-neo with `gen-config` and save its output as default config file
+machbase-neo를 `gen-config`로 실행하고 그 출력을 기본 설정 파일로 저장합니다
 
 ```sh
 machbase-neo gen-config > ./machbase-neo.conf
 ```
 
-Edit generated config so that customize settings, then start machbase-neo with `--config <path>` or `-c <path>` option to direct where machbase-neo read config.
+생성된 설정을 원하는 대로 수정한 뒤, `--config <path>` 또는 `-c <path>` 옵션으로 설정 파일 위치를 지정해 machbase-neo를 시작합니다.
 
 ```sh
 machbase-neo serve --config ./machbase-neo.conf
 ```
 
-## Database directory
+## 데이터베이스 디렉토리
 
-The default value of `DataDir` is `${execDir()}/machbase_home` which is a sub-directory of where `machbase-neo` executable file is.
+`DataDir`의 기본값은 `${execDir()}/machbase_home`으로, `machbase-neo` 실행 파일이 있는 위치의 하위 디렉토리입니다.
 
-Change it to new path where you want to store the database files. If the folder is new and has no database files, machbase-neo will create a new database automatically.
+데이터베이스 파일을 저장하려는 새 경로로 바꾸세요. 폴더가 비어 있고 데이터베이스 파일이 없으면 machbase-neo가 자동으로 새 데이터베이스를 만듭니다.
 
-## Preference directory
+## 환경설정 디렉토리
 
-The default value of `PrefDir` is `prefDir("machbase")` which is `$HOME/.config/machbase`.
+`PrefDir`의 기본값은 `prefDir("machbase")`이며 이는 `$HOME/.config/machbase`입니다.
 
 ## Listeners
 
-| Listener                  | Config                    | default                 |
+| 리스너                    | 설정 키                   | 기본값                  |
 |:--------------------------|:--------------------------|:------------------------|
 | SSH Shell                 | Shell.Listeners           | `tcp://127.0.0.1:5652`  |
 | MQTT                      | Mqtt.Listeners            | `tcp://127.0.0.1:5653` `unix://${tempDir()}/machbase-neo-mqtt.sock`  |
 | HTTP                      | Http.Listeners            | `tcp://127.0.0.1:5654` `unix://${tempDir()}/machbase-neo.sock`  |
-| Machbase native           | Machbase.PORT_NO          | `5656`                  |
+| Machbase 네이티브         | Machbase.PORT_NO          | `5656`                  |
 |                           | Machbase.BIND_IP_ADDRESS  | `127.0.0.1`             |
 
 > **ℹ️ Info**  
-> Machbase native port `5656` is used for native clients such as JDBC and ODBC.  
-> JDBC, ODBC drivers can be found from Machbase home page.
+> Machbase 네이티브 포트 `5656`은 JDBC, ODBC 같은 네이티브 클라이언트가 사용합니다.  
+> JDBC, ODBC 드라이버는 Machbase 홈페이지에서 받을 수 있습니다.
 
-## Config References
+## 설정 레퍼런스
 
-Syntax of config file adopts the HCL syntax.
+설정 파일은 HCL 문법을 따릅니다.
 
 ### functions
 
-Several functions are supported for the value of config item.
+설정 항목의 값으로 몇 가지 함수를 사용할 수 있습니다.
 
-- `flag(A, B)` : Get value of command line flag 'A'. if not specified, apply B as default value.
-- `env(A, B)` : get value of Environment variable 'A'. if not specified, apply B as default value
-- `execDir()` : Get directory path where executable file is.
-- `tempDir()` : Get system temp dir path.
-- `userDir()` : Get user's home directory, On Linux and macOS, it returns the $HOME environment variable.
-- `prefDir(subdir)` : Ger user's preference directory, On Linux and macOS, it returns the real path of $HOME/.config/{subdir}
+- `flag(A, B)` : 명령행 플래그 'A'의 값을 가져옵니다. 지정되지 않았으면 B를 기본값으로 사용합니다.
+- `env(A, B)` : 환경 변수 'A'의 값을 가져옵니다. 지정되지 않았으면 B를 기본값으로 사용합니다
+- `execDir()` : 실행 파일이 있는 디렉토리 경로를 가져옵니다.
+- `tempDir()` : 시스템 임시 디렉토리 경로를 가져옵니다.
+- `userDir()` : 사용자 홈 디렉토리를 가져옵니다. Linux와 macOS에서는 $HOME 환경 변수를 반환합니다.
+- `prefDir(subdir)` : 사용자 환경설정 디렉토리를 가져옵니다. Linux와 macOS에서는 $HOME/.config/{subdir}의 실제 경로를 반환합니다
 
-> **ℹ️ Combine env() and flag()**  
-> It is general practice for seeking user's setting that check command line flag first then find Environment variable and finally apply default value if both are not specified.  
-> We can write value `flag("--my-var", env("MY_VAR", "myvalue"))` for this use case
+> **ℹ️ env()와 flag() 조합**  
+> 사용자 설정을 찾을 때는 명령행 플래그를 먼저 확인하고, 그다음 환경 변수를 찾고, 둘 다 없으면 기본값을 적용하는 것이 일반적인 방식입니다.  
+> 이런 경우 `flag("--my-var", env("MY_VAR", "myvalue"))`처럼 작성할 수 있습니다
 
 ### define DEF
 
-This section is for the default values. the variables in this section are referred in other section. Users can define their own variables and even change the command line flags. As example below, `LISTEN_HOST` is taken value from `--host` flag of command line, but take `"127.0.0.1"` as default if `--host` flag is not provided.
+이 섹션은 기본값을 정의합니다. 여기의 변수들은 다른 섹션에서 참조됩니다. 사용자가 직접 변수를 정의할 수 있고 명령행 플래그도 바꿀 수 있습니다. 아래 예제에서 `LISTEN_HOST`는 명령행의 `--host` 플래그에서 값을 가져오되, `--host` 플래그가 없으면 `"127.0.0.1"`을 기본값으로 사용합니다.
 
-If change `"127.0.0.1"` to `"192.168.1.10"`, the default value will be changed.
+`"127.0.0.1"`을 `"192.168.1.10"`으로 바꾸면 기본값이 바뀝니다.
 
-If change `"--host"` to `"--bind"` for example, command line flag will be changed. From then you can use `machbase-neo serve --bind <ip_addr>` instead of `machbase-neo serve --host <ip_addr>`.
+예를 들어 `"--host"`를 `"--bind"`로 바꾸면 명령행 플래그가 바뀝니다. 그 후로는 `machbase-neo serve --host <ip_addr>` 대신 `machbase-neo serve --bind <ip_addr>`를 사용할 수 있습니다.
 
 ```hcl
 define DEF {
@@ -77,7 +77,7 @@ define DEF {
 
 ### define VARS
 
-This section defines commonly used variables. 
+이 섹션은 공통으로 사용되는 변수를 정의합니다. 
 
 ```hcl
 define VARS {
@@ -111,30 +111,30 @@ define VARS {
 }
 ```
 
-### logging config
+### 로깅 설정
 
-| Key                         | Type      | Desc                                                     |
+| 키                          | 타입      | 설명                                                     |
 |:----------------------------|:----------|----------------------------------------------------------|
-| Console                     | bool      | print out log message on console                         |
-| Filename                    | string    | log file path `-` for stdout, ex) /logs/machbase-neo.log |
-| DefaultPrefixWidth          | int       | alignment width of log prefix                            |
-| DefaultEnableSourceLocation | bool      | enable logging source filename and line number           |
+| Console                     | bool      | 콘솔에 로그 메시지 출력                                  |
+| Filename                    | string    | 로그 파일 경로. `-`는 표준 출력. 예) /logs/machbase-neo.log |
+| DefaultPrefixWidth          | int       | 로그 접두어 정렬 폭                                      |
+| DefaultEnableSourceLocation | bool      | 소스 파일명과 줄 번호 기록 활성화                        |
 | DefaultLevel                | string    | `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`                |
-| Levels                      | array     | array of Level object                                    |
-| Append                      | bool      | append log file, if it exists                            |
-| RotateSchedule              | string    | schedule to rotate log file ex) "@midnight"              |
-| MaxSize                     | int       | max log file size in MB                                  |
-| MaxBackups                  | int       | max number of backup files                               |
-| MaxAge                      | int       | max days to keep the backup files                        |
-| Compress                    | bool      | compress the backup files                                |
-| UTC                         | bool      | Use UTC time for logging                                 |
+| Levels                      | array     | Level 객체의 배열                                    |
+| Append                      | bool      | 로그 파일이 있으면 이어 쓰기                             |
+| RotateSchedule              | string    | 로그 파일 회전 스케줄. 예) "@midnight"              |
+| MaxSize                     | int       | 로그 파일 최대 크기(MB)                                  |
+| MaxBackups                  | int       | 백업 파일 최대 개수                               |
+| MaxAge                      | int       | 백업 파일을 보관할 최대 일수                        |
+| Compress                    | bool      | 백업 파일 압축                                           |
+| UTC                         | bool      | 로깅에 UTC 시간 사용                                 |
 
-- Level object
+- Level 객체
 
-| Key                         | Type      | Desc                                                     |
+| 키                          | 타입      | 설명                                                     |
 |:----------------------------|:----------|----------------------------------------------------------|
-| Pattern                     | string    | glob pattern form logger's name                          |
-| Level                       | string    | log level for the logger                                 |
+| Pattern                     | string    | 로거 이름에 대한 glob 패턴                          |
+| Level                       | string    | 해당 로거의 로그 레벨                                 |
 
 ```hcl
 module "machbase.com/neo-logging" {
@@ -160,52 +160,52 @@ module "machbase.com/neo-logging" {
 }
 ```
 
-### server config
+### 서버 설정
 
-This section is for the database server consists of multiple parts those will be explained in section by section.
+이 섹션은 데이터베이스 서버에 대한 것으로, 여러 부분으로 구성되며 각 부분은 절별로 설명합니다.
 
 #### MachbaseHome
 
-| Key                         | Type      | Desc                                                     |
+| 키                          | 타입      | 설명                                                     |
 |:----------------------------|:----------|----------------------------------------------------------|
-| MachbaseHome                | string    | directory path where database files are stored           |
+| MachbaseHome                | string    | 데이터베이스 파일이 저장되는 디렉토리 경로           |
 
 #### Machbase
 
-Machbase core properties are here, please refer to Machbase Manual Property section for details.
+Machbase 코어 속성이 여기에 있습니다. 자세한 내용은 Machbase 매뉴얼의 Property 절을 참고하세요.
 
 #### Shell
 
-This allows remote access machbase-neo shell via ssh. Since default `LISTEN_HOST` is `"127.0.0.1"` the ssh access only available from same host machine. Set `"0.0.0.0"` or exact IP address of host machine to allow remote access.
+ssh를 통해 machbase-neo 셸에 원격 접속할 수 있게 합니다. 기본 `LISTEN_HOST`가 `"127.0.0.1"`이므로 ssh 접속은 같은 호스트에서만 가능합니다. 원격 접속을 허용하려면 `"0.0.0.0"` 또는 호스트 머신의 정확한 IP 주소를 설정하세요.
 
 > **⚠️ Security**  
-> Before allow remote access, it is strongly recommended to change `SYS`'s default password from `manager` to your own.
+> 원격 접속을 허용하기 전에 `SYS`의 기본 비밀번호를 `manager`에서 직접 정한 값으로 바꾸기를 강력히 권장합니다.
 
-| Key                         | Type               | Desc                                                     |
+| 키                          | 타입               | 설명                                                     |
 |:----------------------------|:-------------------|----------------------------------------------------------|
-| Listeners                   | array of string    | listening addresses (ex: `tcp://127.0.0.1:5652`, `tcp://0.0.0.0:5652`)|
-| IdleTimeout                 | duration           | server will close the ssh connection if there is no activity for the specified time |
+| Listeners                   | array of string    | 수신 주소 (예: `tcp://127.0.0.1:5652`, `tcp://0.0.0.0:5652`)|
+| IdleTimeout                 | duration           | 지정한 시간 동안 활동이 없으면 서버가 ssh 연결을 닫습니다 |
 
 #### Http
 
-server's HTTP listener config.
+서버의 HTTP 리스너 설정입니다.
 
-| Key                         | Type               | Desc                                                     |
+| 키                          | 타입               | 설명                                                     |
 |:----------------------------|:-------------------|----------------------------------------------------------|
-| Listeners                   | array of string    | listening addresses                                      |
-| EnableTokenAuth             | bool               | enable token based authentication (default `false`)      |
-| EnableWebUI                 | bool               | enable web user interface (default `true`)               |
+| Listeners                   | array of string    | 수신 주소                                      |
+| EnableTokenAuth             | bool               | 토큰 기반 인증 활성화 (기본값 `false`)      |
+| EnableWebUI                 | bool               | 웹 사용자 인터페이스 활성화 (기본값 `true`)               |
 
 #### Mqtt
 
-| Key                         | Type               | Desc                                                     |
+| 키                          | 타입               | 설명                                                     |
 |:----------------------------|:-------------------|----------------------------------------------------------|
-| Listeners                   | array of string    | listening addresses                                       |
-| MaxMessageSizeLimit         | int                | maximum size limit of payload in a PUBLISH (default 1048576 = 1MB) |
-| EnableTokenAuth             | bool               | enable token based authentication (default `false`)      |
-| EnableTls                   | bool               | enable TLS for the TCP listeners (default `false`)       |
+| Listeners                   | array of string    | 수신 주소                                       |
+| MaxMessageSizeLimit         | int                | PUBLISH 페이로드의 최대 크기 제한 (기본값 1048576 = 1MB) |
+| EnableTokenAuth             | bool               | 토큰 기반 인증 활성화 (기본값 `false`)      |
+| EnableTls                   | bool               | TCP 리스너에 TLS 활성화 (기본값 `false`)                 |
 
-### neo-server config
+### neo-server 설정
 
 ```hcl
 module "machbase.com/neo-server" {
@@ -246,3 +246,4 @@ module "machbase.com/neo-server" {
         EnableMachbaseSigHandler = VARS_MACHBASE_ENABLE_SIGHANDLER
     }
 }
+```

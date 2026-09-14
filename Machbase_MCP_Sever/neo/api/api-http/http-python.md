@@ -1,6 +1,6 @@
 # Machbase Neo HTTP Python Client
 
-## Query
+## 조회
 
 ### GET CSV
 
@@ -11,7 +11,7 @@ response = requests.get("http://127.0.0.1:5654/db/query", params)
 print(response.text)
 ```
 
-## Write
+## 쓰기
 
 ### POST CSV
 
@@ -27,9 +27,9 @@ response = requests.post(
 print(response.json())
 ```
 
-## Example - matplotlib
+## 예제 - matplotlib
 
-**To write test data, use the command below from the [Write waves by shell](/neo/tutorials/shellscript-waves).**
+**테스트 데이터를 쓰려면 셸에서 파형 쓰기 항목의 아래 명령을 사용하세요.**
 
 ```sh
 sh gen_wave.sh | machbase-neo shell import --timeformat=s EXAMPLE
@@ -66,11 +66,11 @@ plt.legend()
 plt.show()
 ```
 
-## Example - pandas
+## 예제 - pandas
 
-### Load dataframe from table
+### 테이블에서 데이터프레임 불러오기
 
-- Load pandas dataframe from machbase-neo HTTP API.
+- machbase-neo HTTP API로 pandas 데이터프레임을 불러옵니다.
 
 ```python
 from urllib import parse
@@ -85,9 +85,9 @@ df = pd.read_csv(f"http://127.0.0.1:5654/db/query?{query_param}")
 df
 ```
 
-### Write dataframe into table
+### 데이터프레임을 테이블에 쓰기
 
-- Write pandas dataframe into a tag table via machbase-neo HTTP API.
+- machbase-neo HTTP API로 pandas 데이터프레임을 태그 테이블에 씁니다.
 
 ```python
 import io, requests
@@ -108,17 +108,17 @@ print(file_upload_resp.json())
 {'success': True, 'reason': 'success, 500 record(s) appended', 'elapse': '2.288791ms'}
 ```
 
-### Load CSV
+### CSV 불러오기
 
-Import pandas and urllib.
+pandas와 urllib를 임포트합니다.
 
 ```py
 from urllib import parse
 import pandas as pd
 ```
 
-Make query url for `"format": "csv"` option, then call `read_csv`.
-Use `timeformat` to specify the precision of time data. `s`, `ms`, `us` and `ns`(default) are available.
+`"format": "csv"` 옵션으로 쿼리 URL을 만든 뒤 `read_csv`를 호출합니다.
+`timeformat`으로 시간 데이터의 정밀도를 지정합니다. `s`, `ms`, `us`, `ns`(기본값)를 사용할 수 있습니다.
 
 ```py
 query_param = parse.urlencode({
@@ -130,9 +130,9 @@ df = pd.read_csv(f"http://127.0.0.1:5654/db/query?{query_param}")
 df
 ```
 
-### Load compressed CSV
+### 압축된 CSV 불러오기
 
-Read gzip'ed CSV from HTTP API.
+HTTP API에서 gzip 압축된 CSV를 읽습니다.
 
 ```py
 from urllib import parse
