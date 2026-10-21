@@ -7,13 +7,17 @@ echo Starting installation
 echo ========================================
 
 :: Dynamic setup of current username and paths
-:: Get actual user directory instead of relying on %USERNAME%
+:: User directory from %USERPROFILE%
 for /f "tokens=*" %%i in ('echo %USERPROFILE%') do set "USER_DIR=%%i"
 for /f "tokens=3 delims=\" %%i in ("!USER_DIR!") do set "CURRENT_USER=%%i"
 set "ANACONDA_PATH=!USER_DIR!\anaconda3"
 set "MCP_PYTHON_PATH=!ANACONDA_PATH!\envs\mcp\python.exe"
 set "CURRENT_DIR=%~dp0"
 set "CLAUDE_CONFIG_DIR=%APPDATA%\Claude"
+:: Microsoft Store (MSIX) installs of Claude Desktop read their config from the package folder
+for /d %%d in ("%LOCALAPPDATA%\Packages\Claude_*") do (
+    if exist "%%d\LocalCache\Roaming\Claude" set "CLAUDE_CONFIG_DIR=%%d\LocalCache\Roaming\Claude"
+)
 
 if not exist "!CLAUDE_CONFIG_DIR!" (
     echo Claude configuration directory not found. Creating...
@@ -178,7 +182,7 @@ if not exist "!CLAUDE_CONFIG_DIR!\Machbase.py" (
 )
 
 :: ========================================
-:: NEW SECTION: Move neo folder
+:: Copy neo docs folder
 :: ========================================
 echo 7. Checking neo folder...
 if exist "neo" (
@@ -206,35 +210,16 @@ if exist "neo" (
 )
 
 :create_json
-:: Set JSON file paths (relative to Claude configuration directory)
+:: Paths written to the config (forward slashes)
 set "JSON_PYTHON_PATH=!MCP_PYTHON_PATH:\=/!"
 set "JSON_MACHBASE_PATH=!CLAUDE_CONFIG_DIR!\Machbase.py"
 set "JSON_MACHBASE_PATH=!JSON_MACHBASE_PATH:\=/!"
 
-echo 9. Creating claude_desktop_config.json file...
-> "!CLAUDE_CONFIG_DIR!\claude_desktop_config.json" (
-echo {
-echo   "mcpServers": {
-echo     "machbase": {
-echo       "command": "!JSON_PYTHON_PATH!",
-echo       "args": [
-echo         "!JSON_MACHBASE_PATH!"
-echo       ],
-echo       "env": {
-echo         "MACHBASE_HOST": "localhost",
-echo         "MACHBASE_PORT": "5654",
-echo         "MACHBASE_USER": "sys",
-echo         "MACHBASE_PASSWORD": "manager"
-echo       }
-echo     }
-echo   }
-echo }
-)
-
-if exist "!CLAUDE_CONFIG_DIR!\claude_desktop_config.json" (
-    echo claude_desktop_config.json file created successfully.
-) else (
-    echo Error: Failed to create config file.
+echo 9. Updating claude_desktop_config.json file...
+:: Registers only the machbase server and keeps other servers, settings and an existing token
+"!MCP_PYTHON_PATH!" "!CURRENT_DIR!update_claude_config.py" "!CLAUDE_CONFIG_DIR!\claude_desktop_config.json" "!JSON_PYTHON_PATH!" "!JSON_MACHBASE_PATH!"
+if errorlevel 1 (
+    echo Error: Failed to update config file.
     pause
     exit /b 1
 )
@@ -271,7 +256,8 @@ echo Installed packages check:
 pip list
 echo.
 echo Important notes:
-echo 1. Restart Claude Desktop to apply new configuration
+echo 1. Set MACHBASE_TOKEN in claude_desktop_config.json to your Machbase Neo API token,
+echo    then restart Claude Desktop to apply new configuration
 echo 2. If you newly installed Anaconda, open new command prompt to check conda command
 echo 3. All files have been moved to Claude configuration directory
 if exist "!CLAUDE_CONFIG_DIR!\neo" (

@@ -102,7 +102,7 @@ create_config() {
     fi
     
     # ========================================
-    # NEW SECTION: Move neo folder
+    # Copy neo docs folder
     # ========================================
     echo "8. Checking neo folder..."
     if [ -d "neo" ]; then
@@ -132,34 +132,15 @@ create_config() {
 }
 
 create_json() {
-    # Set JSON file paths (relative to Claude configuration directory)
+    # Paths written to the config
     JSON_PYTHON_PATH="$MCP_PYTHON_PATH"
     JSON_MACHBASE_PATH="$CLAUDE_CONFIG_DIR/Machbase.py"
     
-    echo "9. Creating claude_desktop_config.json file..."
-    cat > "$CLAUDE_CONFIG_DIR/claude_desktop_config.json" << EOF
-{
-  "mcpServers": {
-    "machbase": {
-      "command": "$JSON_PYTHON_PATH",
-      "args": [
-        "$JSON_MACHBASE_PATH"
-      ],
-      "env": {
-        "MACHBASE_HOST": "localhost",
-        "MACHBASE_PORT": "5654",
-        "MACHBASE_USER": "sys",
-        "MACHBASE_PASSWORD": "manager"
-      }
-    }
-  }
-}
-EOF
-    
-    if [ -f "$CLAUDE_CONFIG_DIR/claude_desktop_config.json" ]; then
-        echo "claude_desktop_config.json file created successfully."
-    else
-        echo "Error: Failed to create config file."
+    echo "9. Updating claude_desktop_config.json file..."
+    # Registers only the machbase server and keeps other servers, settings and an existing token
+    if ! "$MCP_PYTHON_PATH" "$CURRENT_DIR/update_claude_config.py" \
+        "$CLAUDE_CONFIG_DIR/claude_desktop_config.json" "$JSON_PYTHON_PATH" "$JSON_MACHBASE_PATH"; then
+        echo "Error: Failed to update config file."
         exit 1
     fi
     
@@ -205,7 +186,8 @@ complete() {
     echo "4. You can now use MCP features in Claude Desktop"
     echo
     echo "Important notes:"
-    echo "1. Restart Claude Desktop to apply new configuration"
+    echo "1. Set MACHBASE_TOKEN in claude_desktop_config.json to your Machbase Neo API token,"
+    echo "   then restart Claude Desktop to apply new configuration"
     echo "2. If you newly installed Anaconda, open new terminal to check conda command"
     echo "3. All files have been moved to Claude configuration directory"
     if [ -d "$CLAUDE_CONFIG_DIR/neo" ]; then

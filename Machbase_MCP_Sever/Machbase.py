@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Machbase Neo Unified MCP Server v0.7.0
+Machbase Neo Unified MCP Server
 
 Single MCP server providing complete Machbase Neo control:
-- Database queries and TQL execution (via /db/ API, no auth)
-- File management and TQL file saving (via /web/api/, JWT auth)
-- Dashboard creation and chart management (via /web/api/, JWT auth)
+- Database queries and TQL execution (via /db/ API, token auth)
+- File management and TQL file saving (via /db/files, token auth)
+- Dashboard creation and chart management (via /db/files, token auth)
 - Machbase Neo documentation access (local file system)
 """
 
@@ -32,17 +32,13 @@ from fastmcp import FastMCP
 # [Section 1] Configuration & Constants
 # ═══════════════════════════════════════════════════════════════
 
-VERSION = "0.7.3"
-BUILD_DATE = "2026-03-04"
+VERSION = "0.8.0"
+BUILD_DATE = "2026-10-21"
 DESCRIPTION = "Machbase Neo Unified MCP Server"
 
 # ── Server Connection ──
 DEFAULT_MACHBASE_HOST = os.environ.get("MACHBASE_HOST", "127.0.0.1")
 DEFAULT_MACHBASE_PORT = int(os.environ.get("MACHBASE_PORT", "5654"))
-
-# ── JWT Authentication (for Web API) ──
-MACHBASE_USER = os.environ.get("MACHBASE_USER", "sys")
-MACHBASE_PASSWORD = os.environ.get("MACHBASE_PASSWORD", "manager")
 
 # ── Dashboard Grid Constants ──
 GRID_COLS = 36
@@ -50,10 +46,6 @@ CHART_W_LARGE = 17   # Line, Bar, Scatter, Tql chart
 CHART_W_SMALL = 7    # Pie, Gauge, Liquid fill
 CHART_H_DEFAULT = 7
 _LARGE_CHART_TYPES = ("Line", "Bar", "Scatter", "Adv scatter", "Tql chart")
-
-# JWT token cache
-_jwt_token: Optional[str] = None
-_jwt_expire: float = 0
 
 # ── Logging ──
 logging.basicConfig(
@@ -67,7 +59,7 @@ mcp = FastMCP("Machbase Neo")
 
 
 # ═══════════════════════════════════════════════════════════════
-# [Section 2] HTTP Helpers - DB API (/db/, No Auth)
+# [Section 2] HTTP Helpers - DB API (/db/, Token Auth)
 # ═══════════════════════════════════════════════════════════════
 
 def get_machbase_url(host: Optional[str] = None, port: Optional[int] = None) -> str:
@@ -75,6 +67,12 @@ def get_machbase_url(host: Optional[str] = None, port: Optional[int] = None) -> 
     actual_host = host or DEFAULT_MACHBASE_HOST
     actual_port = port or DEFAULT_MACHBASE_PORT
     return f"http://{actual_host}:{actual_port}"
+
+
+def get_db_auth_headers() -> dict:
+    """Use a Neo API token for /db endpoints when HTTP token auth is enabled."""
+    token = os.environ.get("MACHBASE_TOKEN")
+    return {"Authorization": f"Bearer {token}"} if token else {}
 
 
 def validate_table_name(table_name: str) -> Tuple[bool, str]:
@@ -103,47 +101,19 @@ def validate_table_name(table_name: str) -> Tuple[bool, str]:
 
 
 # ═══════════════════════════════════════════════════════════════
-# [Section 3] HTTP Helpers - Web API (/web/api/, JWT Auth)
+# [Section 3] HTTP Helpers - File/Query API (/db/, Token Auth)
 # ═══════════════════════════════════════════════════════════════
 
 def _get_base_url(host: Optional[str] = None, port: Optional[int] = None) -> str:
-    """Generate Machbase Neo Web API base URL (for /web/api/ endpoints)."""
+    """Generate Machbase Neo /db API base URL (for /files, /query, /tql paths)."""
     h = host or DEFAULT_MACHBASE_HOST
     p = port or DEFAULT_MACHBASE_PORT
-    return f"http://{h}:{p}/web/api"
-
-
-async def _get_jwt_token(host: Optional[str] = None, port: Optional[int] = None) -> str:
-    """Login to Neo Web UI and get JWT access token. Token is cached until expired."""
-    global _jwt_token, _jwt_expire
-
-    if _jwt_token and time.time() < (_jwt_expire - 60):
-        return _jwt_token
-
-    base = _get_base_url(host, port)
-    url = f"{base}/login"
-
-    async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
-        resp = await client.post(
-            url,
-            json={"loginName": MACHBASE_USER, "password": MACHBASE_PASSWORD},
-        )
-        resp.raise_for_status()
-        data = resp.json()
-
-    if not data.get("success"):
-        raise Exception(f"Login failed: {data.get('reason', 'unknown')}")
-
-    _jwt_token = data["accessToken"]
-    _jwt_expire = time.time() + 290
-
-    return _jwt_token
+    return f"http://{h}:{p}/db"
 
 
 async def _get_auth_headers(host: Optional[str] = None, port: Optional[int] = None) -> dict:
-    """Build authentication headers with JWT token."""
-    token = await _get_jwt_token(host, port)
-    return {"Authorization": f"Bearer {token}"}
+    """Build authentication headers with the Neo API token."""
+    return get_db_auth_headers()
 
 
 async def _request(
@@ -154,7 +124,7 @@ async def _request(
     json_data: Optional[dict] = None,
     params: Optional[dict] = None,
 ) -> dict:
-    """Send HTTP request to Neo Web API (authenticated)."""
+    """Send HTTP request to Neo /db API (authenticated)."""
     base = _get_base_url(host, port)
     url = f"{base}{path}"
     headers = await _get_auth_headers(host, port)
@@ -174,9 +144,9 @@ async def _request(
 def _build_folder_api_path(parent_path: str) -> str:
     """Build the correct API path for folder operations.
 
-    Neo Web API expects:
-      - Root level:  POST /web/api/files/?action=mkDir&name=XXX  (trailing slash required)
-      - Sub-folder:  POST /web/api/files/parent?action=mkDir&name=XXX
+    Neo file API expects:
+      - Root level:  POST /db/files/?action=mkDir&name=XXX  (trailing slash required)
+      - Sub-folder:  POST /db/files/parent?action=mkDir&name=XXX
     """
     clean = parent_path.strip("/") if parent_path else ""
     if clean:
@@ -190,7 +160,7 @@ async def _create_single_folder(
     host: Optional[str] = None,
     port: Optional[int] = None,
 ) -> dict:
-    """Create a single folder via Neo Web API.
+    """Create a single folder via Neo file API.
 
     Returns:
         {"success": True/False, "reason": str, "already_exists": bool}
@@ -261,13 +231,16 @@ async def _file_exists(
     try:
         async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
             resp = await client.get(url, headers=headers)
-            if resp.status_code == 200:
+            if resp.status_code != 200:
+                return False
+            try:
                 body = resp.json()
-                # Folder listings have "children"; actual files don't
-                if "children" in body:
-                    return False
+            except ValueError:
+                # Text files (.tql, .sql) come back as raw content
                 return True
-            return False
+            # Folder listings come back as {"data": {"isDir": true, ...}}
+            data = body.get("data") if isinstance(body, dict) else None
+            return not (isinstance(data, dict) and data.get("isDir"))
     except Exception:
         return False
 
@@ -869,7 +842,7 @@ document_extractor = DocumentContentExtractor()
 
 # ┌─────────────────────────────────────────────────────────────┐
 # │  [Tools 1] Database Tools                                   │
-# │  API: /db/query  |  Auth: None                              │
+# │  API: /db/query  |  Auth: Token                             │
 # └─────────────────────────────────────────────────────────────┘
 
 @mcp.tool()
@@ -882,13 +855,14 @@ async def list_tables(
 
     try:
         params = urlencode({
-            "q": "SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\_%' ORDER BY name",
+            "q": "SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\\_%' ORDER BY name",
             "format": "csv"
         })
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{machbase_url}/db/query?{params}",
+                headers=get_db_auth_headers(),
                 timeout=10.0
             )
 
@@ -937,7 +911,7 @@ async def list_table_tags(
     machbase_url = get_machbase_url(host, port)
 
     try:
-        check_table_query = f"SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\_%' AND name = '{table_name}' ORDER BY name"
+        check_table_query = f"SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\\_%' AND name = '{table_name}' ORDER BY name"
         params = urlencode({
             "q": check_table_query,
             "format": "csv"
@@ -946,6 +920,7 @@ async def list_table_tags(
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{machbase_url}/db/query?{params}",
+                headers=get_db_auth_headers(),
                 timeout=30.0
             )
 
@@ -966,6 +941,7 @@ async def list_table_tags(
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{machbase_url}/db/query?{params}",
+                headers=get_db_auth_headers(),
                 timeout=30.0
             )
 
@@ -1000,6 +976,7 @@ async def list_table_tags(
         return f"Query timeout while getting tags from table '{table_name}'"
     except Exception as e:
         return f"Error occurred while retrieving tags from table '{table_name}': {str(e)}"
+
 
 @mcp.tool()
 async def execute_sql_query(
@@ -1111,6 +1088,7 @@ async def execute_sql_query(
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{machbase_url}/db/query?{encoded_params}",
+                headers=get_db_auth_headers(),
                 timeout=30.0
             )
 
@@ -1155,7 +1133,7 @@ async def execute_sql_query(
 
 # ┌─────────────────────────────────────────────────────────────┐
 # │  [Tools 2] TQL Tools                                        │
-# │  API: /db/tql  |  Auth: None                                │
+# │  API: /db/tql  |  Auth: Token                               │
 # └─────────────────────────────────────────────────────────────┘
 
 @mcp.tool()
@@ -1459,7 +1437,7 @@ async def execute_tql_script(
     # ── CHART pre-validation: auto-call validate_chart_tql for CHART() scripts ──
     if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
         try:
-            chart_report = await validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
+            chart_report = await _validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
             if "STATUS: NO_DATA" in chart_report:
                 return (
                     f"FAILURE: Chart validation failed - query returns no data (ID: {execution_id})\n"
@@ -1497,7 +1475,7 @@ async def execute_tql_script(
             response = await client.post(
                 f"{machbase_url}/db/tql",
                 content=tql_content,
-                headers={"Content-Type": "text/plain"},
+                headers={**get_db_auth_headers(), "Content-Type": "text/plain"},
                 timeout=timeout_seconds
             )
 
@@ -1516,6 +1494,25 @@ async def execute_tql_script(
                     result += "  3. Tag name is incorrect (verify with: list_table_tags)\n"
                     result += "  4. Time range has no data\n\n"
                     result += "    DO NOT PROVIDE THIS CODE TO USER - FIX THE ISSUE FIRST\n\n"
+                    result += "=== TQL CONTENT (for debugging) ===\n"
+                    result += f"```tql\n{tql_content}\n```"
+                    return result
+
+                # SQL 실행 오류 응답: HTTP 200 + {"success": false, "reason": ...}
+                content_type = response.headers.get("content-type", "")
+                body = None
+                if "application/json" in content_type:
+                    try:
+                        body = response.json()
+                    except ValueError:
+                        pass
+                if isinstance(body, dict) and body.get("success") is False:
+                    result = f"FAILURE: TQL execution failed (ID: {execution_id})\n"
+                    result += f"Server: {machbase_url}\n"
+                    result += f"Status: HTTP {response.status_code}\n\n"
+                    result += "=== ERROR RESPONSE ===\n"
+                    result += response_text + "\n\n"
+                    result += "DO NOT PROVIDE THIS CODE TO USER - FIX THE ERROR FIRST\n\n"
                     result += "=== TQL CONTENT (for debugging) ===\n"
                     result += f"```tql\n{tql_content}\n```"
                     return result
@@ -1542,7 +1539,7 @@ async def execute_tql_script(
                         result += "Manually verify: SELECT COUNT(*) FROM your_table WHERE your_conditions\n\n"
                     result += "Only provide code to user after confirming COUNT > 0\n"
 
-                elif 'csv' in response_text.lower() or '\n' in response_text[:200]:
+                elif "text/csv" in content_type or 'csv' in response_text.lower() or '\n' in response_text[:200]:
                     result = f"   SUCCESS: TQL execution completed with data (ID: {execution_id})\n" + result
                     result += "=== RESPONSE ===\n"
                     result += response_text + "\n\n"
@@ -1751,6 +1748,7 @@ async def validate_chart_tql(
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"{machbase_url}/db/query?{params}",
+                    headers=get_db_auth_headers(),
                     timeout=10.0
                 )
 
@@ -1770,6 +1768,7 @@ async def validate_chart_tql(
 
                     response = await client.get(
                         f"{machbase_url}/db/query?{params}",
+                        headers=get_db_auth_headers(),
                         timeout=10.0
                     )
 
@@ -1895,9 +1894,13 @@ SCRIPT({{
     return "\n".join(result_lines)
 
 
+# fastmcp 2.x 데코레이터는 함수 대신 FunctionTool 반환 → 내부 호출용 원본 함수
+_validate_chart_tql = getattr(validate_chart_tql, "fn", validate_chart_tql)
+
+
 # ┌─────────────────────────────────────────────────────────────┐
 # │  [Tools 3] File Management Tools                            │
-# │  API: /web/api/files  |  Auth: JWT                          │
+# │  API: /db/files  |  Auth: Token                             │
 # └─────────────────────────────────────────────────────────────┘
 
 @mcp.tool()
@@ -2096,10 +2099,12 @@ async def save_tql_file(
                         },
                         indent=2, ensure_ascii=False,
                     )
-                # ── JSON success:false 선체크 (키워드 무관하게) ──
+                # ── JSON success 체크 ──
+                json_success = None
                 try:
                     err_body = resp.json()
-                    if err_body.get("success") is False:
+                    json_success = err_body.get("success") if isinstance(err_body, dict) else None
+                    if json_success is False:
                         reason = err_body.get("reason", resp_text[:500])
                         return json.dumps(
                             {
@@ -2112,17 +2117,18 @@ async def save_tql_file(
                 except (json.JSONDecodeError, ValueError):
                     pass
 
-                # ── 키워드 fallback (mach-err 추가) ──
-                resp_lower = resp_text.lower()
-                if any(kw in resp_lower for kw in ["error", "fail", "invalid", "not found", "no table", "mach-err"]):
-                    return json.dumps(
-                        {
-                            "status": "validation_failed",
-                            "message": "TQL response contains error indicators. File NOT saved.",
-                            "error": resp_text[:500],
-                        },
-                        indent=2, ensure_ascii=False,
-                    )
+                # ── 키워드 fallback (JSON success:true 확인된 경우 건너뜀) ──
+                if json_success is not True:
+                    resp_lower = resp_text.lower()
+                    if any(kw in resp_lower for kw in ["error", "fail", "invalid", "not found", "no table", "mach-err"]):
+                        return json.dumps(
+                            {
+                                "status": "validation_failed",
+                                "message": "TQL response contains error indicators. File NOT saved.",
+                                "error": resp_text[:500],
+                            },
+                            indent=2, ensure_ascii=False,
+                        )
 
                 # ── CHART TQL: SQL 직접 실행으로 이중 검증 ──
                 if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
@@ -2137,7 +2143,7 @@ async def save_tql_file(
                             db_base = get_machbase_url(host, port)
                             params = urlencode({"q": test_sql, "format": "json"})
                             async with httpx.AsyncClient(timeout=30) as sql_client:
-                                sql_resp = await sql_client.get(f"{db_base}/db/query?{params}")
+                                sql_resp = await sql_client.get(f"{db_base}/db/query?{params}", headers=get_db_auth_headers())
                                 if sql_resp.status_code != 200:
                                     return json.dumps(
                                         {
@@ -2190,7 +2196,7 @@ async def save_tql_file(
         # ── CHART validation: use validate_chart_tql for CHART() scripts ──
         if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
             try:
-                chart_report = await validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
+                chart_report = await _validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
                 if "STATUS: NO_DATA" in chart_report:
                     return json.dumps(
                         {
@@ -2229,7 +2235,7 @@ async def save_tql_file(
                     chart_resp = resp.json()
                     js_assets = chart_resp.get("jsCodeAssets", [])
                     if js_assets and chart_resp.get("chartID"):
-                        js_url = f"{base.replace('/web/api', '')}{js_assets[0]}"
+                        js_url = f"{get_machbase_url(host, port)}{js_assets[0]}"
                         async with httpx.AsyncClient(timeout=15) as js_client:
                             js_resp = await js_client.get(js_url, headers=validate_headers)
                             if js_resp.status_code == 200:
@@ -2373,7 +2379,7 @@ async def save_tql_file(
 
 # ┌─────────────────────────────────────────────────────────────┐
 # │  [Tools 4] Dashboard Tools                                  │
-# │  API: /web/api/files/*.dsh  |  Auth: JWT                    │
+# │  API: /db/files/*.dsh  |  Auth: Token                       │
 # └─────────────────────────────────────────────────────────────┘
 
 @mcp.tool()
@@ -2386,8 +2392,26 @@ async def list_dashboards(
     Returns a list of existing dashboard (.dsh) files.
     """
     try:
-        result = await _request("GET", "/files/?filter=*.dsh", host, port)
-        return json.dumps(result, indent=2, ensure_ascii=False)
+        # 하위 폴더까지 순회 · .dsh 파일만 수집
+        pending = [""]
+        dashboards = []
+        while pending:
+            folder = pending.pop()
+            path = f"/files/{folder}" if folder else "/files/"
+            result = await _request("GET", path, host, port)
+            if result.get("success") is not True:
+                raise RuntimeError(result.get("reason", "File listing failed"))
+            for child in result.get("data", {}).get("children", []):
+                name = child.get("name", "")
+                relative = f"{folder}/{name}" if folder else name
+                if child.get("isDir"):
+                    pending.append(relative)
+                elif name.endswith(".dsh"):
+                    dashboards.append(dict(child, path=relative))
+        dashboards.sort(key=lambda entry: entry["path"])
+        return json.dumps({"success": True, "reason": "success", "data": {
+            "isDir": True, "name": "/", "children": dashboards,
+        }}, indent=2, ensure_ascii=False)
     except Exception as e:
         return f"Error listing dashboards: {e}"
 
@@ -3407,6 +3431,7 @@ async def debug_mcp_status() -> str:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{machbase_url}/db/query?q=SELECT 1 FROM M$SYS_TABLES LIMIT 1&format=csv",
+                headers=get_db_auth_headers(),
                 timeout=5.0
             )
             if response.status_code == 200:
@@ -3416,13 +3441,13 @@ async def debug_mcp_status() -> str:
     except Exception as e:
         db_status = f"[ERROR] DB API connection error: {str(e)}"
 
-    # Web API connection status (/web/api/)
+    # File API connection status (/db/files)
     web_status = ""
     try:
-        result = await _request("GET", "/check")
-        web_status = f"[OK] Web API connection successful ({_get_base_url()})"
+        result = await _request("GET", "/files/")
+        web_status = f"[OK] File API connection successful ({_get_base_url()}/files)"
     except Exception as e:
-        web_status = f"[ERROR] Web API connection error: {str(e)}"
+        web_status = f"[ERROR] File API connection error: {str(e)}"
 
     # Document extractor status
     doc_status = f"\n=== Document Content Access Status ===\n"
