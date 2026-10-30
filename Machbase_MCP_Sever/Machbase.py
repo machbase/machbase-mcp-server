@@ -38,7 +38,10 @@ DESCRIPTION = "Machbase Neo Unified MCP Server"
 
 # ── Server Connection ──
 DEFAULT_MACHBASE_HOST = os.environ.get("MACHBASE_HOST", "127.0.0.1")
-DEFAULT_MACHBASE_PORT = int(os.environ.get("MACHBASE_PORT", "5654"))
+try:
+    DEFAULT_MACHBASE_PORT = int(os.environ.get("MACHBASE_PORT") or "5654")
+except ValueError:
+    raise SystemExit("MACHBASE_PORT must be an integer")
 
 # ── Dashboard Grid Constants ──
 GRID_COLS = 36
@@ -77,17 +80,10 @@ def get_db_auth_headers() -> dict:
 
 def validate_table_name(table_name: str) -> Tuple[bool, str]:
     """
-    Validate table name to prevent SQL injection.
-
-    Simple whitespace check is effective because:
-    - All SQL keywords are separated by whitespace (UNION, SELECT, WHERE, etc.)
-    - Tab and newline characters are used to bypass space filters
-
-    Args:
-        table_name: Table name to validate
+    Validate table name to prevent SQL injection (rejects spaces, tabs, newlines).
 
     Returns:
-        (is_valid, error_message): Tuple of validation result and error message
+        (is_valid, error_message)
     """
     if not table_name:
         return False, "Table name is required"
@@ -135,6 +131,144 @@ async def _request(
             return resp.json()
         except Exception:
             return {"status": "ok", "text": resp.text}
+
+
+# ═══════════════════════════════════════════════════════════════
+# [Section 3-1] Table References - [DB.]OWNER.TABLE
+# ═══════════════════════════════════════════════════════════════
+# · M$SYS_TABLES는 토큰 계정이 접근 가능한 테이블만 보여줌(소유 + GRANT)
+# · 접두 없는 이름은 Neo가 접속 계정 소유로 해석 → 남의 테이블은 소유자를 붙여야 조회됨
+
+_SYSTEM_TABLE = re.compile(r'^(M\$|V\$|_)')
+_FROM_TABLE = re.compile(
+    r'\b(FROM|JOIN)(\s+)([A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*){0,2})(?![\w$.])',
+    re.IGNORECASE,
+)
+_connected_users: Dict[str, str] = {}
+
+
+def parse_table_ref(name: str) -> Tuple[str, str, str]:
+    """'MACHBASEDB.SYS.T' → (db, owner, table) · 'SYS.T' → ('', 'SYS', 'T') · 'T' → ('', '', 'T')"""
+    parts = [p.strip().strip('"').upper() for p in str(name or '').strip().split('.')]
+    if len(parts) >= 3:
+        return parts[0], parts[1], parts[2]
+    if len(parts) == 2:
+        return '', parts[0], parts[1]
+    return '', '', parts[0]
+
+
+def qualify_table(db: str, owner: str, table: str) -> str:
+    return '.'.join(p for p in (db, owner, table) if p)
+
+
+async def _query_rows(sql: str, host: Optional[str] = None, port: Optional[int] = None) -> Tuple[list, list]:
+    """/db/query 결과 (columns, rows) — 실패 시 RuntimeError(Neo 사유) · 접속 실패·시간 초과는 httpx 예외 그대로"""
+    try:
+        body = await _request("GET", "/query", host, port, params={"q": sql})
+    except httpx.HTTPStatusError as e:
+        try:
+            reason = e.response.json().get("reason")
+        except ValueError:
+            reason = e.response.text[:300]
+        raise RuntimeError(f"HTTP {e.response.status_code}: {reason}") from e
+    if body.get("success") is not True:
+        raise RuntimeError(body.get("reason", "query failed"))
+    data = body.get("data") or {}
+    return data.get("columns") or [], data.get("rows") or []
+
+
+async def list_accessible_tables(host: Optional[str] = None, port: Optional[int] = None) -> List[Tuple[str, str, str]]:
+    """접근 가능한 (db, owner, table) 목록 — DB·유저·테이블 순
+    · 카탈로그 JOIN이 느린 경우가 있어 유저·테이블을 따로 조회해 결합"""
+    _, user_rows = await _query_rows("SELECT USER_ID, NAME FROM M$SYS_USERS", host, port)
+    users = {str(r[0]): str(r[1]) for r in user_rows}
+    _, rows = await _query_rows("SELECT DATABASE_NAME, USER_ID, NAME FROM M$SYS_TABLES", host, port)
+    found = set()
+    for db, user_id, name in rows:
+        owner = users.get(str(user_id))
+        if owner and not _SYSTEM_TABLE.match(str(name)):
+            found.add((str(db), owner, str(name)))
+    return sorted(found)
+
+
+async def connected_user(host: Optional[str] = None, port: Optional[int] = None) -> str:
+    """토큰 계정 이름 — /db/token/validate(Neo 8.7.3+) · 확인 불가면 ''"""
+    key = get_machbase_url(host, port)
+    if key in _connected_users:
+        return _connected_users[key]
+    if not get_db_auth_headers():
+        return ''
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(f"{key}/db/token/validate", headers=get_db_auth_headers())
+        user = str(resp.json().get("user") or '').upper() if resp.status_code == 200 else ''
+    except Exception:
+        return ''
+    if user:
+        _connected_users[key] = user
+    return user
+
+
+def match_table(name: str, accessible: List[Tuple[str, str, str]], user: str) -> List[Tuple[str, str, str]]:
+    """이름 → 접근 가능한 후보 목록 — 하나로 좁혀지면 길이 1
+    · 'X.T'의 X는 유저 우선, 맞는 유저가 없으면 DB 이름으로 판별
+    · 후보가 여럿이면 접속 계정 소유 하나만 남김"""
+    db, owner, table = parse_table_ref(name)
+    cands = [a for a in accessible if a[2] == table]
+    if db:
+        pool = [c for c in cands if c[0] == db and c[1] == owner]
+    elif owner:
+        pool = [c for c in cands if c[1] == owner] or [c for c in cands if c[0] == owner]
+    else:
+        pool = cands
+    if len(pool) > 1:
+        mine = [c for c in pool if c[1] == user]
+        if len(mine) == 1:
+            return mine
+    return pool
+
+
+def ambiguous_table_message(pool: List[Tuple[str, str, str]]) -> str:
+    names = ', '.join(qualify_table(*c) for c in pool)
+    return f"{pool[0][2]} is ambiguous — candidates: {names} — ask the user which one instead of picking one."
+
+
+async def prepare_sql(sql: str, host: Optional[str] = None, port: Optional[int] = None) -> Tuple[str, str]:
+    """SQL/TQL의 FROM·JOIN 테이블 이름을 DB.OWNER.TABLE로 정규화 → (sql, 오류 문구)
+    · 문자열 리터럴 안·시스템 테이블·이미 DB.OWNER.TABLE인 이름은 제외
+    · 목록에 없는 이름(CTE·별칭·컬럼 등)과 계정을 모르는 상태의 모호한 이름은 그대로 — Neo 판단에 맡김
+    · 카탈로그 조회 실패 시 원문 그대로"""
+    text = str(sql or '')
+    strings = [(m.start(), m.end()) for m in re.finditer(r"'[^']*'", text)]
+    targets = [
+        m for m in _FROM_TABLE.finditer(text)
+        if not any(s < m.start() < e for s, e in strings)
+        and not _SYSTEM_TABLE.match(parse_table_ref(m.group(3))[2])
+        and m.group(3).count('.') < 2
+    ]
+    if not targets:
+        return text, ''
+    try:
+        accessible = await list_accessible_tables(host, port)
+    except Exception as e:
+        logger.warning(f"[Access] 카탈로그 조회 실패 — 테이블명 정규화 생략: {e}")
+        return text, ''
+    user = await connected_user(host, port)
+    edits, changes = [], []
+    for m in targets:
+        pool = match_table(m.group(3), accessible, user)
+        if len(pool) == 1:
+            full = qualify_table(*pool[0])
+            if full != m.group(3).upper():
+                edits.append((m.start(3), m.end(3), full))
+                changes.append(f"{m.group(3)} → {full}")
+        elif len(pool) > 1 and user:
+            return text, ambiguous_table_message(pool)
+    for start, end, full in reversed(edits):
+        text = text[:start] + full + text[end:]
+    if changes:
+        logger.info(f"[Access] 테이블명 정규화: {', '.join(changes)}")
+    return text, ''
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -850,43 +984,24 @@ async def list_tables(
     host: Optional[str] = None,
     port: Optional[int] = None
 ) -> str:
-    """Query available table list in Machbase Neo."""
+    """Query available table list in Machbase Neo as fully qualified names (DATABASE.OWNER.TABLE).
+    Use the names exactly as listed in SQL/TQL — an unqualified name resolves to the connected account and fails for tables owned by others."""
     machbase_url = get_machbase_url(host, port)
 
     try:
-        params = urlencode({
-            "q": "SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\\_%' ORDER BY name",
-            "format": "csv"
-        })
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{machbase_url}/db/query?{params}",
-                headers=get_db_auth_headers(),
-                timeout=10.0
-            )
-
-        if response.status_code == 200:
-            lines = response.text.strip().split('\n')
-            if len(lines) < 2:
-                return "No tables found."
-
-            tables_info = []
-            for line in lines[1:]:
-                if line.strip():
-                    table_name = line.strip()
-                    tables_info.append(f"• {table_name}")
-
-            if tables_info:
-                table_list = "\n".join(tables_info)
-                return f"Machbase Neo table list ({machbase_url}):\n\n{table_list}"
-            else:
-                return "No tables found."
-        else:
-            return f"Failed to retrieve table list: HTTP {response.status_code}\n{response.text}"
+        accessible = await list_accessible_tables(host, port)
+        if not accessible:
+            return "No tables found."
+        table_list = "\n".join(f"• {qualify_table(*t)}" for t in accessible)
+        return (f"Machbase Neo table list ({machbase_url}):\n\n{table_list}\n\n"
+                "Use these full names in SQL/TQL.")
 
     except httpx.ConnectError:
         return f"Cannot connect to Machbase Neo server ({machbase_url})"
+    except httpx.TimeoutException:
+        return f"Table list retrieval timeout (30 seconds) ({machbase_url})"
+    except RuntimeError as e:
+        return f"Failed to retrieve table list: {e}"
     except Exception as e:
         return f"Error occurred while retrieving table list: {str(e)}"
 
@@ -897,7 +1012,8 @@ async def list_table_tags(
     host: Optional[str] = None,
     port: Optional[int] = None
 ) -> str:
-    """Get tag list from a specific table in Machbase Neo."""
+    """Get tag list from a specific table in Machbase Neo.
+    Accepts an owner-qualified name (e.g. SYS.TABLE or MACHBASEDB.SYS.TABLE) as listed by list_tables."""
     if not table_name:
         return "Please specify table name."
 
@@ -911,72 +1027,49 @@ async def list_table_tags(
     machbase_url = get_machbase_url(host, port)
 
     try:
-        check_table_query = f"SELECT name FROM M$SYS_TABLES WHERE name NOT LIKE 'M$%' AND name NOT LIKE '\\_%' AND name = '{table_name}' ORDER BY name"
-        params = urlencode({
-            "q": check_table_query,
-            "format": "csv"
-        })
+        accessible = await list_accessible_tables(host, port)
+        pool = match_table(table_name, accessible, await connected_user(host, port))
+        if not pool:
+            return f"Table '{table_name}' does not exist or no permission."
+        if len(pool) > 1:
+            return ambiguous_table_message(pool)
+        db, owner, table = pool[0]
+        qualified = qualify_table(db, owner, table)
+        prefix = qualify_table(db, owner, '')
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{machbase_url}/db/query?{params}",
-                headers=get_db_auth_headers(),
-                timeout=30.0
-            )
+        # 메타 테이블 우선 · 조회 실패 시 통계 뷰(데이터 있는 태그만)
+        source_note = ""
+        try:
+            columns, rows = await _query_rows(f"SELECT * FROM {prefix}._{table}_META", host, port)
+            ci = 0
+            while ci < len(columns) - 1 and str(columns[ci]).upper() == "_ID":
+                ci += 1
+        except Exception as meta_error:
+            try:
+                columns, rows = await _query_rows(f"SELECT NAME FROM {prefix}.V${table}_STAT", host, port)
+                ci = 0
+                source_note = "\n(Meta table not accessible — tags from the stat view, only tags with data)"
+            except Exception:
+                return f"Failed to retrieve tags from table '{qualified}': {meta_error}"
 
-            if response.status_code != 200:
-                return f"Failed to check table existence: HTTP {response.status_code}"
+        tags = [f"• {row[ci]}" for row in rows if row and str(row[ci]).strip()]
+        tag_column = columns[ci] if columns else "NAME"
+        if not tags:
+            return f"No tags found in table '{qualified}' ({tag_column} column)."
+        tag_list = "\n".join(tags)
+        result = f"Tags in table '{qualified}' ({machbase_url}) :\n"
+        result += f"Tag column: {tag_column}\n"
+        result += f"Found {len(tags)} tags:\n\n{tag_list}{source_note}"
+        return result
 
-            lines = response.text.strip().split('\n')
-            if len(lines) < 2:
-                return f"Table '{table_name}' does not exist."
-
-        tags_query = f"SELECT * FROM _{table_name}_meta"
-
-        params = urlencode({
-            "q": tags_query,
-            "format": "csv"
-        })
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{machbase_url}/db/query?{params}",
-                headers=get_db_auth_headers(),
-                timeout=30.0
-            )
-
-        if response.status_code == 200:
-            csv_reader = csv.reader(io.StringIO(response.text.strip()))
-            rows = list(csv_reader)
-
-            if len(rows) < 2:
-                return f"No tags found in table '{table_name}' (NAME column)."
-
-            tags = []
-            for row in rows[1:]:
-                if row and len(row) > 0 and row[1].strip():
-                    tags.append(f"• {row[1]}")
-
-            if tags:
-                tag_count = len(tags)
-                tag_list = "\n".join(tags)
-                result = f"Tags in table '{table_name}' ({machbase_url}) :\n"
-                result += f"Tag column: NAME\n"
-                result += f"Found {tag_count} tags:\n\n{tag_list}"
-
-                return result
-            else:
-                return f"No tags found in table '{table_name}' (NAME column)."
-        else:
-            return f"Failed to retrieve tags from table '{table_name}': HTTP {response.status_code}\n{response.text}"
-
+    except RuntimeError as e:
+        return f"Failed to retrieve tags from table '{table_name}': {e}"
     except httpx.ConnectError:
         return f"Cannot connect to Machbase Neo server ({machbase_url})"
     except httpx.TimeoutException:
         return f"Query timeout while getting tags from table '{table_name}'"
     except Exception as e:
         return f"Error occurred while retrieving tags from table '{table_name}': {str(e)}"
-
 
 @mcp.tool()
 async def execute_sql_query(
@@ -1074,10 +1167,14 @@ async def execute_sql_query(
 
     machbase_url = get_machbase_url(host, port)
 
+    sql_query, access_error = await prepare_sql(sql_query, host, port)
+    if access_error:
+        return f"SQL query execution failed: {access_error}\nServer: {machbase_url}"
+
     try:
         params = {
             "q": sql_query,
-            "format": "csv",
+            "format": "json",
             "timeformat": timeformat,
             "tz": timezone
         }
@@ -1093,14 +1190,28 @@ async def execute_sql_query(
             )
 
         if response.status_code == 200:
-            lines = response.text.strip().split('\n')
-            row_count = max(0, len(lines) - 1)
-
-            if row_count == 0:
-                return f"SQL query execution failed (no data returned)\nServer: {machbase_url}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
+            # 성공 판정은 Neo 응답의 success 기준 — 결과 행 유무와 무관
+            payload = response.json()
+            if payload.get("success") is not True:
+                return f"SQL query execution failed: {payload.get('reason', 'unknown')}\nServer: {machbase_url}"
+            data = payload.get("data") or {}
+            if not data.get("columns"):
+                # 결과 열 없는 문장(CREATE/INSERT/DROP 등) — 재실행 없이 성공 반환
+                return f"SQL statement execution success: {payload.get('reason', 'success')}\nServer: {machbase_url}"
+            columns = data["columns"]
+            rows = data.get("rows")
+            if rows is None:
+                rows = [list(row) for row in zip(*data.get("cols", []))]
+            matrix = [columns] + rows
+            if transpose:
+                matrix = [list(row) for row in zip(*matrix)]
+            buffer = io.StringIO()
+            csv.writer(buffer, lineterminator="\n").writerows(matrix)
+            csv_text = buffer.getvalue()
+            row_count = max(0, len(matrix) - 1)
 
             if format.lower() == "json":
-                csv_reader = csv.reader(io.StringIO(response.text.strip()))
+                csv_reader = csv.reader(io.StringIO(csv_text.strip()))
                 rows_list = list(csv_reader)
 
                 if len(rows_list) < 1:
@@ -1118,7 +1229,7 @@ async def execute_sql_query(
                 return f"SQL query execution result (JSON):\n\n```json\n{formatted_json}\n```"
 
             else:
-                return f"SQL query execution result (CSV), {row_count} rows:\n\n```csv\n{response.text}\n```"
+                return f"SQL query execution result (CSV), {row_count} rows:\n\n```csv\n{csv_text}\n```"
 
         else:
             return f"SQL query execution failed: HTTP {response.status_code}\n{response.text}\n\n=== SQL CONTENT ===\n```sql\n{sql_query}\n```"
@@ -1165,8 +1276,8 @@ async def execute_tql_script(
 
     2. **DOCUMENTATION CHECK (REQUIRED):**
     - TQL syntax is unique to Machbase Neo
-    - MUST use get_full_document_content('tql/tql-*.md') before writing TQL
-    - MUST use extract_code_blocks('tql/tql-*.md') to see exact syntax
+    - MUST use get_full_document_content('tql/tql-guide.md') before writing TQL
+    - MUST use extract_code_blocks('tql/tql-guide.md') to see exact syntax
     - Only use syntax and examples from official documentation
     - NO assumptions or general query language knowledge allowed
 
@@ -1434,10 +1545,18 @@ async def execute_tql_script(
             "SCRIPT() must be used in a separate pipeline, not directly after HTTP().\n"
         )
 
+    tql_content, access_error = await prepare_sql(tql_content, host, port)
+    if access_error:
+        return (
+            f"FAILURE: {access_error} (ID: {execution_id})\n"
+            f"Server: {machbase_url}\n\n"
+            f"=== TQL CONTENT (for debugging) ===\n```tql\n{tql_content}\n```"
+        )
+
     # ── CHART pre-validation: auto-call validate_chart_tql for CHART() scripts ──
     if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
         try:
-            chart_report = await _validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
+            chart_report = await validate_chart_tql.fn(tql_content, auto_fix=True, host=host, port=port)
             if "STATUS: NO_DATA" in chart_report:
                 return (
                     f"FAILURE: Chart validation failed - query returns no data (ID: {execution_id})\n"
@@ -1498,7 +1617,7 @@ async def execute_tql_script(
                     result += f"```tql\n{tql_content}\n```"
                     return result
 
-                # SQL 실행 오류 응답: HTTP 200 + {"success": false, "reason": ...}
+                # SQL 실행 오류도 HTTP 200 + {"success": false, "reason": ...}로 응답
                 content_type = response.headers.get("content-type", "")
                 body = None
                 if "application/json" in content_type:
@@ -1645,6 +1764,10 @@ async def validate_chart_tql(
     """
 
     machbase_url = get_machbase_url(host, port)
+
+    tql_script, access_error = await prepare_sql(tql_script, host, port)
+    if access_error:
+        return f"=== TQL CHART VALIDATION REPORT ===\n\nSTATUS: ERROR\nREASON: {access_error}"
 
     def extract_sql(tql: str) -> Optional[str]:
         patterns = [
@@ -1847,14 +1970,14 @@ async def validate_chart_tql(
         if negative_refs:
             for neg_col in negative_refs:
                 pattern = rf'column\s*\(\s*{neg_col}\s*\)'
-                replacement = f'column(0)  // Fixed: was column({neg_col})'
+                replacement = f'column(0) /* 수정 전 인덱스: {neg_col} */'
                 fixed_tql = re.sub(pattern, replacement, fixed_tql)
 
         if invalid_columns:
             for invalid_col in sorted(invalid_columns, reverse=True):
                 valid_col = min(invalid_col, col_count - 1)
                 pattern = rf'column\s*\(\s*{invalid_col}\s*\)'
-                replacement = f'column({valid_col})  // Fixed: was column({invalid_col})'
+                replacement = f'column({valid_col}) /* 수정 전 인덱스: {invalid_col} */'
                 fixed_tql = re.sub(pattern, replacement, fixed_tql)
 
         if is_empty:
@@ -1892,10 +2015,6 @@ SCRIPT({{
         result_lines.append(f"\n✓ Use the fixed TQL above to avoid chart errors")
 
     return "\n".join(result_lines)
-
-
-# fastmcp 2.x 데코레이터는 함수 대신 FunctionTool 반환 → 내부 호출용 원본 함수
-_validate_chart_tql = getattr(validate_chart_tql, "fn", validate_chart_tql)
 
 
 # ┌─────────────────────────────────────────────────────────────┐
@@ -2063,6 +2182,14 @@ async def save_tql_file(
             indent=2, ensure_ascii=False,
         )
 
+    if filename.endswith((".tql", ".sql")):
+        tql_content, access_error = await prepare_sql(tql_content, host, port)
+        if access_error:
+            return json.dumps(
+                {"status": "validation_failed", "message": f"{access_error}. File NOT saved."},
+                indent=2, ensure_ascii=False,
+            )
+
     # ── Validation: execute before saving ──
     if filename.endswith(".tql"):
         base = _get_base_url(host, port)
@@ -2099,12 +2226,10 @@ async def save_tql_file(
                         },
                         indent=2, ensure_ascii=False,
                     )
-                # ── JSON success 체크 ──
-                json_success = None
+                # ── JSON success:false 선체크 (키워드 무관하게) ──
                 try:
                     err_body = resp.json()
-                    json_success = err_body.get("success") if isinstance(err_body, dict) else None
-                    if json_success is False:
+                    if isinstance(err_body, dict) and err_body.get("success") is False:
                         reason = err_body.get("reason", resp_text[:500])
                         return json.dumps(
                             {
@@ -2117,18 +2242,17 @@ async def save_tql_file(
                 except (json.JSONDecodeError, ValueError):
                     pass
 
-                # ── 키워드 fallback (JSON success:true 확인된 경우 건너뜀) ──
-                if json_success is not True:
-                    resp_lower = resp_text.lower()
-                    if any(kw in resp_lower for kw in ["error", "fail", "invalid", "not found", "no table", "mach-err"]):
-                        return json.dumps(
-                            {
-                                "status": "validation_failed",
-                                "message": "TQL response contains error indicators. File NOT saved.",
-                                "error": resp_text[:500],
-                            },
-                            indent=2, ensure_ascii=False,
-                        )
+                # ── 키워드 fallback (mach-err 포함) ──
+                resp_lower = resp_text.lower()
+                if any(kw in resp_lower for kw in ["error", "fail", "invalid", "not found", "no table", "mach-err"]):
+                    return json.dumps(
+                        {
+                            "status": "validation_failed",
+                            "message": "TQL response contains error indicators. File NOT saved.",
+                            "error": resp_text[:500],
+                        },
+                        indent=2, ensure_ascii=False,
+                    )
 
                 # ── CHART TQL: SQL 직접 실행으로 이중 검증 ──
                 if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
@@ -2196,7 +2320,7 @@ async def save_tql_file(
         # ── CHART validation: use validate_chart_tql for CHART() scripts ──
         if re.search(r'CHART\s*\(', tql_content, re.IGNORECASE):
             try:
-                chart_report = await _validate_chart_tql(tql_content, auto_fix=True, host=host, port=port)
+                chart_report = await validate_chart_tql.fn(tql_content, auto_fix=True, host=host, port=port)
                 if "STATUS: NO_DATA" in chart_report:
                     return json.dumps(
                         {
@@ -2241,26 +2365,8 @@ async def save_tql_file(
                             if js_resp.status_code == 200:
                                 js_content = js_resp.text
 
-                                # JS 파일 크기 체크 (빈 차트)
-                                if len(js_content) < 500:
-                                    return json.dumps(
-                                        {
-                                            "status": "validation_failed",
-                                            "message": "CHART JS too small - likely empty chart. File NOT saved.",
-                                        },
-                                        indent=2, ensure_ascii=False,
-                                    )
-
-                                # 숫자 데이터 존재 확인
+                                # 숫자 목록 — ns 시간 변환 누락 감지용 · 데이터 유무는 위 SQL 실행 결과로 판단
                                 numbers = re.findall(r'[-+]?\d+\.?\d*(?:e[-+]?\d+)?', js_content)
-                                if len(numbers) < 10:
-                                    return json.dumps(
-                                        {
-                                            "status": "validation_failed",
-                                            "message": "CHART has insufficient data points. File NOT saved.",
-                                        },
-                                        indent=2, ensure_ascii=False,
-                                    )
 
                                 # undefined/NaN 감지
                                 if 'undefined' in js_content or 'NaN' in js_content.replace('name', '').replace('Name', ''):
@@ -2392,7 +2498,7 @@ async def list_dashboards(
     Returns a list of existing dashboard (.dsh) files.
     """
     try:
-        # 하위 폴더까지 순회 · .dsh 파일만 수집
+        # 하위 폴더까지 실제 .dsh 파일 조회 — 대시보드는 폴더 안에 저장됨
         pending = [""]
         dashboards = []
         while pending:
@@ -3155,8 +3261,8 @@ async def list_available_documents() -> str:
         result += "**Usage examples**:\n"
         result += "• `get_full_document_content('installation/installation.md')` - Installation guide\n"
         result += "• `get_full_document_content('operations/service-linux.md')` - Service management\n"
-        result += "• `extract_code_blocks('tql/tql_guide.md', 'tql')` - TQL code examples\n"
-        result += "• `get_document_sections('sql/sql_guide.md', 'SELECT')` - SQL sections\n\n"
+        result += "• `extract_code_blocks('tql/tql-guide.md', 'js')` - TQL code examples\n"
+        result += "• `get_document_sections('sql/sql-guide.md', 'SELECT')` - SQL sections\n\n"
         result += "**IMPORTANT - dbms/ folder policy**:\n"
         result += "The dbms/ folder contains low-level DBMS internals.\n"
         result += "Only search dbms/ folder when:\n"
@@ -3194,7 +3300,7 @@ async def get_full_document_content(file_identifier: str) -> str:
     - Document examples may be outdated - always validate before providing
 
     Args:
-        file_identifier: relative path (e.g., "sql/rollup.md")
+        file_identifier: relative path (e.g., "sql/sql-rollup.md")
     """
     global document_extractor
 
@@ -3517,4 +3623,18 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
 
-    mcp.run()
+    transport = os.environ.get("MCP_TRANSPORT", "stdio").strip().lower()
+    if transport not in {"stdio", "streamable-http", "sse"}:
+        raise SystemExit("MCP_TRANSPORT must be stdio, streamable-http, or sse")
+    if transport == "stdio":
+        mcp.run(transport="stdio")
+    else:
+        host = os.environ.get("MCP_HOST", "0.0.0.0")
+        try:
+            port = int(os.environ.get("MCP_PORT", "8000"))
+            if not 1 <= port <= 65535:
+                raise ValueError("port out of range")
+        except ValueError:
+            raise SystemExit("MCP_PORT must be an integer between 1 and 65535")
+        mcp.run(transport=transport, host=host, port=port,
+                path="/mcp" if transport == "streamable-http" else "/sse")
